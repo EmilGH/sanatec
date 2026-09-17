@@ -1,0 +1,7 @@
+SANATEC DIVING WEBSITE
+
+Upload index.html and the assets folder together to your website public folder (often public_html or www). Keep the folder structure intact. No PHP, build process, database, fonts, scripts, or external libraries are required.
+
+Edit text and prices directly in index.html. All contact buttons use +52 984 106 3306. WhatsApp and SMS open the visitor's messaging service; delivery is not handled by this site.
+
+The adventure table preserves the source columns (1st, 2nd, 3rd dive) without assuming whether these are cumulative package prices. Confirm this wording before publishing if needed. Divemaster PM is displayed as Ask for pricing. Original supplied guides are linked from each section.
