@@ -1,0 +1,66 @@
+# SanaTec Diving — Apache configuration.
+#
+# The site is a git checkout published in place, so the document root contains
+# things that must never be served: the repository itself, the PHP library, the
+# templates and the SQL. Each is blocked here, and each library file also
+# refuses to execute on its own, because one layer of protection for a
+# world-readable document root is not enough.
+
+# DirectoryIndex is deliberately left at the Apache default (index.html first)
+# until the database-backed page has been checked on this server. Switching the
+# site over is a one-line change, made in its own commit.
+# DirectoryIndex index.php index.html
+
+# ---------------------------------------------------------------------------
+# Never serve these
+# ---------------------------------------------------------------------------
+
+# Without this the full repository, including its history, can usually be
+# reconstructed over HTTP. 404 rather than 403, so the response does not
+# confirm the directory exists.
+RedirectMatch 404 "^/\.git(/|$)"
+
+# Application code, templates, schema and scripts.
+RedirectMatch 404 "^/(src|templates|db|bin)(/|$)"
+
+# Local development configuration, if one is ever left behind.
+RedirectMatch 404 "^/config\.local\.php$"
+
+<FilesMatch "\.(sql|md|log|bak|dist|ini)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(UPLOAD\.txt|composer\.(json|lock))$">
+    Require all denied
+</FilesMatch>
+
+# ---------------------------------------------------------------------------
+# Routing
+# ---------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Spanish edition. English is served from the document root.
+    RewriteRule ^es/?$ index.php?lang=es [L,QSA]
+
+    # The sitemap is generated, so search engines always see current content.
+    RewriteRule ^sitemap\.xml$ sitemap.php [L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# Headers and compression
+# ---------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+
+    # The price guide images change only when prices do.
+    <FilesMatch "\.(jpe?g|png|gif|svg|webp|ico|woff2?)$">
+        Header set Cache-Control "public, max-age=2592000"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml
+    AddOutputFilterByType DEFLATE application/xml application/xhtml+xml application/ld+json
+</IfModule>

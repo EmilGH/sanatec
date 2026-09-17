@@ -1,7 +1,59 @@
 SANATEC DIVING WEBSITE
 
-Upload index.html and the assets folder together to your website public folder (often public_html or www). Keep the folder structure intact. No PHP, build process, database, fonts, scripts, or external libraries are required.
+The site is a small PHP application backed by MySQL. The courses, the cenote
+prices and most of the text on the page all come from the database and are
+edited at /admin/ — not by editing files.
 
-Edit text and prices directly in index.html. All contact buttons use +52 984 106 3306. WhatsApp and SMS open the visitor's messaging service; delivery is not handled by this site.
+WHAT GOES WHERE
 
-The adventure table preserves the source columns (1st, 2nd, 3rd dive) without assuming whether these are cumulative package prices. Confirm this wording before publishing if needed. Divemaster PM is displayed as Ask for pricing. Original supplied guides are linked from each section.
+Upload the whole repository to the website's public folder (often public_html,
+www, or /var/www/sanatecdiving.com). Keep the folder structure intact. The
+.htaccess file is required: it blocks the source directories, and without it
+the PHP library, the SQL schema and the git repository become downloadable.
+
+Requirements: PHP 8.1 or newer with the pdo_mysql and mbstring extensions,
+MySQL 5.7 or newer, and Apache with mod_rewrite and AllowOverride All.
+
+FIRST-TIME SETUP
+
+1. Create a database and a user for it.
+
+2. Create a config file OUTSIDE the public folder, at
+   /var/www/private/sanatecdiving/config.php, returning:
+
+       <?php
+       return [
+           'db' => ['host' => '127.0.0.1', 'port' => 3306,
+                    'name' => 'sanatec', 'user' => '...', 'pass' => '...'],
+           'base_url' => 'https://sanatecdiving.com',
+       ];
+
+   Keep it out of the public folder. Anything inside it can be served.
+
+3. Run:  php bin/install.php owner
+
+   This creates the tables, loads the courses and cenotes, and prints a
+   generated admin password once. Sign in at /admin/ and change it.
+
+EDITING
+
+Everything is at /admin/: courses, cenote routes, prices, certifications,
+opening hours, address, what is and is not included, and the text of the page
+in both English and Spanish. Saving publishes immediately; there is no build
+step and nothing to upload.
+
+The contact number is now stored in one place (Site content > Contact details)
+and every WhatsApp, SMS and telephone link on both language pages uses it.
+
+NOTES
+
+Prices are Mexican pesos. Leave a price blank to show "Ask for pricing" for a
+course, or a dash for a cenote route not sold with that number of dives.
+
+The three cenote price columns are the TOTAL price for a trip of that many
+dives, not the cost of each additional dive. Confirm this matches how the shop
+actually sells them before advertising it widely.
+
+The original supplied guides are still linked from each section and are still
+the thing to update when prices change, so the images and the website do not
+tell visitors two different stories.

@@ -1,0 +1,7 @@
+# Local development configuration. The real one lives outside the document root
+# at /var/www/private/sanatecdiving/config.php and is never committed.
+config.local.php
+
+# Editor and OS noise
+.DS_Store
+*.swp
