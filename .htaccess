@@ -6,10 +6,7 @@
 # refuses to execute on its own, because one layer of protection for a
 # world-readable document root is not enough.
 
-# DirectoryIndex is deliberately left at the Apache default (index.html first)
-# until the database-backed page has been checked on this server. Switching the
-# site over is a one-line change, made in its own commit.
-# DirectoryIndex index.php index.html
+DirectoryIndex index.php
 
 # ---------------------------------------------------------------------------
 # Never serve these
