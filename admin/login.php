@@ -19,20 +19,42 @@ if (!preg_match('#^/[A-Za-z0-9._/?=&%-]*$#', $next) || str_starts_with($next, '/
 $error = null;
 $pending = $_SESSION['login_pending'] ?? null;   // ['token_id', 'transport', 'to', 'can_email', 'identifier']
 
-// A one-time link from bin/login-link.php or an email.
-if (isset($_GET['t'])) {
-    $person = login_with_link((string) $_GET['t'], true);
-    if ($person !== null) {
-        unset($_SESSION['login_pending']);
-        audit('login', 'session', $person['id'], 'via link');
-        redirect($next);
+// A one-time link from bin/login-link.php, the Team page or an email.
+//
+// The link is only LOOKED AT on GET. Mail scanners and chat previews fetch
+// every URL they see; if fetching consumed the link, the scanner would sign in
+// and the person would find it dead. The button below POSTs, and that is the
+// only thing that spends it.
+$linkToken = null;
+$rawLink = (string) ($_GET['t'] ?? $_POST['t'] ?? '');
+if ($rawLink !== '') {
+    $linkToken = login_link_peek($rawLink);
+    if ($linkToken === null && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+        $error = 'That link has expired or was already used. Ask for a new one.';
     }
-    $error = 'That link has expired or was already used. Ask for a new one.';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $step = post('step');
+
+    if ($step === 'confirm_link') {
+        $person = login_with_link($rawLink, isset($_POST['remember']));
+        if ($person !== null) {
+            unset($_SESSION['login_pending']);
+            audit('login', 'session', $person['id'], 'via link');
+            redirect($next);
+        }
+        $error = 'That link has expired or was already used. Ask for a new one.';
+        $linkToken = null;
+    }
+
+    if ($step === 'reject_link') {
+        login_link_reject($rawLink);
+        audit('login_link_rejected', 'session', $linkToken['person_id'] ?? '', 'link rejected by recipient');
+        $linkToken = null;
+        $error = 'That link has been cancelled. If you did not ask for it, nothing else is needed.';
+    }
 
     if ($step === 'begin' || $step === 'email_instead') {
         $identifier = $step === 'email_instead' ? (string) ($pending['identifier'] ?? '') : post('identifier');
@@ -79,7 +101,33 @@ shell_start('Sign in');
   <div class="col-12 col-sm-8 col-md-6 col-lg-4 mt-4">
     <h1 class="h3 mb-1">Sign in</h1>
 
-    <?php if ($pending === null): ?>
+    <?php if ($linkToken !== null): ?>
+      <p class="text-secondary mb-4">Confirm it's you before we sign you in.</p>
+      <?php if ($error): ?><div class="alert alert-warning"><?= e($error) ?></div><?php endif; ?>
+      <div class="card"><div class="card-body">
+        <p class="mb-1 text-secondary small">Signing in as</p>
+        <p class="fs-5 fw-semibold mb-3"><i class="fa-solid fa-user text-aqua me-2"></i><?= e($linkToken['person_name']) ?></p>
+        <form method="post">
+          <?= csrf_field() ?>
+          <input type="hidden" name="step" value="confirm_link">
+          <input type="hidden" name="t" value="<?= e($rawLink) ?>">
+          <input type="hidden" name="next" value="<?= e($next) ?>">
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="remember" name="remember" value="1" checked>
+            <label class="form-check-label" for="remember">Remember this device for <?= REMEMBER_DEVICE_DAYS ?> days</label>
+          </div>
+          <button class="btn btn-aqua btn-lg w-100" type="submit"><i class="fa-solid fa-right-to-bracket me-2"></i>Yes, sign me in</button>
+        </form>
+        <form method="post" class="mt-3 text-center">
+          <?= csrf_field() ?>
+          <input type="hidden" name="step" value="reject_link">
+          <input type="hidden" name="t" value="<?= e($rawLink) ?>">
+          <button class="btn btn-link btn-sm text-secondary" type="submit">That wasn't me — cancel this link</button>
+        </form>
+      </div></div>
+      <p class="text-secondary small mt-3">This page does nothing until you press the button, so a link opened by a mail scanner or a chat preview stays usable.</p>
+
+    <?php elseif ($pending === null): ?>
       <p class="text-secondary mb-4">Enter your email or mobile number. We'll send you a code — no password.</p>
       <?php if ($error): ?><div class="alert alert-warning"><?= e($error) ?></div><?php endif; ?>
       <form method="post" class="card"><div class="card-body">

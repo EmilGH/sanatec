@@ -232,8 +232,15 @@ function login_verify(int $tokenId, string $code, bool $remember = false): ?arra
     return login_complete($token, $remember);
 }
 
-/** A one-time link: "<id>.<secret>". Returns the person on success. */
-function login_with_link(string $raw, bool $remember = false): ?array
+/**
+ * Look at a one-time link without spending it. Returns the token row with
+ * the person's name, or null if the link is malformed, spent or expired.
+ *
+ * A GET on a sign-in link must never consume it: mail scanners, Safe Links
+ * and chat previews all fetch URLs before a human sees them. The page shows
+ * a confirmation and only a POST from its button calls login_with_link().
+ */
+function login_link_peek(string $raw): ?array
 {
     if (preg_match('/^(\d+)\.([a-f0-9]{64})$/', $raw, $m) !== 1) {
         return null;
@@ -248,7 +255,30 @@ function login_with_link(string $raw, bool $remember = false): ?array
         return null;
     }
 
-    return login_complete($token, $remember);
+    $person = person_find((int) $token['person_id']);
+    if ($person === null) {
+        return null;
+    }
+    $token['person_name'] = $person['name'];
+
+    return $token;
+}
+
+/** A one-time link: "<id>.<secret>". Consumes it and returns the person on success. */
+function login_with_link(string $raw, bool $remember = false): ?array
+{
+    $token = login_link_peek($raw);
+
+    return $token === null ? null : login_complete($token, $remember);
+}
+
+/** Kill a link that reached the wrong hands: "That wasn't me". */
+function login_link_reject(string $raw): void
+{
+    $token = login_link_peek($raw);
+    if ($token !== null) {
+        db()->prepare('UPDATE login_tokens SET consumed_at = NOW(), attempts = 99 WHERE id = :id')->execute([':id' => $token['id']]);
+    }
 }
 
 /** Issue a one-time sign-in link for a channel. Returns the absolute URL. */

@@ -109,11 +109,26 @@ test('a one-time link signs in exactly once', function (): void {
     has('/admin/login.php?t=', $url);
     $raw = substr($url, strpos($url, 't=') + 2);
 
+    // Looking at a link — what a mail scanner's GET does — must not spend it.
+    for ($i = 0; $i < 3; $i++) {
+        is_same($p['name'], login_link_peek($raw)['person_name'], 'peeking is free');
+    }
+    is_same(null, login_token_find((int) explode('.', $raw)[0])['consumed_at'], 'still unspent after three looks');
+
     $_SESSION = [];
     is_same($p['id'], login_with_link($raw)['id']);
     $_SESSION = [];
     is_same(null, login_with_link($raw), 'a link works once');
     is_same(null, login_with_link('1.' . str_repeat('0', 64)), 'a forged link is refused');
+});
+
+test('"that wasn\'t me" kills a link', function (): void {
+    $p = make_diver('a7b');
+    $cid = (int) db()->query("SELECT id FROM contact_channels WHERE person_id = {$p['id']} AND kind = 'email'")->fetchColumn();
+    $raw = substr(login_issue_link((int) $p['id'], $cid), strlen('https://sanatecdiving.com/admin/login.php?t='));
+    login_link_reject($raw);
+    is_same(null, login_link_peek($raw));
+    is_same(null, login_with_link($raw));
 });
 
 test('too many code requests from one address lock it out', function (): void {
