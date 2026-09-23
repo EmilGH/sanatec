@@ -163,7 +163,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
       <div class="col-12 col-md-3"><label class="form-label small">As the card says</label><input class="form-control" name="level" placeholder="optional — e.g. Advanced Open Water Diver"></div>
       <div class="col-6 col-md-2"><label class="form-label small">Number</label><input class="form-control" name="number"></div>
       <div class="col-6 col-md-2"><label class="form-label small">Issued</label><input class="form-control" type="date" name="issued_on"></div>
-      <div class="col-12 col-md-1 d-flex gap-2 align-items-center">
+      <div class="col-12 col-md-auto d-flex gap-2 align-items-center ms-md-auto">
         <div class="form-check"><input class="form-check-input" type="checkbox" id="cert_verified" name="verified" value="1"><label class="form-check-label small" for="cert_verified">Seen</label></div>
         <button class="btn btn-sm btn-aqua ms-auto" type="submit">Add</button>
       </div>
@@ -187,7 +187,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
       <div class="col-6 col-md-2"><label class="form-label small">Relationship</label><input class="form-control" name="relationship" placeholder="spouse, parent"></div>
       <div class="col-6 col-md-3"><label class="form-label small">Phone</label><input class="form-control" name="phone" placeholder="+1…" required></div>
       <div class="col-12 col-md-3"><label class="form-label small">Email</label><input class="form-control" name="email"></div>
-      <div class="col-12 col-md-1 d-flex gap-2 align-items-center">
+      <div class="col-12 col-md-auto d-flex gap-2 align-items-center ms-md-auto">
         <div class="form-check"><input class="form-check-input" type="checkbox" id="ec_primary" name="is_primary" value="1"><label class="form-check-label small" for="ec_primary">Primary</label></div>
         <button class="btn btn-sm btn-aqua ms-auto" type="submit">Add</button>
       </div>

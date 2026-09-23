@@ -223,7 +223,7 @@ function team_credentials_card(int $teamId): void
         <div class="col-12 col-md-3"><label class="form-label small">Title</label><input class="form-control" name="title" placeholder="Open Water Scuba Instructor" required></div>
         <div class="col-6 col-md-2"><label class="form-label small">Number</label><input class="form-control" name="number"></div>
         <div class="col-6 col-md-2" id="cred-expiry"><label class="form-label small">Expiration</label><input class="form-control" type="date" name="expires_on"></div>
-        <div class="col-12 col-md-1 d-flex gap-2 align-items-center">
+        <div class="col-12 col-md-auto d-flex gap-2 align-items-center ms-md-auto">
           <div class="form-check"><input class="form-check-input" type="checkbox" id="cr_verified" name="verified" value="1"><label class="form-check-label small" for="cr_verified">Seen</label></div>
           <button class="btn btn-sm btn-aqua ms-auto" type="submit">Add</button>
         </div>
