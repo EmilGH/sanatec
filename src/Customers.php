@@ -126,7 +126,10 @@ function customer_save(?int $id, array $in): int
     ];
 
     $pdo = db();
-    $pdo->beginTransaction();
+    $own = !$pdo->inTransaction();       // join an outer transaction if there is one
+    if ($own) {
+        $pdo->beginTransaction();
+    }
     try {
         if ($existing === null) {
             $personId = person_create((string) ($in['name'] ?? ''), $in);
@@ -141,9 +144,13 @@ function customer_save(?int $id, array $in): int
             $fields['id'] = $id;
             $pdo->prepare("UPDATE customers SET {$set} WHERE id = :id")->execute($fields);
         }
-        $pdo->commit();
+        if ($own) {
+            $pdo->commit();
+        }
     } catch (Throwable $e) {
-        $pdo->rollBack();
+        if ($own) {
+            $pdo->rollBack();
+        }
         throw $e;
     }
 

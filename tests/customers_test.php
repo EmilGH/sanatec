@@ -92,3 +92,10 @@ test('notes are attributed and append-only; archiving hides a customer', functio
     is_same(0, count(customers_search('Notes Test')));
     is_same(null, customer_find($id));
 });
+
+test('customer_save joins an outer transaction instead of failing on it', function (): void {
+    db()->beginTransaction();
+    $id = customer_save(null, ['name' => 'Nested Tx', 'date_of_birth' => '1991-01-01']);
+    db()->commit();
+    is_same('1991-01-01', customer_find($id)['date_of_birth']);
+});

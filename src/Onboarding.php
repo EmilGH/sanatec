@@ -154,7 +154,10 @@ function form_sign(array $customer, array $template, array $answers, string $typ
     $expires = $template['validity_days'] ? date('Y-m-d', strtotime('+' . (int) $template['validity_days'] . ' days')) : null;
 
     $pdo = db();
-    $pdo->beginTransaction();
+    $own = !$pdo->inTransaction();       // join an outer transaction if there is one
+    if ($own) {
+        $pdo->beginTransaction();
+    }
     try {
         $pdo->prepare(
             'INSERT INTO form_submissions
@@ -178,9 +181,13 @@ function form_sign(array $customer, array $template, array $answers, string $typ
                 ->execute([':s' => $submissionId, ':c' => $customer['id'], ':o' => $result['outcome'], ':f' => json_encode($result['flagged'])]);
         }
 
-        $pdo->commit();
+        if ($own) {
+            $pdo->commit();
+        }
     } catch (Throwable $e) {
-        $pdo->rollBack();
+        if ($own) {
+            $pdo->rollBack();
+        }
         throw $e;
     }
 

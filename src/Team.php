@@ -156,7 +156,10 @@ function team_save(?int $teamId, array $in, array $actor): int
     }
 
     $pdo = db();
-    $pdo->beginTransaction();
+    $own = !$pdo->inTransaction();       // join an outer transaction if there is one
+    if ($own) {
+        $pdo->beginTransaction();
+    }
     try {
         if ($existing === null) {
             $personId = person_create((string) ($in['name'] ?? ''), $in);
@@ -205,9 +208,13 @@ function team_save(?int $teamId, array $in, array $actor): int
             $pdo->prepare("UPDATE team_members SET {$set} WHERE id = :id")->execute($fields);
         }
 
-        $pdo->commit();
+        if ($own) {
+            $pdo->commit();
+        }
     } catch (Throwable $e) {
-        $pdo->rollBack();
+        if ($own) {
+            $pdo->rollBack();
+        }
         throw $e;
     }
 
