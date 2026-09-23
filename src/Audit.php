@@ -16,9 +16,10 @@ if (!defined('SANATEC')) {
 function audit(string $action, string $entity, string|int $entityId = '', string $summary = ''): void
 {
     db()->prepare(
-        'INSERT INTO audit_log (admin_user, action, entity, entity_id, summary, ip)
-         VALUES (:u, :a, :e, :eid, :s, :ip)'
+        'INSERT INTO audit_log (person_id, admin_user, action, entity, entity_id, summary, ip)
+         VALUES (:pid, :u, :a, :e, :eid, :s, :ip)'
     )->execute([
+        ':pid' => isset($_SESSION['person_id']) ? (int) $_SESSION['person_id'] : null,
         ':u'   => (string) ($_SESSION['username'] ?? 'system'),
         ':a'   => $action,
         ':e'   => $entity,

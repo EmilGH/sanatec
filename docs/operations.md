@@ -107,6 +107,23 @@ sudo mysql -e "SELECT val_en FROM sanatec_restore.settings WHERE skey='addr_loca
 
 Rehearse this occasionally. A backup nobody has restored is a hypothesis.
 
+## Signing in when mail is down
+
+There are no passwords. If no message can be delivered — provider outage,
+misconfiguration, first install — issue a one-time link from the server:
+
+```sh
+sudo -u www-data php bin/login-link.php emil@rensing.com --minutes 30
+```
+
+It works once and expires. Treat it like a password while it lives.
+
+Queued messages that are not sign-in codes are delivered by cron:
+
+```
+* * * * * www-data php /var/www/sanatecdiving.com/bin/send-messages.php
+```
+
 ## Deploying
 
 The document root **is** the git checkout, so deploying is a pull:

@@ -146,7 +146,9 @@ function test_db_reset(): string
     // so the next db() call connects to the test database.
     $config = cfg_all();
     $config['db']['name'] = $name;
+    $config['mail_transport'] = 'log';   // nothing leaves the box during a test run
     cfg_all($config);
+    ini_set('error_log', sys_get_temp_dir() . '/sanatec-tests.log');   // keep the log transport out of the report
     db(true);
 
     migrator_run();

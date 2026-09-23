@@ -9,7 +9,7 @@ declare(strict_types=1);
  * INSERT IGNORE, so running it again will not overwrite prices the shop has
  * since edited.
  *
- *   php bin/install.php [username]
+ *   php bin/install.php
  */
 
 if (PHP_SAPI !== 'cli') {
@@ -19,7 +19,6 @@ if (PHP_SAPI !== 'cli') {
 
 defined('SANATEC') || define('SANATEC', true);
 require_once __DIR__ . '/../src/bootstrap.php';
-require_once __DIR__ . '/../src/Auth.php';
 require_once __DIR__ . '/../src/Migrator.php';
 
 $pdo = db();
@@ -45,35 +44,6 @@ foreach (['courses', 'routes', 'settings'] as $table) {
 }
 echo "Rows: courses={$counts['courses']} routes={$counts['routes']} settings={$counts['settings']}\n\n";
 
-$username = $argv[1] ?? 'owner';
-$exists = $pdo->prepare('SELECT id FROM admin_users WHERE username = :u');
-$exists->execute([':u' => $username]);
-
-if ($exists->fetchColumn() !== false) {
-    echo "Admin user '{$username}' already exists — password left unchanged.\n";
-    exit(0);
-}
-
-// A generated passphrase: long enough to be safe, short enough to retype once.
-$words = ['cenote', 'halocline', 'sidemount', 'angelita', 'dreamgate', 'stalactite',
-          'nitrox', 'chikinha', 'yaakun', 'ponderosa', 'carwash', 'manatee'];
-$password = implode('-', [
-    $words[random_int(0, count($words) - 1)],
-    $words[random_int(0, count($words) - 1)],
-    $words[random_int(0, count($words) - 1)],
-    (string) random_int(100, 999),
-]);
-
-$pdo->prepare(
-    'INSERT INTO admin_users (username, password_hash, display_name, must_change_password)
-     VALUES (:u, :h, :d, 1)'
-)->execute([
-    ':u' => $username,
-    ':h' => password_hash($password, PASSWORD_DEFAULT),
-    ':d' => 'SanaTec Diving',
-]);
-
-echo "Created admin user.\n\n";
-echo "  username: {$username}\n";
-echo "  password: {$password}\n\n";
-echo "This is the only time the password is shown. Sign in at /admin/ and change it.\n";
+echo "Next: set the System Administrator's identity and contact channels:\n";
+echo "  php bin/sysadmin.php --name \"Full Name\" --email you@example.com --mobile +1... [--whatsapp]\n";
+echo "Then sign in at /admin/ with a code, or issue a link: php bin/login-link.php you@example.com\n";

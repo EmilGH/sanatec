@@ -5,8 +5,8 @@ declare(strict_types=1);
 /**
  * Shared admin bootstrap.
  *
- * Every admin page requires this first. Pages that must be reachable while
- * signed out (the login form) define ADMIN_PUBLIC before requiring it.
+ * Every admin page requires this first. Pages reachable while signed out (the
+ * login form) define ADMIN_PUBLIC before requiring it.
  */
 
 defined('SANATEC') || define('SANATEC', true);

@@ -98,7 +98,6 @@ textarea{min-height:92px;resize:vertical;line-height:1.5}
   </nav>
   <div class="right">
     <a href="/" target="_blank" rel="noopener">View site ↗</a>
-    <a href="/admin/password.php">Password</a>
     <a href="/admin/logout.php">Log out</a>
   </div>
   <?php endif; ?>
@@ -162,4 +161,104 @@ function field_price(string $name, string $label, array $row, string $help = '')
       <?php if ($help !== ''): ?><p class="help"><?= e($help) ?></p><?php endif; ?>
     </div>
     <?php
+}
+
+// ===========================================================================
+// The Bootstrap shell. New pages use this; the catalogue pages above keep the
+// older layout until the Catalog section is rebuilt, so the two do not share
+// class names on one page.
+// ===========================================================================
+
+/** The admin's sections, in nav order, with the permission each needs. */
+function admin_sections(): array
+{
+    return [
+        ['Overview',   '/admin/',              'fa-gauge',         null,                    true],
+        ['Customers',  '/admin/customers/',    'fa-users',         'can_manage_customers',  false],
+        ['Excursions', '/admin/excursions/',   'fa-water',         'can_manage_excursions', false],
+        ['Training',   '/admin/training/',     'fa-graduation-cap','can_manage_training',   false],
+        ['Catalog',    '/admin/courses.php',   'fa-tags',          'can_manage_catalog',    true],
+        ['Business',   '/admin/settings.php',  'fa-store',         'can_manage_catalog',    true],
+        ['Team',       '/admin/team/',         'fa-id-badge',      'can_manage_team',       false],
+    ];
+}
+
+function shell_start(string $title, ?array $user = null): void
+{
+    $current = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
+    $business = setting('business_name') ?: 'SanaTec Diving';
+    ?><!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#061e27">
+<title><?= e($title) ?> · <?= e($business) ?></title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<style>
+:root{--st-bg:#061e27;--st-panel:#0b2a35;--st-aqua:#55dce0;--st-line:#274650;--st-muted:#a9c2c8}
+[data-bs-theme=dark]{--bs-body-bg:var(--st-bg);--bs-body-color:#f1f8f7;--bs-secondary-color:var(--st-muted);--bs-border-color:var(--st-line)}
+.navbar{background:var(--st-panel);border-bottom:1px solid var(--st-line)}
+.navbar-brand{font-weight:700;letter-spacing:-.5px}.navbar-brand span{color:var(--st-aqua)}
+.nav-link.active{color:var(--st-aqua)!important}
+.card{background:var(--st-panel);border-color:var(--st-line)}
+.btn-aqua{background:var(--st-aqua);border-color:var(--st-aqua);color:#06232b;font-weight:600}
+.btn-aqua:hover{background:#8af1ee;border-color:#8af1ee;color:#06232b}
+.text-aqua{color:var(--st-aqua)!important}
+.form-control,.form-check-input{background:var(--st-bg);border-color:var(--st-line);color:#f1f8f7}
+.form-control:focus{border-color:var(--st-aqua);box-shadow:0 0 0 .2rem rgba(85,220,224,.25);background:var(--st-bg);color:#f1f8f7}
+.code-input{font-size:2rem;letter-spacing:.5em;text-align:center;font-variant-numeric:tabular-nums}
+.stat{font-size:2rem;font-weight:600;line-height:1.1}
+.soon{opacity:.45}
+</style>
+</head>
+<body data-bs-theme="dark">
+<?php if ($user !== null): ?>
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/admin/">SanaTec<span>Admin</span></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto">
+        <?php foreach (admin_sections() as [$label, $href, $icon, $perm, $built]):
+            if ($perm !== null && !can($perm, $user)) continue;
+            $active = $href === $current || ($href !== '/admin/' && str_starts_with($current, rtrim($href, '/')));
+        ?>
+        <li class="nav-item">
+          <a class="nav-link <?= $active ? 'active' : '' ?> <?= $built ? '' : 'soon' ?>" href="<?= $built ? e($href) : '#' ?>"
+             <?= $built ? '' : 'title="Not built yet" tabindex="-1" aria-disabled="true"' ?>>
+            <i class="fa-solid <?= e($icon) ?> fa-fw me-1"></i><?= e($label) ?>
+          </a>
+        </li>
+        <?php endforeach; ?>
+      </ul>
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="/" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square fa-fw me-1"></i>Site</a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/logout.php"><i class="fa-solid fa-right-from-bracket fa-fw me-1"></i><?= e($user['name']) ?></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<?php endif; ?>
+<main class="container-fluid py-4" style="max-width:1100px">
+<?php foreach (take_flashes() as $f): ?>
+  <div class="alert alert-<?= $f['kind'] === 'warn' ? 'warning' : 'success' ?> alert-dismissible" role="alert">
+    <?= e($f['message']) ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+<?php endforeach;
+}
+
+function shell_end(): void
+{
+    ?>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+<?php
 }

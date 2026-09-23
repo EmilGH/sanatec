@@ -20,7 +20,7 @@ anyone opening a text editor.
 - **Cenote adventures:** eleven route listings, with dive-package prices and certification requirements.
 - **Two languages:** English at `/` and Spanish at `/es/`, with `hreflang` alternates, a language
   switcher, and a fallback to English wherever a Spanish translation has not been written yet.
-- **An owner's admin at `/admin/`:** add, edit, reorder, hide and delete courses and cenote routes;
+- **A team admin at `/admin/`, passwordless:** sign in with a code sent by WhatsApp, SMS or email. add, edit, reorder, hide and delete courses and cenote routes;
   edit the address, opening hours, what is and is not included, and every piece of text on the page,
   in both languages. Saving publishes immediately. There is no build step and nothing to upload.
 - **One contact number:** stored once, used by every WhatsApp, SMS and telephone link on both pages.
@@ -172,13 +172,21 @@ return [
 ];
 ```
 
-Then create the tables, load the catalogue and make yourself an admin user:
+Then create the tables, load the catalogue, and make yourself the administrator:
 
 ```sh
-php bin/install.php owner
+php bin/install.php
+php bin/sysadmin.php --name "Your Name" --email you@example.com --mobile +1... --whatsapp
 ```
 
-It prints a generated password once. Now serve it:
+There are no passwords. Signing in sends a code to a verified email or mobile;
+with no mail configured yet, issue a one-time link from the terminal instead:
+
+```sh
+php bin/login-link.php you@example.com
+```
+
+Now serve it:
 
 ```sh
 php -S 127.0.0.1:8765 -t . bin/router.php

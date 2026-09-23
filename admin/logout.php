@@ -6,7 +6,7 @@ define('ADMIN_PUBLIC', true);
 require __DIR__ . '/_init.php';
 
 if ($currentUser !== null) {
-    audit('logout', 'session');
+    audit('logout', 'session', $currentUser['id']);
 }
 
 logout();
