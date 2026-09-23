@@ -84,9 +84,9 @@ function person_find_by_channel(string $kind, ?string $raw): ?array
 
 function person_create(string $name, array $extra = []): int
 {
-    $fields = ['name' => trim($name)] + array_intersect_key($extra, array_flip([
-        'date_of_birth', 'nationality', 'preferred_language', 'timezone',
-    ]));
+    $fields = ['name' => trim($name)] + array_filter(array_intersect_key($extra, array_flip([
+        'date_of_birth', 'nationality', 'preferred_language', 'timezone', 'dan_number', 'dan_expires_on',
+    ])), static fn ($v): bool => $v !== '' && $v !== null);
 
     $cols = implode(', ', array_keys($fields));
     $params = implode(', ', array_map(static fn (string $k): string => ':' . $k, array_keys($fields)));
@@ -196,7 +196,7 @@ function channel_delete(int $personId, int $channelId): void
 /** Update the fields on a person that a form may change. */
 function person_update(int $id, array $in): void
 {
-    $allowed = ['name', 'date_of_birth', 'nationality', 'preferred_language', 'timezone'];
+    $allowed = ['name', 'date_of_birth', 'nationality', 'preferred_language', 'timezone', 'dan_number', 'dan_expires_on'];
     $fields = array_intersect_key($in, array_flip($allowed));
     if ($fields === []) {
         return;
@@ -204,8 +204,10 @@ function person_update(int $id, array $in): void
     if (isset($fields['name']) && trim((string) $fields['name']) === '') {
         throw new InvalidArgumentException('A person needs a name.');
     }
-    if (array_key_exists('date_of_birth', $fields) && $fields['date_of_birth'] === '') {
-        $fields['date_of_birth'] = null;
+    foreach (['date_of_birth', 'dan_expires_on', 'dan_number', 'nationality'] as $nullable) {
+        if (array_key_exists($nullable, $fields) && trim((string) $fields[$nullable]) === '') {
+            $fields[$nullable] = null;
+        }
     }
     if (isset($fields['timezone']) && !in_array($fields['timezone'], DateTimeZone::listIdentifiers(), true)) {
         throw new InvalidArgumentException('Unknown timezone.');

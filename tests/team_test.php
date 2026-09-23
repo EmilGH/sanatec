@@ -102,10 +102,23 @@ test('a team member keeps at least one channel', function (): void {
 test('credentials record expiry and who checked them', function (): void {
     db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
     $admin = make_admin('Root Admin');
-    $id = team_credential_save($admin, null, ['kind' => 'insurance', 'agency' => 'DAN', 'expires_on' => date('Y-m-d', strtotime('+30 days')), 'verified' => 1], $admin);
+    $id = team_credential_save($admin, null, ['kind' => 'professional', 'agency' => 'padi', 'title' => 'Open Water Scuba Instructor', 'expires_on' => date('Y-m-d', strtotime('+30 days')), 'verified' => 1], $admin);
     $c = team_credentials($admin)[0];
     is_same($id, (int) $c['id']);
+    is_same('PADI', $c['agency'], 'agency normalised to upper case');
     is_same(30, (int) $c['days_left']);
     is_same($admin, (int) $c['verified_by']);
-    throws(static fn () => team_credential_save($admin, null, ['kind' => 'nonsense'], $admin));
+    throws(static fn () => team_credential_save($admin, null, ['kind' => 'nonsense', 'agency' => 'PADI', 'title' => 'x'], $admin));
+    throws(static fn () => team_credential_save($admin, null, ['kind' => 'technical', 'agency' => 'SSI', 'title' => 'x', 'expires_on' => '2030-01-01'], $admin), 'unknown agency');
+});
+
+test('technical and professional credentials must expire; recreational must not', function (): void {
+    db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
+    $admin = make_admin('Root Admin');
+    throws(static fn () => team_credential_save($admin, null, ['kind' => 'technical', 'agency' => 'TDI', 'title' => 'Full Cave'], $admin),
+        'a technical rating without an expiry is refused');
+    $rec = team_credential_save($admin, null, ['kind' => 'recreational', 'agency' => 'NAUI', 'title' => 'Advanced', 'expires_on' => '2030-01-01'], $admin);
+    is_same(null, team_credentials($admin)[0]['expires_on'], 'an expiry on a recreational card is dropped');
+    // And the database agrees, whatever the code does.
+    throws(static fn () => db()->exec("UPDATE team_credentials SET expires_on = '2030-01-01' WHERE id = {$rec}"));
 });

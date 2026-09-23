@@ -35,10 +35,13 @@ const TEAM_PERMISSIONS = [
     'can_manage_team'       => 'Team',
 ];
 
-const CREDENTIAL_KINDS = [
-    'instructor' => 'Instructor rating', 'divemaster' => 'Divemaster', 'cave' => 'Cave diver',
-    'cavern' => 'Cavern diver', 'first_aid' => 'First aid / CPR', 'oxygen' => 'Oxygen provider',
-    'insurance' => 'Liability insurance', 'medical' => 'Dive medical', 'other' => 'Other',
+const CREDENTIAL_AGENCIES = ['NAUI', 'PADI', 'TDI'];
+
+/** Technical and professional ratings renew; recreational cards do not. */
+const CREDENTIAL_TYPES = [
+    'recreational' => 'Recreational',
+    'technical'    => 'Technical',
+    'professional' => 'Professional',
 ];
 
 /** Everyone on the team, with their primary channels, active first. */
@@ -246,16 +249,32 @@ function team_credentials(int $teamId): array
 
 function team_credential_save(int $teamId, ?int $credId, array $in, ?int $verifiedByTeamId = null): int
 {
-    if (!isset(CREDENTIAL_KINDS[$in['kind'] ?? ''])) {
+    $kind = (string) ($in['kind'] ?? '');
+    if (!isset(CREDENTIAL_TYPES[$kind])) {
         throw new InvalidArgumentException('Pick a credential type.');
     }
+    $agency = strtoupper(trim((string) ($in['agency'] ?? '')));
+    if (!in_array($agency, CREDENTIAL_AGENCIES, true)) {
+        throw new InvalidArgumentException('Pick an agency.');
+    }
+    $title = trim((string) ($in['title'] ?? ''));
+    if ($title === '') {
+        throw new InvalidArgumentException('Give the credential a title — what the card says.');
+    }
+    $expires = ($in['expires_on'] ?? '') !== '' ? (string) $in['expires_on'] : null;
+    if ($kind === 'recreational') {
+        $expires = null;                                   // recreational cards do not expire
+    } elseif ($expires === null) {
+        throw new InvalidArgumentException(CREDENTIAL_TYPES[$kind] . ' credentials need an expiration date.');
+    }
+
     $fields = [
-        'kind'          => $in['kind'],
-        'agency'        => trim((string) ($in['agency'] ?? '')) ?: null,
-        'title'         => trim((string) ($in['title'] ?? '')) ?: null,
+        'kind'          => $kind,
+        'agency'        => $agency,
+        'title'         => $title,
         'number'        => trim((string) ($in['number'] ?? '')) ?: null,
         'issued_on'     => ($in['issued_on'] ?? '') !== '' ? $in['issued_on'] : null,
-        'expires_on'    => ($in['expires_on'] ?? '') !== '' ? $in['expires_on'] : null,
+        'expires_on'    => $expires,
         'notes'         => trim((string) ($in['notes'] ?? '')) ?: null,
     ];
     if (!empty($in['verified']) && $verifiedByTeamId !== null) {

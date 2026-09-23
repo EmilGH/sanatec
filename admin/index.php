@@ -27,12 +27,16 @@ if ($missingEs > 0) {
 
 // Credentials lapsing within 60 days, or already lapsed.
 $expiring = db()->query(
-    'SELECT p.name, c.kind, c.title, c.expires_on, DATEDIFF(c.expires_on, CURDATE()) AS days
+    'SELECT p.name, c.kind, CONCAT(c.agency, " ", c.title) AS title, c.expires_on, DATEDIFF(c.expires_on, CURDATE()) AS days
      FROM team_credentials c
      JOIN team_members t ON t.id = c.team_member_id
      JOIN people p ON p.id = t.person_id
      WHERE c.expires_on IS NOT NULL AND c.expires_on <= DATE_ADD(CURDATE(), INTERVAL 60 DAY) AND t.is_active = 1
-     ORDER BY c.expires_on'
+     UNION ALL
+     SELECT p.name, "dan", "DAN membership", p.dan_expires_on, DATEDIFF(p.dan_expires_on, CURDATE())
+     FROM team_members t JOIN people p ON p.id = t.person_id
+     WHERE p.dan_expires_on IS NOT NULL AND p.dan_expires_on <= DATE_ADD(CURDATE(), INTERVAL 60 DAY) AND t.is_active = 1
+     ORDER BY expires_on'
 )->fetchAll();
 
 $recent = audit_recent(10);

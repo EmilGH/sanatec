@@ -37,6 +37,14 @@ function team_identity_card(array $row, bool $self): void
             <?php endforeach; ?>
           </select>
         </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="dan_number">DAN number</label>
+          <input class="form-control" id="dan_number" name="dan_number" value="<?= e((string) ($row['dan_number'] ?? '')) ?>">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="dan_expires_on">DAN expires</label>
+          <input class="form-control" type="date" id="dan_expires_on" name="dan_expires_on" value="<?= e((string) ($row['dan_expires_on'] ?? '')) ?>">
+        </div>
         <div class="col-12 col-md-6">
           <label class="form-label" for="timezone">Timezone</label>
           <select class="form-select form-control" id="timezone" name="timezone">
@@ -186,14 +194,14 @@ function team_credentials_card(int $teamId): void
       <p class="text-secondary small mb-3">The paperwork behind the roles. Anything with an expiry shows on the overview 60 days out.</p>
       <?php $creds = team_credentials($teamId); if ($creds !== []): ?>
       <div class="table-responsive"><table class="table table-sm align-middle mb-3">
-        <thead><tr><th>Type</th><th>Agency / title</th><th>Number</th><th>Expires</th><th></th></tr></thead><tbody>
+        <thead><tr><th>Agency</th><th>Type</th><th>Title</th><th>Number</th><th>Expiration</th><th></th></tr></thead><tbody>
         <?php foreach ($creds as $c): $days = $c['days_left']; ?>
           <tr class="<?= $days !== null && (int) $days < 0 ? 'table-danger' : ($days !== null && (int) $days <= 60 ? 'table-warning' : '') ?>">
-            <td><?= e(CREDENTIAL_KINDS[$c['kind']] ?? $c['kind']) ?></td>
-            <td><?= e(trim(($c['agency'] ?? '') . ' ' . ($c['title'] ?? ''))) ?></td>
+            <td><?= e($c['agency']) ?></td>
+            <td><?= e(CREDENTIAL_TYPES[$c['kind']] ?? $c['kind']) ?></td>
+            <td><?= e($c['title']) ?><?= $c['verified_at'] ? ' <i class="fa-solid fa-circle-check text-success" title="Verified against the original"></i>' : '' ?></td>
             <td class="text-secondary"><?= e((string) $c['number']) ?></td>
-            <td class="text-nowrap"><?= $c['expires_on'] ? e($c['expires_on']) . ' <span class="small text-secondary">(' . ((int) $days < 0 ? abs((int) $days) . 'd ago' : (int) $days . 'd') . ')</span>' : '<span class="text-secondary">—</span>' ?>
-              <?= $c['verified_at'] ? ' <i class="fa-solid fa-circle-check text-success" title="Verified against the original"></i>' : '' ?></td>
+            <td class="text-nowrap"><?= $c['expires_on'] ? e($c['expires_on']) . ' <span class="small text-secondary">(' . ((int) $days < 0 ? abs((int) $days) . 'd ago' : (int) $days . 'd') . ')</span>' : '<span class="text-secondary">does not expire</span>' ?></td>
             <td class="text-end text-nowrap">
               <form method="post" class="d-inline" onsubmit="return confirm('Delete this credential?')"><?= csrf_field() ?><input type="hidden" name="action" value="cred_delete"><input type="hidden" name="cred_id" value="<?= (int) $c['id'] ?>">
                 <button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-xmark"></i></button></form>
@@ -202,19 +210,29 @@ function team_credentials_card(int $teamId): void
         <?php endforeach; ?>
         </tbody></table></div>
       <?php endif; ?>
-      <form method="post" class="row g-2 align-items-end">
+      <form method="post" class="row g-2 align-items-end" id="cred-form">
         <?= csrf_field() ?><input type="hidden" name="action" value="cred_save">
+        <div class="col-6 col-md-2"><label class="form-label small">Agency</label>
+          <select class="form-select form-control" name="agency"><?php foreach (CREDENTIAL_AGENCIES as $a): ?><option value="<?= e($a) ?>"><?= e($a) ?></option><?php endforeach; ?></select></div>
         <div class="col-6 col-md-2"><label class="form-label small">Type</label>
-          <select class="form-select form-control" name="kind"><?php foreach (CREDENTIAL_KINDS as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
-        <div class="col-6 col-md-2"><label class="form-label small">Agency</label><input class="form-control" name="agency" placeholder="PADI, TDI, DAN"></div>
-        <div class="col-12 col-md-3"><label class="form-label small">Title</label><input class="form-control" name="title" placeholder="Open Water Scuba Instructor"></div>
+          <select class="form-select form-control" name="kind" id="cred-kind"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
+        <div class="col-12 col-md-3"><label class="form-label small">Title</label><input class="form-control" name="title" placeholder="Open Water Scuba Instructor" required></div>
         <div class="col-6 col-md-2"><label class="form-label small">Number</label><input class="form-control" name="number"></div>
-        <div class="col-6 col-md-2"><label class="form-label small">Expires</label><input class="form-control" type="date" name="expires_on"></div>
+        <div class="col-6 col-md-2" id="cred-expiry"><label class="form-label small">Expiration</label><input class="form-control" type="date" name="expires_on"></div>
         <div class="col-12 col-md-1 d-flex gap-2 align-items-center">
           <div class="form-check"><input class="form-check-input" type="checkbox" id="cr_verified" name="verified" value="1"><label class="form-check-label small" for="cr_verified">Seen</label></div>
           <button class="btn btn-sm btn-aqua ms-auto" type="submit">Add</button>
         </div>
       </form>
+      <script>
+      // Recreational cards do not expire: hide the date and clear it. The
+      // server enforces the same rule; this just keeps the form honest.
+      (function () {
+        var kind = document.getElementById('cred-kind'), box = document.getElementById('cred-expiry');
+        function sync() { var rec = kind.value === 'recreational'; box.style.display = rec ? 'none' : ''; box.querySelector('input').required = !rec; if (rec) box.querySelector('input').value = ''; }
+        kind.addEventListener('change', sync); sync();
+      })();
+      </script>
     </div></div>
     <?php
 }
