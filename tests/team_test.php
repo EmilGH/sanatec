@@ -122,3 +122,18 @@ test('technical and professional credentials must expire; recreational must not'
     // And the database agrees, whatever the code does.
     throws(static fn () => db()->exec("UPDATE team_credentials SET expires_on = '2030-01-01' WHERE id = {$rec}"));
 });
+
+test('DAN details save and read back on both the team page and the self profile', function (): void {
+    db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
+    $admin = make_admin('Root Admin');
+    $m = team_save(null, ['name' => 'Staff', 'dan_number' => 'DAN-123', 'dan_expires_on' => '2027-06-30'], actor_for($admin));
+    is_same('DAN-123', team_find($m)['dan_number'], 'the team page must show what it saved');
+    is_same('2027-06-30', team_find($m)['dan_expires_on']);
+
+    team_save_self(actor_for($m), ['name' => 'Staff', 'dan_number' => 'DAN-456', 'dan_expires_on' => '2028-01-01']);
+    is_same('DAN-456', team_find($m)['dan_number'], 'a member can update their own DAN');
+    is_same('2028-01-01', team_find($m)['dan_expires_on']);
+
+    team_save_self(actor_for($m), ['name' => 'Staff', 'dan_number' => '', 'dan_expires_on' => '']);
+    is_same(null, team_find($m)['dan_number'], 'clearing the field clears the value');
+});

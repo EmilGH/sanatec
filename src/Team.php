@@ -62,7 +62,8 @@ function team_list(): array
 function team_find(int $teamId): ?array
 {
     $stmt = db()->prepare(
-        'SELECT t.*, p.name, p.public_id, p.date_of_birth, p.nationality, p.preferred_language, p.timezone
+        'SELECT t.*, p.name, p.public_id, p.date_of_birth, p.nationality, p.preferred_language, p.timezone,
+                p.dan_number, p.dan_expires_on
          FROM team_members t JOIN people p ON p.id = t.person_id AND p.deleted_at IS NULL
          WHERE t.id = :id'
     );
@@ -222,7 +223,7 @@ function team_save_self(array $actor, array $in): void
 {
     $team = $actor['team'];
     $safe = array_intersect_key($in, array_flip([
-        'name', 'date_of_birth', 'preferred_language', 'timezone',
+        'name', 'date_of_birth', 'nationality', 'preferred_language', 'timezone', 'dan_number', 'dan_expires_on',
         'profile_public', 'public_slug', 'title_en', 'title_es', 'bio_en', 'bio_es', 'languages',
     ]));
     // Carry everything else through unchanged.
