@@ -19,7 +19,7 @@ if (!defined('SANATEC')) {
 date_default_timezone_set('America/Cancun');
 mb_internal_encoding('UTF-8');
 
-const SANATEC_ROOT = __DIR__ . '/..';
+defined('SANATEC_ROOT') || define('SANATEC_ROOT', __DIR__ . '/..');
 
 /**
  * Load configuration from outside the document root.
@@ -28,49 +28,60 @@ const SANATEC_ROOT = __DIR__ . '/..';
  * inside the repository. Candidates are tried in order; the first that exists
  * wins. config.local.php is for development only and is git-ignored.
  */
-function cfg(?string $key = null, mixed $default = null): mixed
+function cfg_load(): array
+{
+    $candidates = array_filter([
+        getenv('SANATEC_CONFIG') ?: null,
+        '/var/www/private/sanatecdiving/config.php',
+        SANATEC_ROOT . '/../.sanatec-config.php',
+        SANATEC_ROOT . '/config.local.php',
+    ]);
+
+    foreach ($candidates as $path) {
+        if (is_file($path)) {
+            $loaded = require $path;
+            if (is_array($loaded)) {
+                return $loaded;
+            }
+        }
+    }
+
+    http_response_code(500);
+    error_log('SanaTec: no configuration file found. Looked in: ' . implode(', ', $candidates));
+    exit('Configuration missing.');
+}
+
+/**
+ * The configuration store.
+ *
+ * Called with no argument it returns the configuration, loading it on first
+ * use. Called with an array it replaces the whole thing — the test harness
+ * does that to point at a throwaway database. Nothing in production does.
+ */
+function cfg_all(?array $replacement = null): array
 {
     static $config = null;
 
-    if ($config === null) {
-        $candidates = array_filter([
-            getenv('SANATEC_CONFIG') ?: null,
-            '/var/www/private/sanatecdiving/config.php',
-            SANATEC_ROOT . '/../.sanatec-config.php',
-            SANATEC_ROOT . '/config.local.php',
-        ]);
-
-        $config = [];
-        foreach ($candidates as $path) {
-            if (is_file($path)) {
-                $loaded = require $path;
-                if (is_array($loaded)) {
-                    $config = $loaded;
-                    break;
-                }
-            }
-        }
-
-        if ($config === []) {
-            http_response_code(500);
-            error_log('SanaTec: no configuration file found. Looked in: ' . implode(', ', $candidates));
-            exit('Configuration missing.');
-        }
+    if ($replacement !== null) {
+        return $config = $replacement;
     }
 
-    if ($key === null) {
-        return $config;
-    }
+    return $config ??= cfg_load();
+}
 
-    return $config[$key] ?? $default;
+function cfg(?string $key = null, mixed $default = null): mixed
+{
+    $config = cfg_all();
+
+    return $key === null ? $config : ($config[$key] ?? $default);
 }
 
 /** Shared PDO handle. Exceptions on error, real prepared statements, utf8mb4. */
-function db(): PDO
+function db(bool $reconnect = false): PDO
 {
     static $pdo = null;
 
-    if ($pdo instanceof PDO) {
+    if ($pdo instanceof PDO && !$reconnect) {
         return $pdo;
     }
 
@@ -102,6 +113,19 @@ function db(): PDO
     $pdo->exec("SET time_zone = '" . (new DateTime())->format('P') . "'");
 
     return $pdo;
+}
+
+/**
+ * Send a response header, unless output has already started.
+ *
+ * Only the test suite can reach that state: it renders the page in-process,
+ * after the runner has already printed. In a real request this is just header().
+ */
+function send_header(string $header): void
+{
+    if (!headers_sent()) {
+        header($header);
+    }
 }
 
 /** Escape for HTML text and attribute context. */

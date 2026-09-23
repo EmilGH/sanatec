@@ -110,12 +110,17 @@ function settings_schema(): array
     ];
 }
 
-/** Every setting, as skey => ['en' => ..., 'es' => ...]. Cached per request. */
-function settings_all(): array
+/**
+ * Every setting, as skey => ['en' => ..., 'es' => ...]. Cached per request.
+ *
+ * Passing true drops the cache. settings_save() does that, so a read after a
+ * write in the same request sees the new value rather than the old one.
+ */
+function settings_all(bool $reload = false): array
 {
     static $cache = null;
 
-    if ($cache !== null) {
+    if ($cache !== null && !$reload) {
         return $cache;
     }
 
@@ -169,6 +174,12 @@ function setting_lines(string $key, string $lang = 'en'): array
  * Write settings. $values is skey => ['en' => ..., 'es' => ...]; a missing 'es'
  * leaves the existing translation untouched rather than wiping it.
  */
+/** Drop the per-request settings cache. */
+function settings_cache_clear(): void
+{
+    settings_all(true);
+}
+
 function settings_save(array $values): int
 {
     $stmt = db()->prepare(
@@ -189,6 +200,10 @@ function settings_save(array $values): int
 
         $stmt->execute([':k' => $key, ':en' => $en, ':es' => $es]);
         $changed++;
+    }
+
+    if ($changed > 0) {
+        settings_cache_clear();
     }
 
     return $changed;

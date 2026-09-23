@@ -1,4 +1,10 @@
--- SanaTec Diving — catalog schema (MySQL 8.0)
+-- SanaTec Diving — initial schema (MySQL 8.0)
+--
+-- baseline-if-table-exists: courses
+--
+-- That marker tells bin/migrate.php that an installation which already has a
+-- `courses` table predates the migration system: the migration is recorded as
+-- applied rather than run, so adopting migrations on a live database is safe.
 --
 -- Money: all prices are Mexican pesos (MXN), stored as DECIMAL(10,2).
 -- A NULL price means "no price published for this option" and renders as an

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-define('SANATEC', true);
-require __DIR__ . '/src/bootstrap.php';
+defined('SANATEC') || define('SANATEC', true);
+require_once __DIR__ . '/src/bootstrap.php';
 
 $baseUrl  = rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/');
 $modified = gmdate('Y-m-d', catalog_last_modified());
 
-header('Content-Type: application/xml; charset=utf-8');
-header('Cache-Control: public, max-age=3600');
+send_header('Content-Type: application/xml; charset=utf-8');
+send_header('Cache-Control: public, max-age=3600');
 
 echo '<?xml version="1.0" encoding="UTF-8"?>', "\n";
 ?>

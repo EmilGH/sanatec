@@ -122,16 +122,23 @@ sanatec/
 │   ├── Catalog.php         #   Courses and routes
 │   ├── I18n.php            #   Interface strings the owner does not edit
 │   ├── Auth.php            #   Sign-in, throttling, password rules
+│   ├── Migrator.php        #   The migration runner
 │   ├── Csrf.php, Audit.php
 ├── templates/              # Not served.
 │   ├── public.php          #   The page
 │   ├── head.php            #   Metadata, link previews, structured data
 │   └── styles.php          #   The stylesheet, inlined into the page
 ├── db/                     # Not served.
-│   ├── schema.sql
+│   ├── migrations/         #   Schema history; applied in filename order
 │   └── seed.sql            #   The catalogue as printed in the supplied guides
+├── tests/                  # Not served.
+│   ├── run.php             #   php tests/run.php
+│   └── *_test.php
+├── docs/
+│   └── operations.md       #   Tests, migrations, backups, restoring, deploying
 ├── bin/
 │   ├── install.php         #   Create the tables, load the catalogue, make an admin user
+│   ├── migrate.php         #   Apply pending migrations
 │   └── router.php          #   Stands in for .htaccess under PHP's built-in server
 ├── assets/
 │   ├── training.jpeg       #   Original training guide; also cropped for the hero
@@ -180,6 +187,33 @@ php -S 127.0.0.1:8765 -t . bin/router.php
 The router stands in for the `.htaccess` rules, so [localhost:8765](http://localhost:8765),
 [/es/](http://localhost:8765/es/) and [/admin/](http://localhost:8765/admin/) all behave the
 way they do under Apache.
+
+## Changing the schema
+
+```sh
+php bin/migrate.php --new "add inquiries table"   # scaffold
+php bin/migrate.php --status                      # what is pending
+php bin/migrate.php                               # apply
+```
+
+Migrations are plain SQL applied in filename order and recorded with a checksum,
+so editing one that has already run is caught rather than silently ignored.
+There is no down direction, because MySQL does not roll DDL back — keep each
+file to one change and fix forward.
+
+## Tests
+
+```sh
+php tests/run.php
+```
+
+The suite builds its own `_test` database from the migrations and the seed, runs
+against that, and drops it each time. It never touches live data. It renders
+both language pages in-process, so a broken template fails a test rather than a
+visitor.
+
+[docs/operations.md](docs/operations.md) has the rest: the backup arrangement,
+how to restore, and what bites during a deploy.
 
 ## Put it online
 

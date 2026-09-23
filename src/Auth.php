@@ -87,7 +87,12 @@ function login_attempt(string $username, string $password): bool
             ->execute([':h' => password_hash($password, PASSWORD_DEFAULT), ':id' => $user['id']]);
     }
 
+    // Rotate the session id so a fixed one cannot be reused. This needs an
+    // active session; start_session() is idempotent, so calling it here makes
+    // the protection unconditional rather than dependent on the caller.
+    start_session();
     session_regenerate_id(true);
+
     $_SESSION['uid']       = (int) $user['id'];
     $_SESSION['username']  = $user['username'];
     $_SESSION['last_seen'] = time();

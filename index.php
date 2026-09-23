@@ -10,8 +10,8 @@ declare(strict_types=1);
  * is what the next visitor sees.
  */
 
-define('SANATEC', true);
-require __DIR__ . '/src/bootstrap.php';
+defined('SANATEC') || define('SANATEC', true);
+require_once __DIR__ . '/src/bootstrap.php';
 
 // Language comes from the rewrite (?lang=es) but is re-derived from the path so
 // the site still works if the rewrite rules are ever lost.
@@ -27,14 +27,14 @@ $routes  = catalog_published('routes');
 $lastModified = catalog_last_modified();
 $etag = '"' . md5($lang . '-' . $lastModified . '-' . count($courses) . '-' . count($routes)) . '"';
 
-header('Content-Type: text/html; charset=utf-8');
-header('Content-Language: ' . $lang);
-header('Cache-Control: public, max-age=300');
-header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT');
-header('ETag: ' . $etag);
-header('X-Content-Type-Options: nosniff');
-header('Referrer-Policy: strict-origin-when-cross-origin');
-header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+send_header('Content-Type: text/html; charset=utf-8');
+send_header('Content-Language: ' . $lang);
+send_header('Cache-Control: public, max-age=300');
+send_header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $lastModified) . ' GMT');
+send_header('ETag: ' . $etag);
+send_header('X-Content-Type-Options: nosniff');
+send_header('Referrer-Policy: strict-origin-when-cross-origin');
+send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 
 if (trim((string) ($_SERVER['HTTP_IF_NONE_MATCH'] ?? '')) === $etag) {
     http_response_code(304);

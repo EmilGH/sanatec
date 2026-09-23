@@ -9,11 +9,11 @@ declare(strict_types=1);
  * signed out (the login form) define ADMIN_PUBLIC before requiring it.
  */
 
-define('SANATEC', true);
-require __DIR__ . '/../src/bootstrap.php';
-require __DIR__ . '/../src/Auth.php';
-require __DIR__ . '/../src/Csrf.php';
-require __DIR__ . '/../src/Audit.php';
+defined('SANATEC') || define('SANATEC', true);
+require_once __DIR__ . '/../src/bootstrap.php';
+require_once __DIR__ . '/../src/Auth.php';
+require_once __DIR__ . '/../src/Csrf.php';
+require_once __DIR__ . '/../src/Audit.php';
 
 start_session();
 
