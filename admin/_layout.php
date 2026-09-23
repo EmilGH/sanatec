@@ -179,7 +179,7 @@ function admin_sections(): array
         ['Training',   '/admin/training/',     'fa-graduation-cap','can_manage_training',   false],
         ['Catalog',    '/admin/courses.php',   'fa-tags',          'can_manage_catalog',    true],
         ['Business',   '/admin/settings.php',  'fa-store',         'can_manage_catalog',    true],
-        ['Team',       '/admin/team/',         'fa-id-badge',      'can_manage_team',       false],
+        ['Team',       '/admin/team/',         'fa-id-badge',      'can_manage_team',       true],
     ];
 }
 
@@ -238,7 +238,8 @@ function shell_start(string $title, ?array $user = null): void
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item"><a class="nav-link" href="/" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square fa-fw me-1"></i>Site</a></li>
-        <li class="nav-item"><a class="nav-link" href="/admin/logout.php"><i class="fa-solid fa-right-from-bracket fa-fw me-1"></i><?= e($user['name']) ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/profile.php"><i class="fa-solid fa-user fa-fw me-1"></i><?= e($user['name']) ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="/admin/logout.php" title="Sign out"><i class="fa-solid fa-right-from-bracket fa-fw"></i></a></li>
       </ul>
     </div>
   </div>

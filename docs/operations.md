@@ -24,6 +24,11 @@ The database user needs rights on it once:
 GRANT ALL PRIVILEGES ON `sanatec_test`.* TO 'sanatec'@'localhost';
 ```
 
+On the live database the application user needs `SELECT, INSERT, UPDATE, DELETE,
+CREATE, INDEX, ALTER, REFERENCES` **and `DROP`** — the last because migrations
+remove tables and columns. Migration 0004 stopped on its final statement for
+want of `DROP` and had to be finished by hand; the grant is in place now.
+
 On the server the tests run as the web user, so they read the real config
 without a copy of the credentials being made:
 

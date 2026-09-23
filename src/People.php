@@ -176,3 +176,42 @@ function channel_upsert(int $personId, string $kind, string $raw, array $opts = 
 
     return $id;
 }
+
+/** Remove a channel from a person. Refuses to leave a team member unreachable. */
+function channel_delete(int $personId, int $channelId): void
+{
+    $count = db()->prepare('SELECT COUNT(*) FROM contact_channels WHERE person_id = :p');
+    $count->execute([':p' => $personId]);
+    $isStaff = db()->prepare('SELECT COUNT(*) FROM team_members WHERE person_id = :p');
+    $isStaff->execute([':p' => $personId]);
+
+    if ((int) $count->fetchColumn() <= 1 && (int) $isStaff->fetchColumn() > 0) {
+        throw new RuntimeException('A team member needs at least one way to sign in.');
+    }
+
+    db()->prepare('DELETE FROM contact_channels WHERE id = :id AND person_id = :p')
+        ->execute([':id' => $channelId, ':p' => $personId]);
+}
+
+/** Update the fields on a person that a form may change. */
+function person_update(int $id, array $in): void
+{
+    $allowed = ['name', 'date_of_birth', 'nationality', 'preferred_language', 'timezone'];
+    $fields = array_intersect_key($in, array_flip($allowed));
+    if ($fields === []) {
+        return;
+    }
+    if (isset($fields['name']) && trim((string) $fields['name']) === '') {
+        throw new InvalidArgumentException('A person needs a name.');
+    }
+    if (array_key_exists('date_of_birth', $fields) && $fields['date_of_birth'] === '') {
+        $fields['date_of_birth'] = null;
+    }
+    if (isset($fields['timezone']) && !in_array($fields['timezone'], DateTimeZone::listIdentifiers(), true)) {
+        throw new InvalidArgumentException('Unknown timezone.');
+    }
+
+    $set = implode(', ', array_map(static fn (string $k): string => "{$k} = :{$k}", array_keys($fields)));
+    $fields['id'] = $id;
+    db()->prepare("UPDATE people SET {$set} WHERE id = :id")->execute($fields);
+}

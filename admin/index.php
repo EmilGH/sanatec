@@ -58,7 +58,7 @@ shell_start('Overview', $currentUser);
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
     <div class="text-secondary small">Team</div>
     <div class="stat"><?= (int) db()->query('SELECT COUNT(*) FROM team_members WHERE is_active = 1')->fetchColumn() ?></div>
-    <span class="small text-secondary">Team section coming</span>
+    <a class="small" href="/admin/team/">Manage →</a>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
     <div class="text-secondary small">Public site</div>
