@@ -38,6 +38,10 @@ function team_identity_card(array $row, bool $self): void
           </select>
         </div>
         <div class="col-6 col-md-3">
+          <label class="form-label" for="nationality">Nationality</label>
+          <input class="form-control" id="nationality" name="nationality" value="<?= e((string) ($row['nationality'] ?? '')) ?>" maxlength="2" pattern="[A-Za-z]{2}" placeholder="MX, US, DE" style="text-transform:uppercase">
+        </div>
+        <div class="col-6 col-md-3">
           <label class="form-label" for="dan_number">DAN number</label>
           <input class="form-control" id="dan_number" name="dan_number" value="<?= e((string) ($row['dan_number'] ?? '')) ?>">
         </div>

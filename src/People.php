@@ -88,6 +88,13 @@ function person_create(string $name, array $extra = []): int
         'date_of_birth', 'nationality', 'preferred_language', 'timezone', 'dan_number', 'dan_expires_on',
     ])), static fn ($v): bool => $v !== '' && $v !== null);
 
+    if (isset($fields['nationality'])) {
+        $fields['nationality'] = strtoupper((string) $fields['nationality']);
+        if (!preg_match('/^[A-Z]{2}$/', $fields['nationality'])) {
+            throw new InvalidArgumentException('Nationality is a two-letter country code.');
+        }
+    }
+
     $cols = implode(', ', array_keys($fields));
     $params = implode(', ', array_map(static fn (string $k): string => ':' . $k, array_keys($fields)));
 
@@ -207,6 +214,12 @@ function person_update(int $id, array $in): void
     foreach (['date_of_birth', 'dan_expires_on', 'dan_number', 'nationality'] as $nullable) {
         if (array_key_exists($nullable, $fields) && trim((string) $fields[$nullable]) === '') {
             $fields[$nullable] = null;
+        }
+    }
+    if (isset($fields['nationality'])) {
+        $fields['nationality'] = strtoupper((string) $fields['nationality']);
+        if (!preg_match('/^[A-Z]{2}$/', $fields['nationality'])) {
+            throw new InvalidArgumentException('Nationality is a two-letter country code.');
         }
     }
     if (isset($fields['timezone']) && !in_array($fields['timezone'], DateTimeZone::listIdentifiers(), true)) {

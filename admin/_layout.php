@@ -174,7 +174,7 @@ function admin_sections(): array
 {
     return [
         ['Overview',   '/admin/',              'fa-gauge',         null,                    true],
-        ['Customers',  '/admin/customers/',    'fa-users',         'can_manage_customers',  false],
+        ['Customers',  '/admin/customers/',    'fa-users',         'can_manage_customers',  true],
         ['Excursions', '/admin/excursions/',   'fa-water',         'can_manage_excursions', false],
         ['Training',   '/admin/training/',     'fa-graduation-cap','can_manage_training',   false],
         ['Catalog',    '/admin/courses.php',   'fa-tags',          'can_manage_catalog',    true],
