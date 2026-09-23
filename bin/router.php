@@ -24,6 +24,12 @@ if ($path === '/es' || $path === '/es/') {
     exit;
 }
 
+if ($path === '/privacy' || $path === '/es/privacy') {
+    $_GET['lang'] = str_starts_with($path, '/es') ? 'es' : 'en';
+    require __DIR__ . '/../privacy.php';
+    exit;
+}
+
 if ($path === '/sitemap.xml') {
     require __DIR__ . '/../sitemap.php';
     exit;

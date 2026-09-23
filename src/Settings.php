@@ -98,6 +98,16 @@ function settings_schema(): array
                 'footer_note'     => ['label' => 'Footer note', 'type' => 'textarea'],
             ],
         ],
+        'privacy' => [
+            'title'  => 'Privacy notice',
+            'intro'  => 'Shown at /privacy and accepted by every diver before any personal data is collected. '
+                      . 'It ships as a DRAFT: have a lawyer review it, then change the version to the sign-off date. '
+                      . 'Divers who accepted an older version are asked again.',
+            'fields' => [
+                'privacy_notice_version' => ['label' => 'Version', 'localized' => false, 'help' => 'e.g. 2026-10-01. Leave "DRAFT" in it until reviewed; the page says so.'],
+                'privacy_notice'         => ['label' => 'Notice text', 'type' => 'textarea', 'help' => 'Plain text. Blank lines separate paragraphs; a line starting with # is a heading.'],
+            ],
+        ],
         'meta' => [
             'title'  => 'Search engines and link previews',
             'intro'  => 'The title and description shown in Google results, and the preview card people see when the link is shared on WhatsApp.',

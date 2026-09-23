@@ -282,12 +282,13 @@ function login_link_reject(string $raw): void
 }
 
 /** Issue a one-time sign-in link for a channel. Returns the absolute URL. */
-function login_issue_link(int $personId, int $channelId, int $minutes = LOGIN_LINK_MINUTES): string
+function login_issue_link(int $personId, int $channelId, int $minutes = LOGIN_LINK_MINUTES, string $area = 'admin'): string
 {
     $secret = bin2hex(random_bytes(32));
     $id = login_token_create($personId, $channelId, 'login', $secret, $minutes);
+    $path = $area === 'diver' ? '/my/login.php' : '/admin/login.php';
 
-    return rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/') . '/admin/login.php?t=' . $id . '.' . $secret;
+    return rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/') . $path . '?t=' . $id . '.' . $secret;
 }
 
 /** Consume a token, mark its channel verified, and open a session. */

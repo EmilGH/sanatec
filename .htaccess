@@ -83,6 +83,10 @@ RedirectMatch 404 "^/config\.local\.php$"
     # Spanish edition. English is served from the document root.
     RewriteRule ^es/?$ index.php?lang=es [L,QSA]
 
+    # The privacy notice, in both languages.
+    RewriteRule ^privacy/?$ privacy.php?lang=en [L,QSA]
+    RewriteRule ^es/privacy/?$ privacy.php?lang=es [L,QSA]
+
     # The sitemap is generated, so search engines always see current content.
     # robots.txt advertises it, so a 404 here is a 404 Google is told to fetch.
     RewriteRule ^sitemap\.xml$ sitemap.php [L]

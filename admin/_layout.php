@@ -183,7 +183,7 @@ function admin_sections(): array
     ];
 }
 
-function shell_start(string $title, ?array $user = null): void
+function shell_start(string $title, ?array $user = null, string $area = 'admin'): void
 {
     $current = (string) ($_SERVER['SCRIPT_NAME'] ?? '');
     $business = setting('business_name') ?: 'SanaTec Diving';
@@ -215,7 +215,24 @@ function shell_start(string $title, ?array $user = null): void
 </style>
 </head>
 <body data-bs-theme="dark">
-<?php if ($user !== null): ?>
+<?php if ($user !== null && $area === 'diver'): $lang = $user['preferred_language'] ?? 'en'; ?>
+<nav class="navbar navbar-expand-lg sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/my/">SanaTec<span>Diving</span></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Menu"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link <?= str_ends_with($current, '/my/index.php') ? 'active' : '' ?>" href="/my/"><i class="fa-solid fa-list-check fa-fw me-1"></i><?= $lang === 'es' ? 'Mis documentos' : 'My documents' ?></a></li>
+        <li class="nav-item"><a class="nav-link <?= str_ends_with($current, '/my/profile.php') ? 'active' : '' ?>" href="/my/profile.php"><i class="fa-solid fa-user fa-fw me-1"></i><?= $lang === 'es' ? 'Mi información' : 'My information' ?></a></li>
+      </ul>
+      <ul class="navbar-nav">
+        <li class="nav-item"><a class="nav-link" href="/my/lang.php?lang=<?= $lang === 'es' ? 'en' : 'es' ?>"><i class="fa-solid fa-language fa-fw me-1"></i><?= $lang === 'es' ? 'English' : 'Español' ?></a></li>
+        <li class="nav-item"><a class="nav-link" href="/my/logout.php" title="Sign out"><i class="fa-solid fa-right-from-bracket fa-fw me-1"></i><?= e($user['name']) ?></a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<?php elseif ($user !== null): ?>
 <nav class="navbar navbar-expand-lg sticky-top">
   <div class="container-fluid">
     <a class="navbar-brand" href="/admin/">SanaTec<span>Admin</span></a>

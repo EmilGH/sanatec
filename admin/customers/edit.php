@@ -28,6 +28,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 audit($id ? 'update' : 'create', 'customer', $savedId, post('name'));
                 flash($id ? 'Saved.' : 'Customer added. Now add a way to reach them.');
                 redirect('/admin/customers/edit.php?id=' . $savedId);
+            case 'onboarding_link':
+                $ch = person_channels((int) $row['person_id'])[0] ?? null;
+                if ($ch === null) {
+                    throw new RuntimeException('Add a contact channel first — a link has to be issued against one.');
+                }
+                $_SESSION['onboarding_link'] = login_issue_link((int) $row['person_id'], (int) $ch['id'], 60 * 24, 'diver');
+                audit('login_link', 'customer', $id, 'onboarding link issued');
+                redirect($self);
             case 'archive':
                 customer_archive($id);
                 audit('archive', 'customer', $id, $row['name']);
@@ -80,12 +88,22 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
       <?php if ($minor): ?><span class="badge text-bg-warning fs-6 align-middle">minor</span><?php endif; ?></h1>
   </div>
   <?php if ($row): ?>
+  <div class="d-flex gap-2">
+  <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="onboarding_link">
+    <button class="btn btn-outline-info btn-sm" type="submit" title="A one-time link into their onboarding, valid 24 hours — send it to them yourself"><i class="fa-solid fa-link me-1"></i>Onboarding link</button></form>
   <form method="post" onsubmit="return confirm('Archive <?= e(addslashes($row['name'])) ?>? They disappear from lists; nothing is deleted.')">
     <?= csrf_field() ?><input type="hidden" name="action" value="archive">
     <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fa-solid fa-box-archive me-1"></i>Archive</button>
   </form>
+  </div>
   <?php endif; ?>
 </div>
+<?php if (!empty($_SESSION['onboarding_link'])): $link = $_SESSION['onboarding_link']; unset($_SESSION['onboarding_link']); ?>
+  <div class="alert alert-info">
+    <div class="fw-semibold mb-1">Onboarding link for <?= e($row['name']) ?> — works once, valid 24 hours. Send it to them on WhatsApp or by email.</div>
+    <input class="form-control font-monospace small" readonly value="<?= e($link) ?>" onclick="this.select()">
+  </div>
+<?php endif; ?>
 
 <?php if ($minor && $row['guardian_person_id'] === null): ?>
   <div class="alert alert-warning"><i class="fa-solid fa-triangle-exclamation me-1"></i>Under <?= ADULT_AGE ?>: a parent or guardian must sign their forms. Link one below.</div>

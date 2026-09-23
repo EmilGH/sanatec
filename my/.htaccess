@@ -1,0 +1,6 @@
+# The admin must never appear in search results, whatever robots.txt says.
+<IfModule mod_headers.c>
+    Header always set X-Robots-Tag "noindex, nofollow, noarchive"
+    Header always set Cache-Control "no-store, no-cache, must-revalidate"
+    Header always set X-Frame-Options "DENY"
+</IfModule>

@@ -128,6 +128,24 @@ function send_header(string $header): void
     }
 }
 
+/**
+ * Strip accents: "María Pérez" → "Maria Perez". iconv //TRANSLIT depends on
+ * the process locale and yields "?" under C, which is what PHP-FPM runs in;
+ * Unicode decomposition does not.
+ */
+function ascii_fold(string $s): string
+{
+    if (class_exists('Normalizer')) {
+        $d = Normalizer::normalize($s, Normalizer::FORM_D);
+        if ($d !== false) {
+            return preg_replace('/\p{Mn}+/u', '', $d) ?? $s;
+        }
+    }
+    $t = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $s);
+
+    return $t === false ? $s : $t;
+}
+
 /** Escape for HTML text and attribute context. */
 function e(?string $value): string
 {

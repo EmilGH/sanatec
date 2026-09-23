@@ -59,7 +59,7 @@ test('certifications rank, and gate by level', function (): void {
 test('document status reads missing, signed, expired, and medical outcome', function (): void {
     $id = customer_save(null, ['name' => 'Docs Test']);
     $status = customer_document_status($id);
-    is_same(4, count($status), 'four active templates');
+    is_same(5, count($status), 'five active templates: info, medical, safe diving, two liability editions');
     is_true(array_reduce($status, static fn (bool $c, array $d): bool => $c && $d['status'] === 'missing', true));
     is_false(customer_documents_complete($id));
 

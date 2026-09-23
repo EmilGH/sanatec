@@ -92,8 +92,7 @@ function team_active_admin_count(): int
 /** A URL-safe slug from a name, made unique against existing ones. */
 function team_slug_for(string $name, ?int $excludeTeamId = null): string
 {
-    $ascii = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name;
-    $base = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', $ascii) ?? '', '-')) ?: 'team-member';
+    $base = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', ascii_fold($name)) ?? '', '-')) ?: 'team-member';
 
     $stmt = db()->prepare('SELECT COUNT(*) FROM team_members WHERE public_slug = :s AND id <> :id');
     $slug = $base;
