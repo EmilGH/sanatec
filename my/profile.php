@@ -74,14 +74,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $row = customer_find((int) $customer['id']);
 $minor = is_minor($row['date_of_birth']);
 
-shell_start(tr('My information', 'Mi información'), $currentUser, 'diver');
+shell_start(tr('My information', 'Mi información'), $currentUser, 'diver', ['back' => '/my/']);
 ?>
-<h1 class="h3 mb-1"><?= e(tr('Diver information', 'Información del buceador')) ?></h1>
-<p class="text-secondary mb-4"><?= e(tr('What the shop needs to plan your dives safely.', 'Lo que el centro necesita para planear tus buceos con seguridad.')) ?></p>
+<h1 class="st-h1 mb-1"><?= e(tr('Diver information', 'Información del buceador')) ?></h1>
+<p class="st-lede mb-4"><?= e(tr('What the shop needs to plan your dives safely.', 'Lo que el centro necesita para planear tus buceos con seguridad.')) ?></p>
 
 <form method="post"><?= csrf_field() ?>
-  <div class="card mb-3"><div class="card-body">
-    <h2 class="h6 text-aqua text-uppercase mb-3"><?= e(tr('Contact', 'Contacto')) ?></h2>
+  <div class="st-card mb-3">
+    <h2 class="st-card__title mb-3"><?= e(tr('Contact', 'Contacto')) ?></h2>
     <div class="row g-3">
       <div class="col-12 col-md-6"><label class="form-label" for="name"><?= e(tr('Full name', 'Nombre completo')) ?></label><input class="form-control" id="name" name="name" value="<?= e($row['name']) ?>" required autocomplete="name"></div>
       <div class="col-6 col-md-3"><label class="form-label" for="date_of_birth"><?= e(tr('Date of birth', 'Fecha de nacimiento')) ?></label><input class="form-control" type="date" id="date_of_birth" name="date_of_birth" value="<?= e((string) $row['date_of_birth']) ?>" required></div>
@@ -92,22 +92,22 @@ shell_start(tr('My information', 'Mi información'), $currentUser, 'diver');
       <input type="hidden" name="preferred_language" value="<?= e($lang) ?>">
       <input type="hidden" name="timezone" value="<?= e((string) $row['timezone']) ?>">
     </div>
-  </div></div>
+  </div>
 
   <?php if ($minor): ?>
-  <div class="card mb-3 border-warning"><div class="card-body">
-    <h2 class="h6 text-warning text-uppercase mb-3"><?= e(tr('Parent or guardian', 'Padre, madre o tutor')) ?></h2>
-    <p class="small text-secondary"><?= e(tr('Under 18: a parent or guardian signs your forms. We will send them a link.', 'Menor de 18: un padre, madre o tutor firma tus formularios. Le enviaremos un enlace.')) ?></p>
+  <div class="st-card mb-3" style="outline:1px solid var(--warn)">
+    <h2 class="st-card__title mb-3" style="color:var(--warn)"><?= e(tr('Parent or guardian', 'Padre, madre o tutor')) ?></h2>
+    <p class="st-muted small"><?= e(tr('Under 18: a parent or guardian signs your forms. We will send them a link.', 'Menor de 18: un padre, madre o tutor firma tus formularios. Le enviaremos un enlace.')) ?></p>
     <?php if ($row['guardian_name']): ?><p><i class="fa-solid fa-user-shield text-aqua me-1"></i><?= e($row['guardian_name']) ?></p><?php endif; ?>
     <div class="row g-3">
       <div class="col-12 col-md-6"><label class="form-label" for="guardian_name"><?= e(tr('Guardian name', 'Nombre del tutor')) ?></label><input class="form-control" id="guardian_name" name="guardian_name"></div>
       <div class="col-12 col-md-6"><label class="form-label" for="guardian_contact"><?= e(tr('Guardian email or mobile', 'Correo o móvil del tutor')) ?></label><input class="form-control" id="guardian_contact" name="guardian_contact"></div>
     </div>
-  </div></div>
+  </div>
   <?php endif; ?>
 
-  <div class="card mb-3"><div class="card-body">
-    <h2 class="h6 text-aqua text-uppercase mb-3"><?= e(tr('Experience', 'Experiencia')) ?></h2>
+  <div class="st-card mb-3">
+    <h2 class="st-card__title mb-3"><?= e(tr('Experience', 'Experiencia')) ?></h2>
     <div class="row g-3">
       <div class="col-6 col-md-3"><label class="form-label" for="cert_agency"><?= e(tr('Agency', 'Agencia')) ?></label>
         <select class="form-select form-control" id="cert_agency" name="cert_agency"><option value=""><?= e(tr('— not certified yet', '— aún sin certificar')) ?></option><?php foreach (CERT_AGENCIES as $a): ?><option <?= ($cert['agency'] ?? '') === $a ? 'selected' : '' ?>><?= e($a) ?></option><?php endforeach; ?></select></div>
@@ -121,19 +121,19 @@ shell_start(tr('My information', 'Mi información'), $currentUser, 'diver');
       <div class="col-6 col-md-3"><label class="form-label" for="dan_number"><?= e(tr('DAN number', 'Número DAN')) ?></label><input class="form-control" id="dan_number" name="dan_number" value="<?= e((string) $row['dan_number']) ?>"></div>
       <div class="col-6 col-md-2"><label class="form-label" for="dan_expires_on"><?= e(tr('DAN expires', 'DAN vence')) ?></label><input class="form-control" type="date" id="dan_expires_on" name="dan_expires_on" value="<?= e((string) $row['dan_expires_on']) ?>"></div>
     </div>
-  </div></div>
+  </div>
 
-  <div class="card mb-3"><div class="card-body">
-    <h2 class="h6 text-aqua text-uppercase mb-3"><?= e(tr('Emergency contact', 'Contacto de emergencia')) ?></h2>
+  <div class="st-card mb-3">
+    <h2 class="st-card__title mb-3"><?= e(tr('Emergency contact', 'Contacto de emergencia')) ?></h2>
     <div class="row g-3">
       <div class="col-12 col-md-5"><label class="form-label" for="emergency_name"><?= e(tr('Name', 'Nombre')) ?></label><input class="form-control" id="emergency_name" name="emergency_name" value="<?= e((string) ($ec['name'] ?? '')) ?>" required></div>
       <div class="col-6 col-md-3"><label class="form-label" for="emergency_relationship"><?= e(tr('Relationship', 'Parentesco')) ?></label><input class="form-control" id="emergency_relationship" name="emergency_relationship" value="<?= e((string) ($ec['relationship'] ?? '')) ?>"></div>
       <div class="col-6 col-md-4"><label class="form-label" for="emergency_phone"><?= e(tr('Phone (with country code)', 'Teléfono (con código de país)')) ?></label><input class="form-control" id="emergency_phone" name="emergency_phone" value="<?= e((string) ($ec['phone'] ?? '')) ?>" placeholder="+1 …" required></div>
     </div>
-  </div></div>
+  </div>
 
-  <div class="card mb-3"><div class="card-body">
-    <h2 class="h6 text-aqua text-uppercase mb-3"><?= e(tr('Gear sizes', 'Tallas de equipo')) ?></h2>
+  <div class="st-card mb-3">
+    <h2 class="st-card__title mb-3"><?= e(tr('Gear sizes', 'Tallas de equipo')) ?></h2>
     <div class="row g-3">
       <?php foreach (['wetsuit_size' => tr('Wetsuit', 'Traje'), 'bcd_size' => 'BCD', 'fin_size' => tr('Fins', 'Aletas'), 'boot_size' => tr('Boots', 'Botines')] as $k => $l): ?>
         <div class="col-6 col-md-2"><label class="form-label" for="<?= $k ?>"><?= e($l) ?></label><input class="form-control" id="<?= $k ?>" name="<?= $k ?>" value="<?= e((string) $row[$k]) ?>"></div>
@@ -141,8 +141,8 @@ shell_start(tr('My information', 'Mi información'), $currentUser, 'diver');
       <div class="col-6 col-md-2"><label class="form-label" for="height_cm"><?= e(tr('Height cm', 'Estatura cm')) ?></label><input class="form-control" type="number" min="0" id="height_cm" name="height_cm" value="<?= e((string) $row['height_cm']) ?>"></div>
       <div class="col-6 col-md-2"><label class="form-label" for="weight_kg"><?= e(tr('Weight kg', 'Peso kg')) ?></label><input class="form-control" type="number" min="0" id="weight_kg" name="weight_kg" value="<?= e((string) $row['weight_kg']) ?>"></div>
     </div>
-  </div></div>
+  </div>
 
-  <button class="btn btn-aqua btn-lg" type="submit"><?= e(tr('Save', 'Guardar')) ?></button>
+  <button class="st-btn st-btn--primary st-btn--block" type="submit"><?= e(tr('Save', 'Guardar')) ?></button>
 </form>
-<?php shell_end();
+<?php shell_end($currentUser, 'diver');

@@ -43,4 +43,4 @@ shell_start('Customers', $currentUser);
   <?php endforeach; ?>
   </tbody>
 </table></div></div>
-<?php shell_end();
+<?php shell_end($currentUser);

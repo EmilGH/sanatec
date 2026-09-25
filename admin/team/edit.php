@@ -89,4 +89,4 @@ shell_start($row ? $row['name'] : 'New team member', $currentUser);
 <?php else: ?>
   <p class="text-secondary small">Contact channels and credentials can be added once the person is created.</p>
 <?php endif; ?>
-<?php shell_end();
+<?php shell_end($currentUser);

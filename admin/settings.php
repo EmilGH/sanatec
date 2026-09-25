@@ -56,53 +56,41 @@ $rowFor = static function (string $key) use ($all): array {
     ];
 };
 
-admin_header('Site content');
+shell_start('Business info', $currentUser);
+echo shell_page('Business info', 'Site content');
 ?>
-<h1>Site content</h1>
-<p class="lede">Everything on the public page that is not a course or a cenote price.
-  Leave a Spanish box empty and the site falls back to the English text, so a
-  half-finished translation never shows a blank page.</p>
+<p class="st-lede mb-3">Everything on the public page that is not a course or a cenote price. Leave a Spanish box empty and the site falls back to the English text.</p>
 
 <form method="post">
   <?= csrf_field() ?>
-
   <?php foreach ($schema as $sectionKey => $section): ?>
-    <h2 id="<?= e($sectionKey) ?>"><?= e($section['title']) ?></h2>
-    <?php if (isset($section['intro'])): ?>
-      <p class="lede" style="margin-bottom:14px"><?= e($section['intro']) ?></p>
-    <?php endif; ?>
-
-    <div class="card">
+    <div class="st-card mb-3" id="<?= e($sectionKey) ?>">
+      <h2 class="st-card__title"><?= e($section['title']) ?></h2>
+      <?php if (isset($section['intro'])): ?><p class="st-muted small"><?= e($section['intro']) ?></p><?php endif; ?>
       <?php foreach ($section['fields'] as $key => $field):
           $localized = $field['localized'] ?? true;
           $type      = $field['type'] ?? 'text';
           $help      = $field['help'] ?? '';
       ?>
         <?php if ($type === 'checkbox'): ?>
-          <label class="check" style="margin-bottom:16px">
-            <input type="checkbox" name="<?= e($key) ?>" value="1" <?= ($all[$key]['en'] ?? '0') === '1' ? 'checked' : '' ?>>
-            <?= e($field['label']) ?>
-          </label>
+          <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="<?= e($key) ?>" name="<?= e($key) ?>" value="1" <?= ($all[$key]['en'] ?? '0') === '1' ? 'checked' : '' ?>>
+            <label class="form-check-label" for="<?= e($key) ?>"><?= e($field['label']) ?></label></div>
         <?php elseif ($localized): ?>
           <?php field_pair($key, $field['label'], $rowFor($key), $type, $help); ?>
         <?php else: ?>
-          <div class="field">
-            <label for="<?= e($key) ?>"><?= e($field['label']) ?></label>
-            <?php if ($type === 'textarea'): ?>
-              <textarea id="<?= e($key) ?>" name="<?= e($key) ?>"><?= e($all[$key]['en'] ?? '') ?></textarea>
-            <?php else: ?>
-              <input type="text" id="<?= e($key) ?>" name="<?= e($key) ?>" value="<?= e($all[$key]['en'] ?? '') ?>">
-            <?php endif; ?>
-            <?php if ($help !== ''): ?><p class="help"><?= e($help) ?></p><?php endif; ?>
+          <div class="mb-3">
+            <label class="form-label" for="<?= e($key) ?>"><?= e($field['label']) ?></label>
+            <?php if ($type === 'textarea'): ?><textarea class="form-control" id="<?= e($key) ?>" name="<?= e($key) ?>" rows="3"><?= e($all[$key]['en'] ?? '') ?></textarea>
+            <?php else: ?><input class="form-control" type="text" id="<?= e($key) ?>" name="<?= e($key) ?>" value="<?= e($all[$key]['en'] ?? '') ?>"><?php endif; ?>
+            <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
           </div>
         <?php endif; ?>
       <?php endforeach; ?>
     </div>
   <?php endforeach; ?>
-
-  <div class="actions" style="position:sticky;bottom:0;background:#061e27;padding:14px 0;border-top:1px solid #274650">
-    <button class="btn primary" type="submit">Save all changes</button>
-    <a class="btn" href="/" target="_blank" rel="noopener">View site ↗</a>
+  <div class="st-ctabar" style="grid-template-columns:auto auto;justify-content:start">
+    <button class="btn btn-primary" type="submit">Save all changes</button>
+    <a class="btn btn-outline-secondary" href="/" target="_blank" rel="noopener">View site</a>
   </div>
 </form>
-<?php admin_footer();
+<?php shell_end($currentUser);

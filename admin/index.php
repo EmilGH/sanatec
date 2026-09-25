@@ -22,7 +22,7 @@ if (setting('included_publish') !== '1') {
 }
 $missingEs = (int) db()->query("SELECT (SELECT COUNT(*) FROM courses WHERE TRIM(name_es)='') + (SELECT COUNT(*) FROM excursions WHERE TRIM(name_es)='')")->fetchColumn();
 if ($missingEs > 0) {
-    $todo[] = [$missingEs . ' catalogue ' . ($missingEs === 1 ? 'entry has' : 'entries have') . ' no Spanish name.', 'Catalog', '/admin/courses.php'];
+    $todo[] = [$missingEs . ' catalogue ' . ($missingEs === 1 ? 'entry has' : 'entries have') . ' no Spanish name.', 'Catalog', '/admin/catalog-courses.php'];
 }
 
 // Credentials lapsing within 60 days, or already lapsed.
@@ -52,12 +52,12 @@ shell_start('Overview', $currentUser);
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
     <div class="text-secondary small">Courses</div>
     <div class="stat"><?= $shown($courses) ?><span class="text-secondary fs-6 fw-normal"> / <?= count($courses) ?></span></div>
-    <a class="small" href="/admin/courses.php">Manage →</a>
+    <a class="small" href="/admin/catalog-courses.php">Manage →</a>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
     <div class="text-secondary small">Cenote excursions</div>
     <div class="stat"><?= $shown($excursions) ?><span class="text-secondary fs-6 fw-normal"> / <?= count($excursions) ?></span></div>
-    <a class="small" href="/admin/excursions.php">Manage →</a>
+    <a class="small" href="/admin/catalog-excursions.php">Manage →</a>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
     <div class="text-secondary small">Team</div>
@@ -110,4 +110,4 @@ shell_start('Overview', $currentUser);
     </tr>
   <?php endforeach; ?>
   </tbody></table></div></div>
-<?php shell_end();
+<?php shell_end($currentUser);

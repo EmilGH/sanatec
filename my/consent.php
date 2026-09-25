@@ -15,9 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $version = setting('privacy_notice_version');
-shell_start(tr('Privacy notice', 'Aviso de privacidad'), $currentUser, 'diver');
+shell_start(tr('Privacy notice', 'Aviso de privacidad'), $currentUser, 'diver', ['back' => '/my/']);
 ?>
-<h1 class="h3 mb-3"><?= e(tr('Privacy notice', 'Aviso de privacidad')) ?> <span class="text-secondary fs-6">v<?= e($version) ?></span></h1>
+<h1 class="st-h1 mb-3"><?= e(tr('Privacy notice', 'Aviso de privacidad')) ?> <span class="text-secondary fs-6">v<?= e($version) ?></span></h1>
 <?php if (stripos($version, 'draft') !== false): ?><div class="alert alert-warning small"><?= e(tr('This notice is a draft pending legal review.', 'Este aviso es un borrador pendiente de revisión legal.')) ?></div><?php endif; ?>
 <div class="card mb-3"><div class="card-body" style="max-height:50vh;overflow:auto">
   <?php require __DIR__ . '/../templates/notice_text.php'; ?>
@@ -28,7 +28,7 @@ shell_start(tr('Privacy notice', 'Aviso de privacidad'), $currentUser, 'diver');
   <form method="post"><?= csrf_field() ?>
     <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="consent" name="consent" value="1" required>
       <label class="form-check-label" for="consent"><?= e(tr('I have read the notice and consent to SanaTec Diving holding my details, including health information from the diver medical questionnaire.', 'He leído el aviso y doy mi consentimiento para que SanaTec Diving conserve mis datos, incluida la información de salud del cuestionario médico.')) ?></label></div>
-    <button class="btn btn-aqua" type="submit"><?= e(tr('Accept and continue', 'Aceptar y continuar')) ?></button>
+    <button class="st-btn st-btn--primary" type="submit"><?= e(tr('Accept and continue', 'Aceptar y continuar')) ?></button>
   </form>
 <?php endif; ?>
-<?php shell_end();
+<?php shell_end($currentUser, 'diver');

@@ -293,4 +293,4 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
 <?php else: ?>
   <p class="text-secondary small">Contact channels, certifications, emergency contacts and notes can be added once the customer is created.</p>
 <?php endif; ?>
-<?php shell_end();
+<?php shell_end($currentUser);

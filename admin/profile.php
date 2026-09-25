@@ -41,4 +41,4 @@ shell_start('My profile', $currentUser);
   <button class="btn btn-aqua mb-4" type="submit">Save</button>
 </form>
 <?php team_channels_card((int) $currentUser['id'], '/admin/profile.php'); ?>
-<?php shell_end();
+<?php shell_end($currentUser);

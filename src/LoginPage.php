@@ -212,5 +212,5 @@ function login_page(string $area): void
   </div>
 </div>
 <?php
-    shell_end();
+    shell_end(null, $isDiver ? 'diver' : 'admin');
 }

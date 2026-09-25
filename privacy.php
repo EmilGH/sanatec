@@ -28,4 +28,4 @@ shell_start($lang === 'es' ? 'Aviso de privacidad' : 'Privacy notice', null);
   <?php if (stripos($version, 'draft') !== false): ?><div class="alert alert-warning small"><?= $lang === 'es' ? 'Este aviso es un borrador pendiente de revisión legal.' : 'This notice is a draft pending legal review.' ?></div><?php endif; ?>
   <?php require __DIR__ . '/templates/notice_text.php'; ?>
 </div></div>
-<?php shell_end();
+<?php shell_end(null);
