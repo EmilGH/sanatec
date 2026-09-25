@@ -152,6 +152,7 @@ shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
     <?php if (str_starts_with($template['code'], 'liability')): ?>
       <p class="small text-secondary mb-2"><?= e(tr('Where the form says store/resort:', 'Donde el formulario dice store/resort:')) ?> <strong><?= e($fills['store_name']) ?></strong>
         <?php if ($template['code'] === 'liability'): ?><br><?= e(tr('Instructor(s):', 'Instructor(es):')) ?> <strong><?= e($fills['instructor_names'] ?: tr('assigned when your course is scheduled', 'se asignan al programar tu curso')) ?></strong><?php endif; ?>
+        <?php if (!empty($fills['event_title'])): ?><br><?= e(tr('For:', 'Para:')) ?> <strong><?= e($fills['event_title']) ?></strong><?php endif; ?>
         <?php if ($template['code'] === 'liability_excursion'): ?><br><?= e(tr('Diver accident insurance:', 'Seguro de accidentes de buceo:')) ?> <strong><?= $customer['dan_number'] ? 'DAN ' . e($customer['dan_number']) : e(tr('none on file', 'ninguno registrado')) ?></strong><?php endif; ?></p>
     <?php endif; ?>
     <div class="st-doc-view" tabindex="0">

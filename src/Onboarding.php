@@ -79,6 +79,18 @@ function profile_complete(array $customer): bool
  */
 function onboarding_steps(array $customer, string $activity = 'all', string $lang = 'en'): array
 {
+    // Booked on something? Then only that kind's release is asked for.
+    if ($activity === 'auto') {
+        require_once __DIR__ . '/Events.php';
+        $kinds = [];
+        foreach (customer_events((int) $customer['id']) as $ev) {
+            if (in_array($ev['participation'], ['invited', 'confirmed'], true) && $ev['status'] === 'open' && $ev['starts_on'] >= date('Y-m-d')) {
+                $kinds[$ev['kind']] = true;
+            }
+        }
+        $activity = count($kinds) === 1 ? array_key_first($kinds) : 'all';
+    }
+
     $steps = [];
     $steps[] = [
         'key' => 'consent', 'title' => $lang === 'es' ? 'Aviso de privacidad' : 'Privacy notice',
@@ -158,13 +170,14 @@ function form_sign(array $customer, array $template, array $answers, string $sig
         $pdo->beginTransaction();
     }
     try {
+        $fills = liability_fills($customer, $template);
         $pdo->prepare(
             'INSERT INTO form_submissions
-               (customer_id, template_id, status, source, answers, signed_by_person_id, signer_role,
+               (customer_id, template_id, event_id, status, source, answers, signed_by_person_id, signer_role,
                 signed_at, signed_ip, signed_user_agent, signed_referrer, signed_utm, expires_on)
-             VALUES (:c, :t, "signed", "online", :a, :s, :role, NOW(), :ip, :ua, :ref, :utm, :exp)'
+             VALUES (:c, :t, :ev, "signed", "online", :a, :s, :role, NOW(), :ip, :ua, :ref, :utm, :exp)'
         )->execute([
-            ':c' => $customer['id'], ':t' => $template['id'], ':a' => json_encode($answers, JSON_UNESCAPED_UNICODE),
+            ':c' => $customer['id'], ':t' => $template['id'], ':ev' => $fills['event_id'], ':a' => json_encode($answers, JSON_UNESCAPED_UNICODE),
             ':s' => $signer['person_id'], ':role' => $signer['role'],
             ':ip' => client_ip_binary(), ':ua' => mb_substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
             ':ref' => mb_substr((string) ($provenance['referrer'] ?? ''), 0, 500) ?: null,
@@ -301,12 +314,18 @@ function medical_record_clearance(int $submissionId, array $in, ?array $letter, 
         ]);
 }
 
-/** The instructors on a training event, for the liability form. No events yet: none. */
+/** What the liability release is filled with: the store, and for training the instructors of the diver's next course. */
 function liability_fills(array $customer, array $template): array
 {
+    require_once __DIR__ . '/Events.php';
+    $kind = $template['applies_to'] === 'training' ? 'training' : ($template['applies_to'] === 'excursion' ? 'excursion' : null);
+    $event = $kind !== null ? customer_next_event((int) $customer['id'], $kind) : null;
+
     return [
-        'store_name'       => setting('business_name') ?: 'SanaTec Diving',
-        'instructor_names' => '',
+        'store_name'       => setting('business_name') ?: 'SANA TEC DIVING',
+        'instructor_names' => $event !== null && $kind === 'training' ? event_instructor_names((int) $event['id']) : '',
+        'event_id'         => $event !== null ? (int) $event['id'] : null,
+        'event_title'      => $event !== null ? $event['title_en'] : '',
     ];
 }
 

@@ -7,6 +7,7 @@ require __DIR__ . '/../_layout.php';
 require_once __DIR__ . '/../../src/Customers.php';
 require_once __DIR__ . '/../../src/Team.php';
 require_once __DIR__ . '/../../src/Onboarding.php';
+require_once __DIR__ . '/../../src/Events.php';
 require __DIR__ . '/../team/_parts.php';
 
 $currentUser = require_permission('can_manage_customers');
@@ -211,6 +212,18 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
       </td></tr>
     <?php endforeach; ?>
     </tbody></table></div>
+  </div></div>
+
+  <div class="card mb-3"><div class="card-body">
+    <h2 class="h6 text-aqua text-uppercase mb-1">Trips and courses</h2>
+    <?php $trips = customer_events((int) $row['id']); if ($trips === []): ?><p class="text-secondary small mb-0">Not booked on anything yet. Add them from an excursion or course page.</p><?php else: ?>
+    <ul class="st-rows mb-0">
+      <?php foreach ($trips as $ev): $ps = participant_payment_state(['price_mxn' => $ev['agreed_price'], 'paid_mxn' => $ev['paid_mxn']]); ?>
+      <li><span class="st-muted st-num small"><?= e(date('j M Y', strtotime($ev['starts_on']))) ?></span>
+        <span class="st-rows__t"><a class="st-link" style="text-decoration:none" href="/admin/<?= $ev['kind'] === 'training' ? 'training' : 'excursions' ?>/event.php?id=<?= (int) $ev['id'] ?>"><?= e($ev['title_en']) ?></a><span class="st-rows__s"><?= e(PARTICIPANT_STATUSES[$ev['participation']] ?? $ev['participation']) ?><?= $ev['agreed_price'] !== null ? ' · ' . e(money($ev['agreed_price'])) . ' · ' . e($ps) : '' ?></span></span></li>
+      <?php endforeach; ?>
+    </ul>
+    <?php endif; ?>
   </div></div>
 
   <div class="card mb-3"><div class="card-body">

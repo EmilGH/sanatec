@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/_init.php';
 
-$steps = onboarding_steps($customer, 'all', $lang);
+require_once __DIR__ . '/../src/Events.php';
+$steps = onboarding_steps($customer, 'auto', $lang);
+$upcoming = array_filter(customer_events((int) $customer['id']), static fn (array $e): bool => in_array($e['participation'], ['invited', 'confirmed'], true) && $e['status'] === 'open' && $e['starts_on'] >= date('Y-m-d'));
 $done = count(array_filter($steps, static fn (array $s): bool => $s['done']));
 $signer = onboarding_signer($customer);
 $applies = ['training' => tr('for courses', 'para cursos'), 'excursion' => tr('for cenote trips', 'para salidas a cenotes'), 'all' => ''];
@@ -17,6 +19,16 @@ shell_start(tr('My documents', 'Mis documentos'), $currentUser, 'diver');
 
 <?php if (is_minor($customer['date_of_birth']) && $signer === null): ?>
   <div class="st-alert st-alert--warn mb-3"><?= ui_icon('warn') ?><div><strong><?= e(tr('Under 18', 'Menor de 18')) ?></strong><?= e(tr('A parent or guardian needs to sign your forms. Add them on the information page.', 'Un padre, madre o tutor debe firmar tus formularios. Añádelo en la página de información.')) ?></div></div>
+<?php endif; ?>
+
+<?php if ($upcoming !== []): ?>
+<ul class="st-rows st-card mb-3" style="padding:0 16px">
+  <?php foreach (array_reverse($upcoming) as $ev): $ps = participant_payment_state(['price_mxn' => $ev['agreed_price'], 'paid_mxn' => $ev['paid_mxn']]); ?>
+  <li><span class="st-serif" style="font-size:22px;min-width:44px;text-align:center;line-height:1"><?= e(date('j', strtotime($ev['starts_on']))) ?><br><small class="st-muted" style="font:400 12px/1 var(--font-sans)"><?= e(date('M', strtotime($ev['starts_on']))) ?></small></span>
+    <span class="st-rows__t"><?= e($lang === 'es' ? $ev['title_es'] : $ev['title_en']) ?><span class="st-rows__s"><?= e($ev['kind'] === 'training' ? tr('Course', 'Curso') : tr('Cenote trip', 'Salida a cenotes')) ?><?= $ev['agreed_price'] !== null ? ' · ' . e(money($ev['agreed_price'])) . ' MXN · ' . e($ps === 'paid' ? tr('paid', 'pagado') : ($ps === 'deposit' ? tr('deposit paid', 'anticipo pagado') : tr('payment pending', 'pago pendiente'))) : '' ?></span></span>
+    <?= $ps === 'paid' ? ui_icon('check', 'st-icon') : '' ?></li>
+  <?php endforeach; ?>
+</ul>
 <?php endif; ?>
 
 <div class="st-meter mb-1" style="--n:<?= count($steps) ?>" role="progressbar" aria-valuenow="<?= $done ?>" aria-valuemin="0" aria-valuemax="<?= count($steps) ?>">

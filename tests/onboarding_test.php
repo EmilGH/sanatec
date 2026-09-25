@@ -4,35 +4,6 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../src/Onboarding.php';
 
-/** A small PNG with ink on it, as the signature canvas would produce. */
-function test_signature(): string
-{
-    $img = imagecreatetruecolor(120, 40);
-    imagefill($img, 0, 0, imagecolorallocatealpha($img, 0, 0, 0, 127));
-    imagesavealpha($img, true);
-    imageline($img, 10, 30, 110, 10, imagecolorallocate($img, 11, 42, 53));
-    ob_start(); imagepng($img); $png = ob_get_clean();
-    return 'data:image/png;base64,' . base64_encode($png);
-}
-
-function blank_signature(): string
-{
-    $img = imagecreatetruecolor(120, 40);
-    imagefill($img, 0, 0, imagecolorallocatealpha($img, 0, 0, 0, 127));
-    imagesavealpha($img, true);
-    ob_start(); imagepng($img); $png = ob_get_clean();
-    return 'data:image/png;base64,' . base64_encode($png);
-}
-
-function make_customer(string $name, ?string $dob = null): array
-{
-    $pid = person_create($name, $dob ? ['date_of_birth' => $dob] : []);
-    channel_upsert($pid, 'email', strtolower(str_replace(' ', '.', ascii_fold($name))) . '@example.com', ['verified' => true, 'primary' => true]);
-    $c = customer_for_person($pid);
-    emergency_contact_save((int) $c['id'], null, ['name' => 'EC', 'phone' => '+12125550100']);
-    return customer_find((int) $c['id']);
-}
-
 test('the medical rule: starred questions and box answers require a physician', function (): void {
     $no = array_fill_keys(array_map(static fn (array $q): string => $q['id'], medical_questions()), 'no');
     is_same('cleared', medical_outcome($no)['outcome']);

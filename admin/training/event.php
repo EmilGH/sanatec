@@ -7,4 +7,4 @@ require __DIR__ . '/../_layout.php';
 
 $currentUser = require_permission('can_manage_training');
 $kind = 'training';
-require __DIR__ . '/../events/_list.php';
+require __DIR__ . '/../events/_event.php';
