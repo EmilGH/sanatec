@@ -99,16 +99,20 @@ function smtp_send(array $cfg, string $to, string $subject, string $text, ?strin
         'Auto-Submitted: auto-generated',
     ];
 
+    // Quoted-printable, not base64: spam filters score base64-wrapped text as
+    // "disguised content", and it was landing sign-in codes in Junk.
+    $qp = static fn (string $s): string => quoted_printable_encode(str_replace(["\r\n", "\r"], "\n", $s)) . "\r\n";
+
     if ($html === null) {
         $headers[] = 'Content-Type: text/plain; charset=UTF-8';
-        $headers[] = 'Content-Transfer-Encoding: base64';
-        $body = chunk_split(base64_encode($text));
+        $headers[] = 'Content-Transfer-Encoding: quoted-printable';
+        $body = $qp($text);
     } else {
         $headers[] = "Content-Type: multipart/alternative; boundary=\"{$boundary}\"";
-        $body = "--{$boundary}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
-            . chunk_split(base64_encode($text))
-            . "--{$boundary}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: base64\r\n\r\n"
-            . chunk_split(base64_encode($html))
+        $body = "--{$boundary}\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n"
+            . $qp($text)
+            . "--{$boundary}\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n"
+            . $qp('<!doctype html><html><body>' . $html . '</body></html>')
             . "--{$boundary}--\r\n";
     }
 
