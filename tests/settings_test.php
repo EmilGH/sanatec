@@ -48,9 +48,9 @@ test('the seeded catalogue matches the printed guides', function (): void {
     // from db/seed.sql, so rows the shop adds through the admin never appear here.
     is_same(10, (int) db()->query('SELECT COUNT(*) FROM courses')->fetchColumn(),
         'the ten courses printed in the training guide');
-    is_same(11, (int) db()->query('SELECT COUNT(*) FROM routes')->fetchColumn());
+    is_same(11, (int) db()->query('SELECT COUNT(*) FROM excursions')->fetchColumn());
 
-    $dreamgate = db()->query("SELECT * FROM routes WHERE name_en = 'Dreamgate'")->fetch();
+    $dreamgate = db()->query("SELECT * FROM excursions WHERE name_en = 'Dreamgate'")->fetch();
     is_same(null, $dreamgate['price_1_dive'], 'Dreamgate is not sold as a single dive');
     is_same('3500.00', $dreamgate['price_2_dives']);
 });

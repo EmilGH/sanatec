@@ -8,40 +8,40 @@ SET NAMES utf8mb4;
 -- ---------------------------------------------------------------------------
 -- Courses (from assets/training.jpeg)
 -- ---------------------------------------------------------------------------
-INSERT IGNORE INTO courses (id, name_en, name_es, price_mxn, duration_en, duration_es, sort_order) VALUES
- (1,  'Open Water Course',                        'Curso Open Water',                                10000.00, '3 days',           '3 días',            10),
- (2,  'Advanced Open Water',                       'Curso Advanced Open Water',                        9500.00, '2 days',           '2 días',            20),
- (3,  'Rescue & EFR',                              'Curso Rescue y EFR',                              10200.00, '3 days',           '3 días',            30),
- (4,  'Divemaster (PADI)',                         'Divemaster (PADI)',                                   NULL, '2, 3 or 4 weeks',  '2, 3 o 4 semanas',  40),
- (5,  'Sidemount (PADI)',                          'Sidemount (PADI)',                                10000.00, '2 days',           '2 días',            50),
- (6,  'Sidemount TDI',                             'Sidemount TDI',                                   15000.00, '3 days',           '3 días',            60),
- (7,  'TDI Sidemount + Cavern',                    'TDI Sidemount + Caverna',                         30000.00, '5 days',           '5 días',            70),
- (8,  'TDI Sidemount + Cavern + Intro to Cave',    'TDI Sidemount + Caverna + Introducción a Cueva',  50000.00, '10 days',          '10 días',           80),
- (9,  'TDI Cavern',                                'TDI Caverna',                                     15000.00, '3 days',           '3 días',            90),
- (10, 'TDI Intro to Cave',                         'TDI Introducción a Cueva',                        20000.00, '4 days',           '4 días',           100);
+INSERT IGNORE INTO courses (id, slug, name_en, name_es, price_mxn, duration_en, duration_es, sort_order) VALUES
+ (1, 'open-water-course', 'Open Water Course',                        'Curso Open Water',                                10000.00, '3 days',           '3 días',            10),
+ (2, 'advanced-open-water', 'Advanced Open Water',                       'Curso Advanced Open Water',                        9500.00, '2 days',           '2 días',            20),
+ (3, 'rescue-efr', 'Rescue & EFR',                              'Curso Rescue y EFR',                              10200.00, '3 days',           '3 días',            30),
+ (4, 'divemaster-padi', 'Divemaster (PADI)',                         'Divemaster (PADI)',                                   NULL, '2, 3 or 4 weeks',  '2, 3 o 4 semanas',  40),
+ (5, 'sidemount-padi', 'Sidemount (PADI)',                          'Sidemount (PADI)',                                10000.00, '2 days',           '2 días',            50),
+ (6, 'sidemount-tdi', 'Sidemount TDI',                             'Sidemount TDI',                                   15000.00, '3 days',           '3 días',            60),
+ (7, 'tdi-sidemount-cavern', 'TDI Sidemount + Cavern',                    'TDI Sidemount + Caverna',                         30000.00, '5 days',           '5 días',            70),
+ (8, 'tdi-sidemount-cavern-intro-to-cave', 'TDI Sidemount + Cavern + Intro to Cave',    'TDI Sidemount + Caverna + Introducción a Cueva',  50000.00, '10 days',          '10 días',           80),
+ (9, 'tdi-cavern', 'TDI Cavern',                                'TDI Caverna',                                     15000.00, '3 days',           '3 días',            90),
+ (10, 'tdi-intro-to-cave', 'TDI Intro to Cave',                         'TDI Introducción a Cueva',                        20000.00, '4 days',           '4 días',           100);
 
 -- ---------------------------------------------------------------------------
--- Cenote routes (from assets/adventures.jpeg)
+-- Cenote excursions (from assets/adventures.jpeg)
 --
--- The source guide stacks multi-cenote routes on two lines with no separator
+-- The source guide stacks multi-cenote excursions on two lines with no separator
 -- ("ANGELITA / CARWASH"). They are seeded here with "+", matching the guide's
 -- own "PIT + 2 OJOS" style, because the price columns only make sense that way:
 -- Angelita + Carwash is a two-dive day at $3,900, and adding Casa makes it a
 -- three-dive day at $4,500. Reading the slash as "either/or" would leave the
 -- three-dive column unexplained.
 -- ---------------------------------------------------------------------------
-INSERT IGNORE INTO routes (id, name_en, name_es, price_1_dive, price_2_dives, price_3_dives, cert_en, cert_es, is_special_price, sort_order) VALUES
- (1,  'Angelita + Carwash',            'Angelita + Carwash',            2400.00, 3900.00,    NULL, 'AOW',                          'AOW',                           0,  10),
- (2,  'Angelita + Carwash + Casa',     'Angelita + Carwash + Casa',     2400.00, 3900.00, 4500.00, 'AOW',                          'AOW',                           0,  20),
- (3,  'Pit + Dos Ojos',                'Pit + Dos Ojos',                2400.00, 3900.00, 4300.00, 'AOW',                          'AOW',                           0,  30),
- (4,  'Pit + Dos Ojos + Nic Te-Ha',    'Pit + Dos Ojos + Nic Te-Ha',    2400.00, 3900.00, 4500.00, 'AOW',                          'AOW',                           0,  40),
- (5,  'Dreamgate',                     'Dreamgate',                        NULL, 3500.00,    NULL, 'Open Water + pre-dive check',  'Open Water + chequeo previo',   0,  50),
- (6,  'Dos Ojos',                      'Dos Ojos',                         NULL, 3500.00,    NULL, 'OW',                           'OW',                            0,  60),
- (7,  'Ponderosa + Chikin Ha',         'Ponderosa + Chikin Ha',            NULL, 4300.00,    NULL, 'OW',                           'OW',                            0,  70),
- (8,  'Chikin Ha',                     'Chikin Ha',                        NULL, 4000.00,    NULL, 'OW',                           'OW',                            0,  80),
- (9,  'Yaa Kun',                       'Yaa Kun',                          NULL, 4200.00,    NULL, 'AOW',                          'AOW',                           1,  90),
- (10, 'Casa + Carwash',                'Casa + Carwash',                   NULL, 3900.00,    NULL, 'OW',                           'OW',                            0, 100),
- (11, 'Dos Ojos + Carwash',            'Dos Ojos + Carwash',               NULL, 3900.00, 4300.00, 'OW',                           'OW',                            0, 110);
+INSERT IGNORE INTO excursions (id, slug, name_en, name_es, price_1_dive, price_2_dives, price_3_dives, cert_en, cert_es, is_special_price, sort_order) VALUES
+ (1, 'angelita-carwash', 'Angelita + Carwash',            'Angelita + Carwash',            2400.00, 3900.00,    NULL, 'AOW',                          'AOW',                           0,  10),
+ (2, 'angelita-carwash-casa', 'Angelita + Carwash + Casa',     'Angelita + Carwash + Casa',     2400.00, 3900.00, 4500.00, 'AOW',                          'AOW',                           0,  20),
+ (3, 'pit-dos-ojos', 'Pit + Dos Ojos',                'Pit + Dos Ojos',                2400.00, 3900.00, 4300.00, 'AOW',                          'AOW',                           0,  30),
+ (4, 'pit-dos-ojos-nic-te-ha', 'Pit + Dos Ojos + Nic Te-Ha',    'Pit + Dos Ojos + Nic Te-Ha',    2400.00, 3900.00, 4500.00, 'AOW',                          'AOW',                           0,  40),
+ (5, 'dreamgate', 'Dreamgate',                     'Dreamgate',                        NULL, 3500.00,    NULL, 'Open Water + pre-dive check',  'Open Water + chequeo previo',   0,  50),
+ (6, 'dos-ojos', 'Dos Ojos',                      'Dos Ojos',                         NULL, 3500.00,    NULL, 'OW',                           'OW',                            0,  60),
+ (7, 'ponderosa-chikin-ha', 'Ponderosa + Chikin Ha',         'Ponderosa + Chikin Ha',            NULL, 4300.00,    NULL, 'OW',                           'OW',                            0,  70),
+ (8, 'chikin-ha', 'Chikin Ha',                     'Chikin Ha',                        NULL, 4000.00,    NULL, 'OW',                           'OW',                            0,  80),
+ (9, 'yaa-kun', 'Yaa Kun',                       'Yaa Kun',                          NULL, 4200.00,    NULL, 'AOW',                          'AOW',                           1,  90),
+ (10, 'casa-carwash', 'Casa + Carwash',                'Casa + Carwash',                   NULL, 3900.00,    NULL, 'OW',                           'OW',                            0, 100),
+ (11, 'dos-ojos-carwash', 'Dos Ojos + Carwash',            'Dos Ojos + Carwash',               NULL, 3900.00, 4300.00, 'OW',                           'OW',                            0, 110);
 
 -- ---------------------------------------------------------------------------
 -- Site content. Keys are declared in src/Settings.php, which owns the labels,
@@ -133,4 +133,4 @@ Propinas'),
                           'SanaTec Diving | Buceo en cenotes y formación técnica'),
  ('meta_description',     'Cenote diving and PADI/TDI training on the Riviera Maya. Course and cenote prices in MXN. Message us on WhatsApp to plan your dive.',
                           'Buceo en cenotes y cursos PADI/TDI en la Riviera Maya. Precios de cursos y cenotes en MXN. Escríbenos por WhatsApp para planear tu buceo.'),
- ('og_image',             'assets/og-image.jpg', NULL);
+ ('og_image',             '', NULL);   -- empty: the generated preview card

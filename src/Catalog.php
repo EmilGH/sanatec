@@ -8,13 +8,13 @@ if (!defined('SANATEC')) {
 }
 
 /**
- * The product catalogue: dive courses and cenote adventure routes.
+ * The product catalogue: dive courses and cenote adventure excursions.
  *
  * Both tables share a shape (sort_order + is_published + paired EN/ES columns),
  * so ordering and publishing are handled generically; the field lists differ.
  */
 
-const CATALOG_TABLES = ['courses', 'routes'];
+const CATALOG_TABLES = ['courses', 'excursions'];
 
 /** Guard against a table name ever reaching SQL from user input. */
 function catalog_table(string $table): string
@@ -155,9 +155,10 @@ function course_save(array $in, ?int $id = null): int
 
     if ($id === null) {
         $params[':sort_order'] = catalog_next_sort_order('courses');
+        $params[':slug'] = catalog_slug_for('courses', $params[':name_en']);
         db()->prepare(
-            'INSERT INTO courses (name_en, name_es, price_mxn, duration_en, duration_es, note_en, note_es, is_published, sort_order)
-             VALUES (:name_en, :name_es, :price_mxn, :duration_en, :duration_es, :note_en, :note_es, :published, :sort_order)'
+            'INSERT INTO courses (slug, name_en, name_es, price_mxn, duration_en, duration_es, note_en, note_es, is_published, sort_order)
+             VALUES (:slug, :name_en, :name_es, :price_mxn, :duration_en, :duration_es, :note_en, :note_es, :published, :sort_order)'
         )->execute($params);
 
         return (int) db()->lastInsertId();
@@ -175,7 +176,7 @@ function course_save(array $in, ?int $id = null): int
 }
 
 /** Insert or update a cenote route. Returns the row id. */
-function route_save(array $in, ?int $id = null): int
+function excursion_save(array $in, ?int $id = null): int
 {
     $params = [
         ':name_en'       => trim((string) ($in['name_en'] ?? '')),
@@ -190,10 +191,11 @@ function route_save(array $in, ?int $id = null): int
     ];
 
     if ($id === null) {
-        $params[':sort_order'] = catalog_next_sort_order('routes');
+        $params[':sort_order'] = catalog_next_sort_order('excursions');
+        $params[':slug'] = catalog_slug_for('excursions', $params[':name_en']);
         db()->prepare(
-            'INSERT INTO routes (name_en, name_es, price_1_dive, price_2_dives, price_3_dives, cert_en, cert_es, is_special_price, is_published, sort_order)
-             VALUES (:name_en, :name_es, :price_1_dive, :price_2_dives, :price_3_dives, :cert_en, :cert_es, :special, :published, :sort_order)'
+            'INSERT INTO excursions (slug, name_en, name_es, price_1_dive, price_2_dives, price_3_dives, cert_en, cert_es, is_special_price, is_published, sort_order)
+             VALUES (:slug, :name_en, :name_es, :price_1_dive, :price_2_dives, :price_3_dives, :cert_en, :cert_es, :special, :published, :sort_order)'
         )->execute($params);
 
         return (int) db()->lastInsertId();
@@ -201,7 +203,7 @@ function route_save(array $in, ?int $id = null): int
 
     $params[':id'] = $id;
     db()->prepare(
-        'UPDATE routes SET name_en = :name_en, name_es = :name_es,
+        'UPDATE excursions SET name_en = :name_en, name_es = :name_es,
                 price_1_dive = :price_1_dive, price_2_dives = :price_2_dives, price_3_dives = :price_3_dives,
                 cert_en = :cert_en, cert_es = :cert_es,
                 is_special_price = :special, is_published = :published
@@ -211,12 +213,38 @@ function route_save(array $in, ?int $id = null): int
     return $id;
 }
 
+/** A unique slug for a catalogue row, from its English name. */
+function catalog_slug_for(string $table, string $name, ?int $excludeId = null): string
+{
+    $t = catalog_table($table);
+    $base = strtolower(trim(preg_replace('/[^a-z0-9]+/i', '-', ascii_fold($name)) ?? '', '-')) ?: 'item';
+    $stmt = db()->prepare("SELECT COUNT(*) FROM {$t} WHERE slug = :s AND id <> :id");
+    $slug = $base;
+    for ($n = 2; ; $n++) {
+        $stmt->execute([':s' => $slug, ':id' => $excludeId ?? 0]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            return $slug;
+        }
+        $slug = "{$base}-{$n}";
+    }
+}
+
+/** A published row by slug, or null. */
+function catalog_find_by_slug(string $table, string $slug): ?array
+{
+    $t = catalog_table($table);
+    $stmt = db()->prepare("SELECT * FROM {$t} WHERE slug = :s AND is_published = 1");
+    $stmt->execute([':s' => $slug]);
+
+    return $stmt->fetch() ?: null;
+}
+
 /** The most recent change to the catalogue, used for Last-Modified headers. */
 function catalog_last_modified(): int
 {
     $sql = 'SELECT UNIX_TIMESTAMP(GREATEST(
                 (SELECT COALESCE(MAX(updated_at), FROM_UNIXTIME(86400)) FROM courses),
-                (SELECT COALESCE(MAX(updated_at), FROM_UNIXTIME(86400)) FROM routes),
+                (SELECT COALESCE(MAX(updated_at), FROM_UNIXTIME(86400)) FROM excursions),
                 (SELECT COALESCE(MAX(updated_at), FROM_UNIXTIME(86400)) FROM settings)
             ))';
 

@@ -47,46 +47,46 @@ test('unpublishing hides a row from the public page only', function (): void {
 });
 
 test('moving a row up swaps it with its neighbour', function (): void {
-    $before = order_of('routes');
-    $second = catalog_all('routes')[1];
+    $before = order_of('excursions');
+    $second = catalog_all('excursions')[1];
 
-    catalog_move('routes', (int) $second['id'], -1);
+    catalog_move('excursions', (int) $second['id'], -1);
 
-    $after = order_of('routes');
+    $after = order_of('excursions');
     is_same($before[1], $after[0], 'the second row is now first');
     is_same($before[0], $after[1], 'and the first is now second');
 
-    catalog_move('routes', (int) $second['id'], 1);
-    is_same($before, order_of('routes'), 'moving back restores the original order');
+    catalog_move('excursions', (int) $second['id'], 1);
+    is_same($before, order_of('excursions'), 'moving back restores the original order');
 });
 
 test('moving the first row up does nothing', function (): void {
-    $before = order_of('routes');
-    catalog_move('routes', (int) catalog_all('routes')[0]['id'], -1);
-    is_same($before, order_of('routes'));
+    $before = order_of('excursions');
+    catalog_move('excursions', (int) catalog_all('excursions')[0]['id'], -1);
+    is_same($before, order_of('excursions'));
 });
 
 test('moving the last row down does nothing', function (): void {
-    $before = order_of('routes');
-    $rows = catalog_all('routes');
-    catalog_move('routes', (int) $rows[count($rows) - 1]['id'], 1);
-    is_same($before, order_of('routes'));
+    $before = order_of('excursions');
+    $rows = catalog_all('excursions');
+    catalog_move('excursions', (int) $rows[count($rows) - 1]['id'], 1);
+    is_same($before, order_of('excursions'));
 });
 
 test('rows sharing a sort_order can still be reordered', function (): void {
     // Two rows added in quick succession, then forced to collide.
-    $a = route_save(['name_en' => 'Tie A', 'name_es' => '', 'is_published' => true]);
-    $b = route_save(['name_en' => 'Tie B', 'name_es' => '', 'is_published' => true]);
-    db()->exec("UPDATE routes SET sort_order = 9999 WHERE id IN ({$a}, {$b})");
+    $a = excursion_save(['name_en' => 'Tie A', 'name_es' => '', 'is_published' => true]);
+    $b = excursion_save(['name_en' => 'Tie B', 'name_es' => '', 'is_published' => true]);
+    db()->exec("UPDATE excursions SET sort_order = 9999 WHERE id IN ({$a}, {$b})");
 
-    $before = order_of('routes');
-    catalog_move('routes', $b, -1);
-    $after = order_of('routes');
+    $before = order_of('excursions');
+    catalog_move('excursions', $b, -1);
+    $after = order_of('excursions');
 
     is_false($before === $after, 'a tie must not make the arrows silently do nothing');
 
-    catalog_delete('routes', $a);
-    catalog_delete('routes', $b);
+    catalog_delete('excursions', $a);
+    catalog_delete('excursions', $b);
 });
 
 test('the table name can never come from user input', function (): void {
@@ -96,6 +96,6 @@ test('the table name can never come from user input', function (): void {
 });
 
 test('the special-price flag round-trips', function (): void {
-    $yaakun = db()->query("SELECT * FROM routes WHERE name_en = 'Yaa Kun'")->fetch();
+    $yaakun = db()->query("SELECT * FROM excursions WHERE name_en = 'Yaa Kun'")->fetch();
     is_same(1, (int) $yaakun['is_special_price'], 'Yaa Kun keeps the guide\'s asterisk');
 });

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
+require_once __DIR__ . '/../src/Og.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
@@ -32,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $price   = money($input['price_mxn'] === '' ? null : parse_money($input['price_mxn'])) ?? 'Ask for pricing';
         audit($id ? 'update' : 'create', 'course', $savedId, $input['name_en'] . ' — ' . $price);
         flash($id ? 'Course updated.' : 'Course added.');
+        og_invalidate();
         redirect('/admin/courses.php');
     }
 

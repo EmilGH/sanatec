@@ -6,7 +6,7 @@ require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
 
 $courses = catalog_all('courses');
-$routes  = catalog_all('routes');
+$excursions  = catalog_all('excursions');
 $shown = static fn (array $rows): int => count(array_filter($rows, static fn (array $r): bool => (bool) $r['is_published']));
 
 /** Blanks worth filling, in the order they cost the shop money. */
@@ -20,7 +20,7 @@ if (!has_setting('opening_hours')) {
 if (setting('included_publish') !== '1') {
     $todo[] = ['"What is included" is drafted but hidden. Check every line against what you actually provide, then switch it on.', 'Business → What is included', '/admin/settings.php#included'];
 }
-$missingEs = (int) db()->query("SELECT (SELECT COUNT(*) FROM courses WHERE TRIM(name_es)='') + (SELECT COUNT(*) FROM routes WHERE TRIM(name_es)='')")->fetchColumn();
+$missingEs = (int) db()->query("SELECT (SELECT COUNT(*) FROM courses WHERE TRIM(name_es)='') + (SELECT COUNT(*) FROM excursions WHERE TRIM(name_es)='')")->fetchColumn();
 if ($missingEs > 0) {
     $todo[] = [$missingEs . ' catalogue ' . ($missingEs === 1 ? 'entry has' : 'entries have') . ' no Spanish name.', 'Catalog', '/admin/courses.php'];
 }
@@ -55,9 +55,9 @@ shell_start('Overview', $currentUser);
     <a class="small" href="/admin/courses.php">Manage →</a>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
-    <div class="text-secondary small">Cenote routes</div>
-    <div class="stat"><?= $shown($routes) ?><span class="text-secondary fs-6 fw-normal"> / <?= count($routes) ?></span></div>
-    <a class="small" href="/admin/routes.php">Manage →</a>
+    <div class="text-secondary small">Cenote excursions</div>
+    <div class="stat"><?= $shown($excursions) ?><span class="text-secondary fs-6 fw-normal"> / <?= count($excursions) ?></span></div>
+    <a class="small" href="/admin/excursions.php">Manage →</a>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
     <div class="text-secondary small">Team</div>

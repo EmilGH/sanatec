@@ -7,231 +7,102 @@ if (!defined('SANATEC')) {
     exit;
 }
 
+require_once __DIR__ . '/ui/public.php';
+
 /**
- * The public page, in whichever language was requested.
+ * The public page — Tide Line.
  *
- * @var string $lang     Current language code.
- * @var string $baseUrl  Absolute site root, no trailing slash.
- * @var array  $courses  Published courses, in display order.
- * @var array  $routes   Published cenote routes, in display order.
+ * @var string     $lang        Current language.
+ * @var string     $baseUrl     Absolute site root, no trailing slash.
+ * @var array      $courses     Published courses, display order.
+ * @var array      $excursions  Published excursions, display order.
+ * @var array|null $share       ['type' => 'course'|'excursion', 'row' => [...]] for /c/<slug>, else null.
  */
 
-$wa       = setting('whatsapp_number');
-$tel      = setting('phone_e164');
-$waHref   = 'https://wa.me/' . rawurlencode($wa) . '?text=' . rawurlencode(t('wa_prefill', $lang));
-$smsHref  = 'sms:' . $tel;
-$hasSpecial = (bool) array_filter($routes, static fn (array $r): bool => (bool) $r['is_special_price']);
+// A shared item leads its own section.
+if ($share !== null) {
+    $list = $share['type'] === 'course' ? 'courses' : 'excursions';
+    usort($$list, static fn (array $a, array $b): int => ((int) $b['id'] === (int) $share['row']['id']) <=> ((int) $a['id'] === (int) $share['row']['id']));
+}
+
 $showIncluded = setting('included_publish') === '1'
     && (setting_lines('included_items', $lang) !== [] || setting_lines('excluded_items', $lang) !== []);
-
-/** Route/course name in the current language, falling back to English. */
-$name = static fn (array $row): string => trim((string) ($row['name_' . $lang] ?? '')) ?: (string) $row['name_en'];
-
-/** A price cell: the amount, or an em dash when that option is not offered. */
-$priceCell = static function (?string $amount, bool $marker = false): string {
-    $formatted = money($amount);
-
-    return $formatted === null
-        ? '<td aria-label="—">—</td>'
-        : '<td class="price">' . e($formatted) . ($marker ? '*' : '') . '</td>';
-};
+$hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bool) $r['is_special_price']);
 ?>
-<a class="skip" href="#main"><?= e(t('skip_to_content', $lang)) ?></a>
-<div class="wrap">
+<?= ui_brand_defs('dark') ?>
+<div class="st-root" data-theme="dark">
+<a class="st-skip" href="#main"><?= e(t('skip_to_content', $lang)) ?></a>
 
-<header>
-  <a class="brand" href="<?= e(LANGUAGES[$lang]['path']) ?>">SanaTec<span>Diving</span></a>
-  <div class="headnav">
-    <nav aria-label="<?= e(t('nav_label', $lang)) ?>">
-      <a href="#training"><?= e(t('nav_training', $lang)) ?></a>
-      <a href="#adventures"><?= e(t('nav_adventures', $lang)) ?></a>
-    </nav>
-    <div class="langs" role="group" aria-label="<?= e(t('lang_label', $lang)) ?>">
-      <?php foreach (LANGUAGES as $code => $meta): ?>
-      <a href="<?= e($meta['path']) ?>" hreflang="<?= e($code) ?>" lang="<?= e($code) ?>"
-         <?= $code === $lang ? 'aria-current="true"' : '' ?>><?= e(strtoupper($code)) ?></a>
-      <?php endforeach; ?>
-    </div>
-  </div>
-</header>
+<?= ui_public_header($lang) ?>
 
 <main id="main">
-
-  <section class="hero" aria-labelledby="hero-title">
-    <div>
-      <p class="eyebrow"><?= e(setting('hero_eyebrow', $lang)) ?></p>
-      <h1 id="hero-title"><?= e(setting('hero_title_a', $lang)) ?><br><em><?= e(setting('hero_title_b', $lang)) ?></em></h1>
-      <p class="intro"><?= e(setting('hero_intro', $lang)) ?></p>
-      <div class="actions">
-        <a class="button primary" href="<?= e($waHref) ?>"><?= e(t('cta_whatsapp_long', $lang)) ?> ↗</a>
-        <a class="button" href="<?= e($smsHref) ?>"><?= e(t('cta_sms_long', $lang)) ?></a>
-      </div>
-    </div>
-    <div class="visual">
-      <div class="brand-image">
-        <img src="/assets/training.jpeg" width="738" height="1600" alt="<?= e(t('hero_image_alt', $lang)) ?>" fetchpriority="high">
-      </div>
-      <div class="visual-note">
-        <span><?= e(t('visual_note_a', $lang)) ?></span>
-        <strong><?= e(t('visual_note_b', $lang)) ?></strong>
+  <section class="st-hero st-wrap" aria-labelledby="hero-title">
+    <img class="st-hero__mark" src="/assets/brand/roundel-512.png" width="512" height="512" alt="" loading="eager" fetchpriority="high">
+    <div class="st-hero__fade"></div>
+    <div class="st-hero__text">
+      <p class="st-eyebrow"><?= e(t('hero_kicker', $lang)) ?></p>
+      <h1 class="st-display" id="hero-title"><?= e(setting('hero_title_a', $lang)) ?><em><?= e(setting('hero_title_b', $lang)) ?></em></h1>
+      <p class="st-lede st-hero__lede"><?= e(setting('hero_intro', $lang)) ?></p>
+      <div class="st-actions">
+        <a class="st-btn st-btn--primary" href="<?= e(ui_wa_url(t('wa_prefill', $lang))) ?>"><?= ui_icon('whatsapp') ?><?= e(t('cta_whatsapp_long', $lang)) ?></a>
+        <a class="st-btn st-btn--secondary" href="<?= e(ui_sms_url()) ?>"><?= ui_icon('sms') ?><?= e(t('cta_sms_long', $lang)) ?></a>
       </div>
     </div>
   </section>
 
-  <section id="training" class="section" aria-labelledby="training-title">
-    <div class="section-top">
-      <div>
-        <p class="eyebrow"><?= e(setting('training_eyebrow', $lang)) ?></p>
-        <h2 id="training-title"><?= e(setting('training_title', $lang)) ?></h2>
-      </div>
-      <a class="source" href="/assets/training.jpeg" target="_blank" rel="noopener"><?= e(t('source_training', $lang)) ?> ↗</a>
-    </div>
-    <div class="table-shell">
-      <table class="training">
-        <caption><?= e(setting('training_caption', $lang)) ?></caption>
-        <thead>
-          <tr>
-            <th scope="col"><?= e(t('th_course', $lang)) ?></th>
-            <th scope="col"><?= e(t('th_price_mxn', $lang)) ?></th>
-            <th scope="col"><?= e(t('th_duration', $lang)) ?></th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($courses as $course): ?>
-          <tr>
-            <th scope="row"><?= e($name($course)) ?></th>
-            <td><?= e(money($course['price_mxn']) ?? t('ask_for_pricing', $lang)) ?></td>
-            <td><?= e(trim((string) ($course['duration_' . $lang] ?? '')) ?: (string) $course['duration_en']) ?></td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-    <p class="note"><?= e(setting('training_note', $lang)) ?></p>
-  </section>
+  <?= ui_wave() ?>
 
-  <section id="adventures" class="section" aria-labelledby="adventure-title">
-    <div class="section-top">
-      <div>
-        <p class="eyebrow"><?= e(setting('adventures_eyebrow', $lang)) ?></p>
-        <h2 id="adventure-title"><?= e(setting('adventures_title', $lang)) ?></h2>
+  <?php if ($share !== null): ?>
+  <p class="st-share st-wrap"><?= e(t('share_intro', $lang)) ?> <strong><?= e(ui_name($share['row'], $lang)) ?></strong></p>
+  <?php endif; ?>
+
+  <div class="st-cols st-wrap">
+    <section class="st-section" id="training" aria-labelledby="training-title">
+      <div class="st-section__head">
+        <p class="st-eyebrow"><?= e(setting('training_eyebrow', $lang)) ?></p>
+        <h2 class="st-h1" id="training-title"><?= e(setting('training_title', $lang)) ?></h2>
+        <p class="st-lede"><?= e(t('courses_mxn', $lang)) ?></p>
       </div>
-      <a class="source" href="/assets/adventures.jpeg" target="_blank" rel="noopener"><?= e(t('source_adventure', $lang)) ?> ↗</a>
-    </div>
-    <p class="note scroll-hint" style="margin:0 0 12px"><?= e(t('scroll_hint', $lang)) ?></p>
-    <div class="table-shell adventure-scroll" tabindex="0" role="region" aria-label="<?= e(t('table_region', $lang)) ?>">
-      <table class="adventures">
-        <caption><?= e(setting('adventures_caption', $lang)) ?></caption>
-        <thead>
-          <tr>
-            <th scope="col"><?= e(t('th_route', $lang)) ?></th>
-            <th scope="col"><?= e(t('th_1_dive', $lang)) ?></th>
-            <th scope="col"><?= e(t('th_2_dives', $lang)) ?></th>
-            <th scope="col"><?= e(t('th_3_dives', $lang)) ?></th>
-            <th scope="col"><?= e(t('th_certification', $lang)) ?></th>
-          </tr>
-        </thead>
-        <tbody>
-        <?php foreach ($routes as $route):
-            $special = (bool) $route['is_special_price'];
-            $markerUsed = false;
-        ?>
-          <tr>
-            <th scope="row"><?= e($name($route)) ?></th>
-            <?php foreach (['price_1_dive', 'price_2_dives', 'price_3_dives'] as $col):
-                $useMarker = $special && !$markerUsed && $route[$col] !== null;
-                $markerUsed = $markerUsed || $useMarker;
-                echo $priceCell($route[$col], $useMarker);
-            endforeach; ?>
-            <td><?= e(trim((string) ($route['cert_' . $lang] ?? '')) ?: (string) $route['cert_en']) ?></td>
-          </tr>
-        <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-    <p class="note">
-      <?= e(setting('adventures_legend', $lang)) ?>
-      <?php if ($hasSpecial): ?><br><?= e(setting('adventures_footnote', $lang)) ?><?php endif; ?>
-    </p>
-  </section>
+      <ul class="st-menu">
+        <?php foreach ($courses as $c) { echo ui_menu_course($c, $lang); } ?>
+      </ul>
+      <p class="st-note"><?= e(setting('training_note', $lang)) ?></p>
+    </section>
+
+    <section class="st-section" id="adventures" aria-labelledby="adventure-title">
+      <div class="st-section__head">
+        <p class="st-eyebrow"><?= e(setting('adventures_eyebrow', $lang)) ?></p>
+        <h2 class="st-h1" id="adventure-title"><?= e(setting('adventures_title', $lang)) ?></h2>
+        <p class="st-lede"><?= e(t('per_diver_mxn', $lang)) ?></p>
+      </div>
+      <ul class="st-menu">
+        <?php foreach ($excursions as $x) { echo ui_menu_excursion($x, $lang); } ?>
+      </ul>
+      <p class="st-note"><?= e(setting('adventures_legend', $lang)) ?><?php if ($hasSpecial): ?><br><?= e(setting('adventures_footnote', $lang)) ?><?php endif; ?></p>
+    </section>
+  </div>
 
   <?php if ($showIncluded): ?>
-  <section id="included" class="section" aria-label="<?= e(setting('included_title', $lang)) ?>">
-    <div class="includes">
-      <div class="in">
-        <h3><?= e(setting('included_title', $lang)) ?></h3>
-        <ul>
-          <?php foreach (setting_lines('included_items', $lang) as $item): ?>
-          <li><?= e($item) ?></li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
-      <div class="out">
-        <h3 class="excluded"><?= e(setting('excluded_title', $lang)) ?></h3>
-        <ul>
-          <?php foreach (setting_lines('excluded_items', $lang) as $item): ?>
-          <li><?= e($item) ?></li>
-          <?php endforeach; ?>
-        </ul>
-      </div>
+  <section class="st-section st-wrap" id="included" aria-label="<?= e(setting('included_title', $lang)) ?>">
+    <div class="st-cols">
+      <div><h3 class="st-h3 st-included__h"><?= e(setting('included_title', $lang)) ?></h3>
+        <ul class="st-list st-list--in"><?php foreach (setting_lines('included_items', $lang) as $i) { echo '<li>', ui_icon('check'), e($i), '</li>'; } ?></ul></div>
+      <div><h3 class="st-h3 st-included__h st-included__h--out"><?= e(setting('excluded_title', $lang)) ?></h3>
+        <ul class="st-list st-list--out"><?php foreach (setting_lines('excluded_items', $lang) as $i) { echo '<li><span>×</span>', e($i), '</li>'; } ?></ul></div>
     </div>
-    <?php if (has_setting('included_note', $lang)): ?>
-    <p class="note"><?= e(setting('included_note', $lang)) ?></p>
-    <?php endif; ?>
+    <?php if (has_setting('included_note', $lang)): ?><p class="st-note"><?= e(setting('included_note', $lang)) ?></p><?php endif; ?>
   </section>
   <?php endif; ?>
 
-  <section class="contact" aria-labelledby="contact-title">
-    <div>
-      <p class="eyebrow"><?= e(setting('contact_eyebrow', $lang)) ?></p>
-      <h2 id="contact-title"><?= e(setting('contact_title', $lang)) ?></h2>
-      <p>
-        <?= e(setting('contact_text', $lang)) ?><br>
-        <a href="tel:<?= e($tel) ?>"><?= e(setting('phone_display')) ?></a>
-        <?php if (has_setting('contact_email')): ?>
-        · <a href="mailto:<?= e(setting('contact_email')) ?>"><?= e(setting('contact_email')) ?></a>
-        <?php endif; ?>
-      </p>
+  <section class="st-section st-wrap" id="contact" aria-labelledby="contact-title">
+    <div class="st-section__head">
+      <h2 class="st-h1" id="contact-title"><?= e(setting('contact_title', $lang)) ?></h2>
+      <p class="st-lede"><?= e(setting('contact_text', $lang)) ?></p>
     </div>
-    <div class="actions">
-      <a class="button primary" href="<?= e($waHref) ?>"><?= e(t('cta_whatsapp', $lang)) ?> ↗</a>
-      <a class="button" href="<?= e($smsHref) ?>"><?= e(t('cta_sms', $lang)) ?></a>
-    </div>
+    <?= ui_contact_list($lang) ?>
   </section>
-
-  <?php if (has_setting('addr_locality') || has_setting('opening_hours')): ?>
-  <section class="location" aria-label="<?= e(t('find_us', $lang)) ?>">
-    <?php if (has_setting('addr_locality')): ?>
-    <div>
-      <h3><?= e(t('find_us', $lang)) ?></h3>
-      <address>
-        <?php if (has_setting('addr_street')): ?><?= e(setting('addr_street')) ?><br><?php endif; ?>
-        <?= e(trim(setting('addr_postal') . ' ' . setting('addr_locality'))) ?><br>
-        <?= e(setting('addr_region')) ?>
-      </address>
-      <?php if (has_setting('maps_url')): ?>
-      <p class="note"><a href="<?= e(setting('maps_url')) ?>" target="_blank" rel="noopener"><?= e(t('directions', $lang)) ?> ↗</a></p>
-      <?php endif; ?>
-    </div>
-    <?php endif; ?>
-    <?php if (has_setting('opening_hours')): ?>
-    <div>
-      <h3><?= e(t('opening_hours', $lang)) ?></h3>
-      <p><?= e(setting('opening_hours')) ?></p>
-    </div>
-    <?php endif; ?>
-  </section>
-  <?php endif; ?>
-
 </main>
 
-<footer>
-  <span><?= e(setting('business_name')) ?></span>
-  <span><?= e(setting('footer_note', $lang)) ?></span>
-</footer>
-</div>
-
-<div class="mobile-cta" aria-label="<?= e(t('cta_label', $lang)) ?>">
-  <a class="button primary" href="<?= e($waHref) ?>"><?= e(t('cta_whatsapp', $lang)) ?> ↗</a>
-  <a class="button" href="<?= e($smsHref) ?>"><?= e(t('cta_sms', $lang)) ?></a>
+<?= ui_public_footer($lang) ?>
+<?= ui_ctabar($lang) ?>
 </div>

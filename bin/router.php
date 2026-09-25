@@ -24,6 +24,18 @@ if ($path === '/es' || $path === '/es/') {
     exit;
 }
 
+if (preg_match('#^/(es/)?c/([a-z0-9-]+)/?$#', $path, $m)) {
+    $_GET['lang'] = $m[1] !== '' ? 'es' : 'en';
+    $_GET['share'] = $m[2];
+    require __DIR__ . '/../index.php';
+    exit;
+}
+if (preg_match('#^/og/([a-z0-9-]+)\.png$#', $path, $m)) {
+    $_GET['f'] = $m[1];
+    require __DIR__ . '/../og.php';
+    exit;
+}
+
 if ($path === '/privacy' || $path === '/es/privacy') {
     $_GET['lang'] = str_starts_with($path, '/es') ? 'es' : 'en';
     require __DIR__ . '/../privacy.php';

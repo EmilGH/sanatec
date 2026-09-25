@@ -39,6 +39,13 @@ $report = '';
 $out = static function (string $line) use (&$report): void {
     $report .= $line;
 };
+// If code under test calls exit(), still show what ran up to that point.
+$flushed = false;
+register_shutdown_function(static function () use (&$report, &$flushed): void {
+    if (!$flushed) {
+        echo $report, "\n\033[31mThe run stopped early: something under test called exit().\033[0m\n";
+    }
+});
 
 $name = test_db_reset();
 $out("Test database: {$name}\n\n");
@@ -85,6 +92,7 @@ $out(sprintf(
     $elapsed
 ));
 
+$flushed = true;
 echo $report;
 
 exit($failures === [] ? 0 : 1);

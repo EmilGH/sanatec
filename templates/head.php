@@ -17,9 +17,24 @@ if (!defined('SANATEC')) {
 $title       = setting('meta_title', $lang) ?: setting('business_name');
 $description = setting('meta_description', $lang);
 $canonical   = lang_url($lang, $baseUrl);
+$share       = $share ?? null;
 
+// Link preview: the shop's own override if set, else the generated image —
+// the home card, or the shared item's card.
 $ogImage = setting('og_image');
-$ogImageUrl = $ogImage !== '' ? $baseUrl . '/' . ltrim($ogImage, '/') : '';
+$ogImageUrl = $ogImage !== '' ? $baseUrl . '/' . ltrim($ogImage, '/') : $baseUrl . '/og/home-' . $lang . '.png';
+if ($share !== null) {
+    $r = $share['row'];
+    $name = trim((string) ($r['name_' . $lang] ?? '')) ?: (string) $r['name_en'];
+    $title = $name . ' · ' . setting('business_name');
+    $description = $share['type'] === 'course'
+        ? ($lang === 'es' ? 'Curso de buceo' : 'Dive course') . ' · ' . (trim((string) ($r['duration_' . $lang] ?? '')) ?: $r['duration_en'])
+            . ($r['price_mxn'] !== null ? ' · ' . money($r['price_mxn']) . ' MXN' : '')
+        : ($lang === 'es' ? 'Buceo en cenote' : 'Cenote dive') . ' · ' . (trim((string) ($r['cert_' . $lang] ?? '')) ?: $r['cert_en'])
+            . ($r['price_2_dives'] !== null ? ' · ' . money($r['price_2_dives']) . ' MXN / 2' : '');
+    $canonical = rtrim($baseUrl, '/') . ($lang === 'es' ? '/es' : '') . '/c/' . $r['slug'];
+    $ogImageUrl = $baseUrl . '/og/' . $share['type'] . '-' . $r['slug'] . '-' . $lang . '.png';
+}
 
 // Structured data. Every field is omitted rather than guessed: an invented
 // address or opening hours would send divers to the wrong place, and search
@@ -92,11 +107,11 @@ foreach ($courses as $course) {
     }
     $offers[] = $offer;
 }
-foreach ($routes as $route) {
-    $lowest = array_filter([$route['price_1_dive'], $route['price_2_dives'], $route['price_3_dives']]);
+foreach ($excursions as $excursion) {
+    $lowest = array_filter([$excursion['price_1_dive'], $excursion['price_2_dives'], $excursion['price_3_dives']]);
     $offer = [
         '@type'       => 'Offer',
-        'itemOffered' => ['@type' => 'Service', 'name' => $route['name_' . $lang] ?: $route['name_en']],
+        'itemOffered' => ['@type' => 'Service', 'name' => $excursion['name_' . $lang] ?: $excursion['name_en']],
     ];
     if ($lowest !== []) {
         $offer['price']         = number_format((float) min($lowest), 2, '.', '');
@@ -117,14 +132,14 @@ $jsonFlags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
 ?>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#061e27">
+<meta name="theme-color" content="#04263a">
 <title><?= e($title) ?></title>
 <meta name="description" content="<?= e($description) ?>">
 <link rel="canonical" href="<?= e($canonical) ?>">
-<?php foreach (LANGUAGES as $code => $meta): ?>
-<link rel="alternate" hreflang="<?= e($code) ?>" href="<?= e(lang_url($code, $baseUrl)) ?>">
+<?php $altPath = $share !== null ? '/c/' . $share['row']['slug'] : ''; foreach (LANGUAGES as $code => $meta): ?>
+<link rel="alternate" hreflang="<?= e($code) ?>" href="<?= e(rtrim($baseUrl, '/') . ($code === 'es' ? '/es' : '') . ($altPath ?: ($code === 'es' ? '/' : '/'))) ?>">
 <?php endforeach; ?>
-<link rel="alternate" hreflang="x-default" href="<?= e(lang_url('en', $baseUrl)) ?>">
+<link rel="alternate" hreflang="x-default" href="<?= e(rtrim($baseUrl, '/') . ($altPath ?: '/')) ?>">
 
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="<?= e(setting('business_name')) ?>">
@@ -146,7 +161,9 @@ $jsonFlags = JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT
 <meta name="twitter:title" content="<?= e($title) ?>">
 <meta name="twitter:description" content="<?= e($description) ?>">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23061e27'/%3E%3Ctext x='16' y='24' text-anchor='middle' font-family='Arial' font-size='25' fill='%233ed9df'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="64x64" href="/assets/brand/favicon-64.png">
+<link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
 <script type="application/ld+json">
 <?= json_encode($business, $jsonFlags) ?>
 </script>

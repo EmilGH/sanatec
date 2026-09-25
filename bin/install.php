@@ -39,10 +39,10 @@ $pdo->exec($seed);
 echo "Applied db/seed.sql\n";
 
 $counts = [];
-foreach (['courses', 'routes', 'settings'] as $table) {
+foreach (['courses', 'excursions', 'settings'] as $table) {
     $counts[$table] = (int) $pdo->query("SELECT COUNT(*) FROM {$table}")->fetchColumn();
 }
-echo "Rows: courses={$counts['courses']} routes={$counts['routes']} settings={$counts['settings']}\n\n";
+echo "Rows: courses={$counts['courses']} excursions={$counts['excursions']} settings={$counts['settings']}\n\n";
 
 echo "Next: set the System Administrator's identity and contact channels:\n";
 echo "  php bin/sysadmin.php --name \"Full Name\" --email you@example.com --mobile +1... [--whatsapp]\n";

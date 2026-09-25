@@ -93,7 +93,7 @@ textarea{min-height:92px;resize:vertical;line-height:1.5}
   <nav>
     <a href="/admin/" class="<?= $current === 'index.php' ? 'on' : '' ?>">Overview</a>
     <a href="/admin/courses.php" class="<?= $current === 'courses.php' ? 'on' : '' ?>">Courses</a>
-    <a href="/admin/routes.php" class="<?= $current === 'routes.php' ? 'on' : '' ?>">Cenotes</a>
+    <a href="/admin/excursions.php" class="<?= $current === 'excursions.php' ? 'on' : '' ?>">Cenotes</a>
     <a href="/admin/settings.php" class="<?= $current === 'settings.php' ? 'on' : '' ?>">Site content</a>
   </nav>
   <div class="right">

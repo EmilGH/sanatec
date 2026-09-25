@@ -47,8 +47,10 @@ test('the English page renders', function (): void {
     has('Adventure dives', $html);
     has('Open Water Course', $html);
     has('$10,000', $html, 'course prices come from the database');
-    has('Ask for pricing', $html, 'Divemaster has no price');
-    has('2 dives', $html, 'the cumulative-price column heading');
+    has('Ask us', $html, 'Divemaster has no price');
+    has('2 dives', $html, 'the per-dive-count price line');
+    has('id="dos-ojos"', $html, 'every row carries its slug as an anchor');
+    has('wa.me/', $html, 'every price line is a WhatsApp deep link');
 });
 
 test('the Spanish page renders', function (): void {
@@ -57,7 +59,7 @@ test('the Spanish page renders', function (): void {
     has('<html lang="es">', $html);
     has('Formación de buceo', $html);
     has('Buceos recreativos', $html);
-    has('2 buceos', $html);
+    has('2 inmersiones', $html);
     has('Introducción a Cueva', $html, 'accented Spanish survives intact');
     has_not('Dive training', $html, 'no English leaking into the Spanish page');
 });
@@ -85,12 +87,12 @@ test('a course name is escaped, not executed', function (): void {
 });
 
 test('an unpublished row never reaches the page', function (): void {
-    $id = route_save(['name_en' => 'Secret Cenote', 'name_es' => '', 'is_published' => false]);
+    $id = excursion_save(['name_en' => 'Secret Cenote', 'name_es' => '', 'is_published' => false]);
 
     has_not('Secret Cenote', render_page('en'));
     has_not('Secret Cenote', render_page('es'));
 
-    catalog_delete('routes', $id);
+    catalog_delete('excursions', $id);
 });
 
 test('structured data is valid and priced in pesos', function (): void {
@@ -100,7 +102,7 @@ test('structured data is valid and priced in pesos', function (): void {
     is_same('MXN', $data['currenciesAccepted']);
 
     $offers = $data['hasOfferCatalog']['itemListElement'];
-    is_same(21, count($offers), 'ten seeded courses plus eleven seeded routes');
+    is_same(21, count($offers), 'ten seeded courses plus eleven seeded excursions');
 
     foreach ($offers as $offer) {
         if (isset($offer['price'])) {
@@ -114,7 +116,7 @@ test('an address that is not known is not invented', function (): void {
 
     is_false(isset($data['geo']), 'no coordinates are seeded, so none must be published');
     is_false(isset($data['openingHours']), 'no hours are seeded, so none must be published');
-    has_not('class="location"', render_page('en'), 'the location block stays hidden while empty');
+    has_not('class="st-location"', render_page('en'), 'the address row stays hidden while empty');
 });
 
 test('an address that is known is published', function (): void {
@@ -128,7 +130,7 @@ test('an address that is known is published', function (): void {
 
     is_same('Tulum', $data['address']['addressLocality']);
     is_same('Mo-Su 07:00-19:00', $data['openingHours']);
-    has('class="location"', $html);
+    has('class="st-location"', $html);
 
     settings_save(['addr_locality' => ['en' => ''], 'opening_hours' => ['en' => '']]);
 });
@@ -148,7 +150,7 @@ test('the link preview card is complete', function (): void {
     $html = render_page('en');
 
     has('property="og:image"', $html);
-    has('og-image.jpg', $html);
+    has('/og/home-en.png', $html, 'the generated home card');
     has('property="og:title"', $html);
     has('name="twitter:card" content="summary_large_image"', $html);
     has('property="og:locale" content="en_US"', $html);
@@ -159,8 +161,46 @@ test('the contact number comes from one place', function (): void {
 
     $html = render_page('en');
     has('wa.me/521111111111', $html);
-    has('tel:+521111111111', $html);
+    has('sms:+521111111111', $html);
     has_not('9841063306', $html, 'no hard-coded number may survive in a template');
 
     settings_save(['phone_e164' => ['en' => '+529841063306'], 'whatsapp_number' => ['en' => '529841063306']]);
+});
+
+test('a share link puts its item first and gets its own card', function (): void {
+    $_GET = ['lang' => 'en', 'share' => 'dos-ojos'];
+    $_SERVER['REQUEST_URI'] = '/c/dos-ojos';
+    settings_cache_clear();
+    ob_start();
+    require SANATEC_ROOT . '/index.php';
+    $html = (string) ob_get_clean();
+
+    has('<link rel="canonical" href="https://sanatecdiving.com/c/dos-ojos">', $html);
+    has('/og/excursion-dos-ojos-en.png', $html);
+    has('Shared with you:', $html);
+    is_true(strpos($html, 'id="dos-ojos"') < strpos($html, 'id="angelita-carwash"'), 'the shared excursion leads its section');
+});
+
+test('slugs are made from the English name and stay unique', function (): void {
+    is_same('pit-dos-ojos-nic-te-ha', db()->query("SELECT slug FROM excursions WHERE name_en = 'Pit + Dos Ojos + Nic Te-Ha'")->fetchColumn());
+    $a = course_save(['name_en' => 'Night Dive', 'name_es' => '', 'is_published' => true]);
+    $b = course_save(['name_en' => 'Night Dive!', 'name_es' => '', 'is_published' => true]);
+    is_same('night-dive', catalog_find('courses', $a)['slug']);
+    is_same('night-dive-2', catalog_find('courses', $b)['slug']);
+    catalog_delete('courses', $a); catalog_delete('courses', $b);
+});
+
+test('preview images render for home and for an item, and are cached', function (): void {
+    require_once SANATEC_ROOT . '/src/Og.php';
+    og_invalidate();
+    $home = og_file('home-es');
+    is_true($home !== null && is_file($home), 'home card rendered');
+    $info = getimagesize($home);
+    is_same([1200, 630], [$info[0], $info[1]]);
+    $item = og_file('excursion-yaa-kun-en');
+    is_true($item !== null && is_file($item));
+    is_same(null, og_file('excursion-no-such-thing-en'), 'unknown slug is a 404, not an empty card');
+    is_same(null, og_file('../etc/passwd'), 'no path games');
+    og_invalidate('excursion', 'yaa-kun');
+    is_false(is_file($item), 'invalidation removes the cached file');
 });

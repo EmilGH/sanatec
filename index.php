@@ -21,11 +21,26 @@ $lang = normalize_lang($_GET['lang'] ?? (str_starts_with($path, '/es') ? 'es' : 
 $baseUrl = rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/');
 
 $courses = catalog_published('courses');
-$routes  = catalog_published('routes');
+$excursions  = catalog_published('excursions');
+
+// /c/<slug> — a share link for one course or excursion: same page, that item
+// first, its own title, description and preview image.
+$share = null;
+$shareSlug = strtolower(preg_replace('/[^a-z0-9-]/', '', (string) ($_GET['share'] ?? '')) ?? '');
+if ($shareSlug !== '') {
+    if (($row = catalog_find_by_slug('excursions', $shareSlug)) !== null) {
+        $share = ['type' => 'excursion', 'row' => $row];
+    } elseif (($row = catalog_find_by_slug('courses', $shareSlug)) !== null) {
+        $share = ['type' => 'course', 'row' => $row];
+    } else {
+        send_header('Location: ' . LANGUAGES[$lang]['path']);
+        exit;
+    }
+}
 
 // Cheap validators so repeat visits and crawlers are not re-rendered needlessly.
 $lastModified = catalog_last_modified();
-$etag = '"' . md5($lang . '-' . $lastModified . '-' . count($courses) . '-' . count($routes)) . '"';
+$etag = '"' . md5($lang . '-' . $lastModified . '-' . count($courses) . '-' . count($excursions) . '-' . $shareSlug) . '"';
 
 send_header('Content-Type: text/html; charset=utf-8');
 send_header('Content-Language: ' . $lang);

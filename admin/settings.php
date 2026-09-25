@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
+require_once __DIR__ . '/../src/Og.php';
 
 $schema = settings_schema();
 
@@ -31,6 +32,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $changed = settings_save($values);
+    if ($changed > 0) {
+        og_invalidate();   // the home card carries the hero text and the phone number
+    }
 
     if ($changed > 0) {
         audit('update', 'settings', '', $changed . ' field' . ($changed === 1 ? '' : 's') . ' changed');

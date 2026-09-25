@@ -1,0 +1,89 @@
+/* SANA TEC Diving — Bootstrap 5.3 override (Tide Line).
+   Load order: bootstrap.min.css → tokens.css → sanatec-bootstrap.css → bundle.css.
+   Set BOTH attributes on <html>: data-theme="dark|light" (our tokens) and data-bs-theme="dark|light" (Bootstrap).
+   No Sass build needed: this maps Bootstrap's CSS variables onto the design tokens. */
+
+:root, [data-bs-theme] {
+  --bs-font-sans-serif: var(--font-sans);
+  --bs-body-font-size: 1rem;
+  --bs-body-line-height: 1.5;
+  --bs-body-bg: var(--bg);
+  --bs-body-color: var(--ink);
+  --bs-secondary-color: var(--muted);
+  --bs-tertiary-bg: var(--panel);
+  --bs-secondary-bg: var(--panel-raised);
+  --bs-emphasis-color: var(--ink);
+  --bs-border-color: var(--line);
+  --bs-border-color-translucent: var(--line);
+  --bs-border-radius: var(--radius-sm);
+  --bs-border-radius-sm: 6px;
+  --bs-border-radius-lg: var(--radius-lg);
+  --bs-border-radius-pill: var(--radius-pill);
+  --bs-link-color: var(--link);
+  --bs-link-hover-color: var(--link);
+  --bs-link-color-rgb: 85, 220, 224;
+  --bs-focus-ring-color: var(--focus);
+  --bs-focus-ring-width: 2px;
+  --bs-focus-ring-opacity: 1;
+  --bs-heading-color: var(--ink);
+  --bs-success: var(--ok);
+  --bs-warning: var(--warn);
+  --bs-danger: var(--danger);
+  --bs-success-text-emphasis: var(--ok);   --bs-success-bg-subtle: var(--ok-bg);
+  --bs-warning-text-emphasis: var(--warn); --bs-warning-bg-subtle: var(--warn-bg);
+  --bs-danger-text-emphasis: var(--danger); --bs-danger-bg-subtle: var(--danger-bg);
+  --bs-info-text-emphasis: var(--ink);     --bs-info-bg-subtle: var(--panel-raised);
+}
+[data-bs-theme="light"] { --bs-link-color-rgb: 6, 90, 131; }
+
+h1, h2, .h1, .h2 { font-family: var(--font-serif); font-weight: 400; }
+h3, h4, h5, h6, .h3, .h4, .h5, .h6 { font-family: var(--font-sans); font-weight: 600; }
+
+/* Buttons: pills */
+.btn { --bs-btn-padding-x: 1.375rem; --bs-btn-padding-y: .75rem; --bs-btn-font-weight: 600; --bs-btn-border-radius: var(--radius-pill); min-height: 48px; }
+.btn-sm { --bs-btn-padding-x: .875rem; --bs-btn-padding-y: .375rem; min-height: 36px; }
+.btn-primary { --bs-btn-bg: var(--aqua); --bs-btn-border-color: var(--aqua); --bs-btn-color: var(--on-aqua);
+  --bs-btn-hover-bg: var(--aqua); --bs-btn-hover-border-color: var(--aqua); --bs-btn-hover-color: var(--on-aqua);
+  --bs-btn-active-bg: var(--aqua); --bs-btn-active-border-color: var(--aqua); --bs-btn-active-color: var(--on-aqua);
+  --bs-btn-disabled-bg: var(--aqua); --bs-btn-disabled-border-color: var(--aqua); --bs-btn-disabled-color: var(--on-aqua); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-outline-secondary, .btn-secondary { --bs-btn-bg: transparent; --bs-btn-color: var(--ink); --bs-btn-border-color: var(--line-strong);
+  --bs-btn-hover-bg: var(--panel-raised); --bs-btn-hover-color: var(--ink); --bs-btn-hover-border-color: var(--line-strong);
+  --bs-btn-active-bg: var(--panel-raised); --bs-btn-active-color: var(--ink); --bs-btn-active-border-color: var(--line-strong); }
+.btn-link { --bs-btn-color: var(--link); --bs-btn-hover-color: var(--link); font-weight: 600; }
+.btn:focus-visible { box-shadow: none; outline: 2px solid var(--focus); outline-offset: 2px; }
+
+/* Forms */
+.form-label { font-weight: 600; font-size: .875rem; margin-bottom: .375rem; }
+.form-text { color: var(--muted); font-size: .875rem; }
+.form-control, .form-select { min-height: 48px; font-size: 16px; color: var(--ink); background-color: var(--panel-raised); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); }
+.form-control::placeholder { color: var(--muted); opacity: 1; }
+.form-control:focus, .form-select:focus { color: var(--ink); background-color: var(--panel-raised); border-color: var(--aqua); box-shadow: none; outline: 2px solid var(--focus); outline-offset: 2px; }
+.form-control.is-invalid, .was-validated .form-control:invalid { border-color: var(--danger); background-color: var(--danger-bg); background-image: none; }
+.invalid-feedback { color: var(--danger); font-weight: 600; font-size: .875rem; }
+.form-check-input { width: 1.5rem; height: 1.5rem; margin-top: 0; background-color: var(--panel-raised); border: 2px solid var(--line-strong); }
+.form-check-input:checked { background-color: var(--aqua); border-color: var(--aqua); }
+.form-check-input:focus { box-shadow: none; outline: 2px solid var(--focus); outline-offset: 2px; }
+.form-check { min-height: 44px; display: flex; gap: .75rem; align-items: center; padding-left: 0; }
+.form-check .form-check-input { float: none; margin-left: 0; }
+.form-switch .form-check-input { width: 3rem; height: 1.75rem; }
+.form-control[type="file"] { min-height: 64px; border-style: dashed; border-width: 1.5px; padding: .9rem; }
+.form-control::file-selector-button { border-radius: var(--radius-pill); background: var(--panel); color: var(--ink); border: 1px solid var(--line-strong); margin-right: .75rem; }
+[data-bs-theme="dark"] input[type="date"] { color-scheme: dark; }
+
+/* Cards, alerts, badges, tables, nav */
+.card { --bs-card-bg: var(--panel); --bs-card-border-width: 0; --bs-card-border-radius: var(--radius-lg); --bs-card-color: var(--ink); }
+.alert { --bs-alert-border-radius: var(--radius-md); --bs-alert-border-color: transparent; color: var(--ink); }
+.alert-warning { --bs-alert-bg: var(--warn-bg); } .alert-danger { --bs-alert-bg: var(--danger-bg); } .alert-success { --bs-alert-bg: var(--ok-bg); } .alert-info { --bs-alert-bg: var(--panel-raised); }
+.badge { --bs-badge-border-radius: var(--radius-pill); --bs-badge-font-weight: 600; --bs-badge-padding-x: .625rem; }
+.text-bg-success { background: var(--ok-bg) !important; color: var(--ok) !important; }
+.text-bg-warning { background: var(--warn-bg) !important; color: var(--warn) !important; }
+.text-bg-danger { background: var(--danger-bg) !important; color: var(--danger) !important; }
+.table { --bs-table-bg: transparent; --bs-table-color: var(--ink); --bs-table-border-color: var(--line); --bs-table-hover-bg: var(--panel-raised); --bs-table-hover-color: var(--ink); }
+.table > thead th { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); border-bottom-color: var(--line-strong); }
+.nav-tabs { --bs-nav-tabs-border-color: var(--line); --bs-nav-tabs-link-active-bg: transparent; --bs-nav-tabs-link-active-color: var(--ink); --bs-nav-tabs-link-active-border-color: transparent transparent var(--aqua); --bs-nav-link-color: var(--muted); --bs-nav-link-hover-color: var(--ink); }
+.nav-tabs .nav-link { border-width: 0 0 2px; font-weight: 600; }
+.navbar { --bs-navbar-color: var(--muted); --bs-navbar-active-color: var(--ink); background: var(--bg); border-bottom: 1px solid var(--line); }
+.dropdown-menu { --bs-dropdown-bg: var(--panel); --bs-dropdown-border-color: var(--line); --bs-dropdown-link-color: var(--ink); --bs-dropdown-link-hover-bg: var(--panel-raised); --bs-dropdown-border-radius: var(--radius-md); }
+.modal { --bs-modal-bg: var(--panel); --bs-modal-border-radius: var(--radius-lg); --bs-modal-border-color: var(--line); }
+.progress { --bs-progress-bg: var(--line); --bs-progress-bar-bg: var(--aqua); --bs-progress-height: 6px; --bs-progress-border-radius: 3px; }

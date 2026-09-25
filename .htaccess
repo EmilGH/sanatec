@@ -83,6 +83,13 @@ RedirectMatch 404 "^/config\.local\.php$"
     # Spanish edition. English is served from the document root.
     RewriteRule ^es/?$ index.php?lang=es [L,QSA]
 
+    # Share links: one course or excursion first, with its own preview card.
+    RewriteRule ^c/([a-z0-9-]+)/?$ index.php?lang=en&share=$1 [L,QSA]
+    RewriteRule ^es/c/([a-z0-9-]+)/?$ index.php?lang=es&share=$1 [L,QSA]
+
+    # Generated link-preview images.
+    RewriteRule ^og/([a-z0-9-]+)\.png$ og.php?f=$1 [L]
+
     # The privacy notice, in both languages.
     RewriteRule ^privacy/?$ privacy.php?lang=en [L,QSA]
     RewriteRule ^es/privacy/?$ privacy.php?lang=es [L,QSA]
