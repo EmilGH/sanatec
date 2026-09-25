@@ -36,7 +36,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$isMedical && !isset($_POST['ack_read'])) {
             throw new InvalidArgumentException(tr('Please confirm you have read the document.', 'Confirma que has leído el documento.'));
         }
-        $sid = form_sign($customer, $template, $answers, post('signature'), $signer);
+        $sid = form_sign($customer, $template, $answers, (string) ($_POST['signature'] ?? ''), $signer, [
+            'referrer' => (string) ($_SERVER['HTTP_REFERER'] ?? ''),
+            'utm'      => $_SESSION['provenance'] ?? [],
+        ]);
         audit('sign', 'form_submission', $sid, $template['code'] . ' by ' . $signer['role']);
         if ($isMedical) {
             $outcome = medical_outcome($answers)['outcome'];
@@ -76,8 +79,8 @@ shell_start($template['title'], $currentUser, 'diver');
   <div class="alert alert-<?= $status['ok'] ? 'success' : 'warning' ?>">
     <i class="fa-solid fa-circle-check me-1"></i><?= e(tr('Signed on', 'Firmado el')) ?> <?= e(substr($s['signed_at'], 0, 10)) ?><?= $s['expires_on'] ? ' · ' . e(tr('valid until', 'válido hasta')) . ' ' . e($s['expires_on']) : '' ?>
     <?php if ($isMedical && $status['outcome'] === 'physician_required'): ?>
-      <div class="mt-2"><strong><?= e(tr('A physician must evaluate you before you dive.', 'Un médico debe evaluarte antes de bucear.')) ?></strong>
-        <?= e(tr('Print the evaluation form, take it to a doctor, and bring the signed copy to the shop.', 'Imprime el formulario de evaluación, llévalo a un médico y trae la copia firmada al centro.')) ?>
+      <div class="mt-2"><strong><?= e(tr('Your dive cannot go ahead until a physician has signed the evaluation form.', 'Tu buceo no puede realizarse hasta que un médico firme el formulario de evaluación.')) ?></strong>
+        <?= e(tr('Please contact the shop to cancel or move your booking. Download the form, print it, have your physician complete and sign it, and bring it with you.', 'Contacta al centro para cancelar o mover tu reserva. Descarga el formulario, imprímelo, pide a tu médico que lo complete y firme, y tráelo contigo.')) ?>
         <div class="mt-2"><a class="btn btn-sm btn-warning" href="/my/document.php?code=medical&physician=1" target="_blank"><i class="fa-solid fa-file-pdf me-1"></i><?= e(tr("Physician's evaluation form", 'Formulario de evaluación médica')) ?></a></div></div>
     <?php elseif ($isMedical && $status['outcome'] === 'physician_cleared'): ?>
       <div class="mt-1"><?= e(tr('Cleared by physician on', 'Autorizado por un médico el')) ?> <?= e((string) $s['physician_cleared_on']) ?>.</div>
@@ -137,9 +140,29 @@ shell_start($template['title'], $currentUser, 'diver');
   <div class="card mb-3"><div class="card-body">
     <h2 class="h6 text-aqua text-uppercase mb-2"><?= e(tr('Signature', 'Firma')) ?></h2>
     <?php if ($signer['role'] === 'guardian'): ?><p class="small text-warning"><?= e(tr('To be signed by the parent or guardian:', 'A firmar por el padre, madre o tutor:')) ?> <strong><?= e($signerPerson['name']) ?></strong></p><?php endif; ?>
-    <p class="small text-secondary"><?= e(tr('Type your full name exactly as on your profile. Your name, the date, time and network address are recorded with the signature.', 'Escribe tu nombre completo tal como aparece en tu perfil. Se registran tu nombre, la fecha, la hora y la dirección de red junto con la firma.')) ?></p>
-    <input class="form-control form-control-lg mb-3" name="signature" placeholder="<?= e($signerPerson['name']) ?>" autocomplete="off" required>
-    <button class="btn btn-aqua btn-lg" type="submit"><i class="fa-solid fa-pen-nib me-2"></i><?= e(tr('Sign', 'Firmar')) ?></button>
+    <p class="small text-secondary"><?= e(tr('Sign with your finger or mouse. The date, time, network address and the page you came from are recorded with the signature.', 'Firma con el dedo o el ratón. Se registran la fecha, la hora, la dirección de red y la página de origen junto con la firma.')) ?></p>
+    <div class="position-relative mb-2">
+      <canvas id="sig" style="width:100%;height:180px;background:#fff;border:1px solid var(--st-line);border-radius:6px;touch-action:none"></canvas>
+      <button type="button" class="btn btn-sm btn-outline-secondary position-absolute" style="top:8px;right:8px" id="sig-clear"><i class="fa-solid fa-eraser me-1"></i><?= e(tr('Clear', 'Borrar')) ?></button>
+    </div>
+    <input type="hidden" name="signature" id="sig-data">
+    <div class="small text-secondary mb-3"><?= e($signerPerson['name']) ?></div>
+    <button class="btn btn-aqua btn-lg" type="submit" id="sig-submit"><i class="fa-solid fa-pen-nib me-2"></i><?= e(tr('Sign', 'Firmar')) ?></button>
+  </div></div>
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.2.0/dist/signature_pad.umd.min.js"></script>
+  <script>
+  (function () {
+    var canvas = document.getElementById('sig'), pad = new SignaturePad(canvas, { minWidth: 1, maxWidth: 2.5, penColor: '#0b2a35' });
+    function resize() { var r = Math.max(window.devicePixelRatio || 1, 1), d = pad.toData(); canvas.width = canvas.offsetWidth * r; canvas.height = canvas.offsetHeight * r; canvas.getContext('2d').scale(r, r); pad.clear(); pad.fromData(d); }
+    window.addEventListener('resize', resize); resize();
+    document.getElementById('sig-clear').addEventListener('click', function () { pad.clear(); });
+    canvas.closest('form').addEventListener('submit', function (ev) {
+      if (pad.isEmpty()) { ev.preventDefault(); alert(<?= json_encode(tr('Please sign in the box before continuing.', 'Firma en el recuadro antes de continuar.')) ?>); return; }
+      document.getElementById('sig-data').value = pad.toDataURL('image/png');
+    });
+  })();
+  </script>
+  <div class="d-none">
   </div></div>
 </form>
 <?php shell_end();

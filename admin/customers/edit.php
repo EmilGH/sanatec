@@ -6,6 +6,7 @@ require __DIR__ . '/../_init.php';
 require __DIR__ . '/../_layout.php';
 require_once __DIR__ . '/../../src/Customers.php';
 require_once __DIR__ . '/../../src/Team.php';
+require_once __DIR__ . '/../../src/Onboarding.php';
 require __DIR__ . '/../team/_parts.php';
 
 $currentUser = require_permission('can_manage_customers');
@@ -57,6 +58,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 emergency_contact_delete($id, (int) ($_POST['ec_id'] ?? 0));
                 flash('Emergency contact removed.');
                 redirect($self);
+            case 'paper_record':
+                $tpl = form_template_by_code(post('template_code'));
+                if ($tpl === null) {
+                    throw new RuntimeException('Unknown document.');
+                }
+                $sid = form_record_paper($row, $tpl, $_POST, $_FILES['scan'] ?? null, (int) $teamId);
+                audit('record_paper', 'form_submission', $sid, $tpl['code'] . ' for ' . $row['name']);
+                flash('Paper form recorded.');
+                redirect($self . '#documents');
+            case 'physician_clear':
+                medical_record_clearance((int) ($_POST['submission_id'] ?? 0), $_POST, $_FILES['letter'] ?? null, (int) $teamId);
+                audit('physician_cleared', 'form_submission', (int) ($_POST['submission_id'] ?? 0), $row['name']);
+                flash('Physician clearance recorded.');
+                redirect($self . '#documents');
             case 'cert_save':
                 certification_save($id, null, $_POST, $teamId);
                 audit('update', 'customer', $id, 'certification added: ' . post('agency') . ' ' . post('level_code'));
@@ -143,22 +158,59 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
 
   <?php team_channels_card((int) $row['person_id'], $self); ?>
 
-  <div class="card mb-3"><div class="card-body">
+  <div class="card mb-3" id="documents"><div class="card-body">
     <h2 class="h6 text-aqua text-uppercase mb-1">Documents</h2>
-    <p class="text-secondary small mb-3">Signed forms on file. Medical is only "ok" once cleared — a signature alone is not clearance.</p>
+    <p class="text-secondary small mb-3">Signed forms on file. Medical is only "ok" once cleared — a signature alone is not clearance.
+      A form signed on paper can be recorded here with its scan.</p>
     <div class="table-responsive"><table class="table table-sm align-middle mb-0"><tbody>
-    <?php foreach (customer_document_status((int) $row['id']) as $d): $s = $d['submission']; ?>
+    <?php foreach (customer_document_status((int) $row['id']) as $d): $s = $d['submission']; $t = $d['template']; $isMed = $t['code'] === 'medical'; ?>
       <tr>
-        <td><?= e($d['template']['title']) ?> <span class="text-secondary small">v<?= e($d['template']['version']) ?></span></td>
-        <td><span class="badge text-bg-<?= $statusBadge[$d['status']] ?>"><?= e($d['status']) ?></span>
-          <?php if ($d['template']['code'] === 'medical' && $d['outcome']): ?>
-            <span class="badge text-bg-<?= in_array($d['outcome'], ['cleared', 'physician_cleared'], true) ? 'success' : 'danger' ?> ms-1"><?= e(str_replace('_', ' ', $d['outcome'])) ?></span>
-          <?php endif; ?></td>
-        <td class="small text-secondary text-nowrap"><?= $s && $s['signed_at'] ? 'signed ' . e(substr($s['signed_at'], 0, 10)) : '' ?><?= $s && $s['expires_on'] ? ' · expires ' . e($s['expires_on']) : '' ?></td>
+        <td><?= e($t['title']) ?> <span class="text-secondary small">v<?= e($t['version']) ?><?= $t['applies_to'] !== 'all' ? ' · ' . e($t['applies_to']) : '' ?></span></td>
+        <td class="text-nowrap"><span class="badge text-bg-<?= $statusBadge[$d['status']] ?>"><?= e($d['status']) ?></span>
+          <?php if ($isMed && $d['outcome']): ?><span class="badge text-bg-<?= in_array($d['outcome'], ['cleared', 'physician_cleared'], true) ? 'success' : 'danger' ?> ms-1"><?= e(str_replace('_', ' ', $d['outcome'])) ?></span><?php endif; ?>
+          <?php if ($s && $s['source'] === 'paper'): ?><span class="badge text-bg-dark border ms-1">paper</span><?php endif; ?></td>
+        <td class="small text-secondary text-nowrap">
+          <?= $s && $s['signed_at'] ? 'signed ' . e(substr($s['signed_at'], 0, 10)) . ' by ' . e($s['signer_role'] ?? '') : '' ?><?= $s && $s['expires_on'] ? ' · expires ' . e($s['expires_on']) : '' ?>
+          <?php if ($s): ?><br>
+            <?php if ($s['signature_image_path']): ?><a href="/admin/customers/file.php?kind=signature&id=<?= (int) $s['id'] ?>" target="_blank"><i class="fa-solid fa-signature"></i> signature</a> <?php endif; ?>
+            <?php if ($s['scan_path']): ?><a href="/admin/customers/file.php?kind=scan&id=<?= (int) $s['id'] ?>" target="_blank"><i class="fa-solid fa-file"></i> scan</a> <?php endif; ?>
+            <?php if ($isMed && $d['outcome'] === 'physician_cleared' && !empty($s['physician_cleared_on'])): ?><a href="/admin/customers/file.php?kind=physician&id=<?= (int) $s['id'] ?>" target="_blank"><i class="fa-solid fa-user-doctor"></i> physician letter</a><?php endif; ?>
+          <?php endif; ?>
+        </td>
+        <td class="text-end text-nowrap">
+          <?php if ($isMed && $d['outcome'] === 'physician_required'): ?>
+            <button class="btn btn-sm btn-warning" type="button" data-bs-toggle="collapse" data-bs-target="#clear-<?= (int) $s['id'] ?>">Physician cleared…</button>
+          <?php endif; ?>
+          <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#paper-<?= e($t['code']) ?>">Record paper…</button>
+        </td>
       </tr>
+      <?php if ($isMed && $d['outcome'] === 'physician_required'): ?>
+      <tr class="collapse" id="clear-<?= (int) $s['id'] ?>"><td colspan="4" class="bg-transparent">
+        <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end py-2">
+          <?= csrf_field() ?><input type="hidden" name="action" value="physician_clear"><input type="hidden" name="submission_id" value="<?= (int) $s['id'] ?>">
+          <div class="col-12 col-md-3"><label class="form-label small">Physician's name</label><input class="form-control form-control-sm" name="physician_name"></div>
+          <div class="col-6 col-md-2"><label class="form-label small">Signed on</label><input class="form-control form-control-sm" type="date" name="physician_cleared_on" max="<?= date('Y-m-d') ?>" required></div>
+          <div class="col-6 col-md-3"><label class="form-label small">Signed evaluation (PDF/photo)</label><input class="form-control form-control-sm" type="file" name="letter" accept=".pdf,image/*"></div>
+          <div class="col-12 col-md-3"><label class="form-label small">Notes</label><input class="form-control form-control-sm" name="notes"></div>
+          <div class="col-12 col-md-1"><button class="btn btn-sm btn-aqua w-100" type="submit">Clear</button></div>
+        </form>
+      </td></tr>
+      <?php endif; ?>
+      <tr class="collapse" id="paper-<?= e($t['code']) ?>"><td colspan="4" class="bg-transparent">
+        <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end py-2">
+          <?= csrf_field() ?><input type="hidden" name="action" value="paper_record"><input type="hidden" name="template_code" value="<?= e($t['code']) ?>">
+          <div class="col-6 col-md-2"><label class="form-label small">Signed on</label><input class="form-control form-control-sm" type="date" name="signed_on" max="<?= date('Y-m-d') ?>" required></div>
+          <div class="col-6 col-md-2"><label class="form-label small">Signed by</label><select class="form-select form-control form-control-sm" name="signer_role"><option value="participant">Diver</option><option value="guardian">Guardian</option></select></div>
+          <?php if ($isMed): ?>
+          <div class="col-6 col-md-2"><label class="form-label small">Outcome</label><select class="form-select form-control form-control-sm" name="outcome"><option value="cleared">Cleared</option><option value="physician_required">Physician required</option><option value="physician_cleared">Physician cleared</option></select></div>
+          <div class="col-6 col-md-2"><label class="form-label small">Physician (if cleared)</label><input class="form-control form-control-sm" name="physician_name"></div>
+          <?php endif; ?>
+          <div class="col-12 col-md-<?= $isMed ? 3 : 5 ?>"><label class="form-label small">Scan (PDF/photo)</label><input class="form-control form-control-sm" type="file" name="scan" accept=".pdf,image/*"></div>
+          <div class="col-12 col-md-<?= $isMed ? 1 : 3 ?>"><button class="btn btn-sm btn-aqua w-100" type="submit">Record</button></div>
+        </form>
+      </td></tr>
     <?php endforeach; ?>
     </tbody></table></div>
-    <p class="text-secondary small mt-3 mb-0"><i class="fa-solid fa-circle-info me-1"></i>Divers fill and sign these themselves once onboarding is built; staff will be able to record a paper form here.</p>
   </div></div>
 
   <div class="card mb-3"><div class="card-body">

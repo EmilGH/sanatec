@@ -147,7 +147,9 @@ function test_db_reset(): string
     $config = cfg_all();
     $config['db']['name'] = $name;
     $config['mail_transport'] = 'log';   // nothing leaves the box during a test run
+    $config['uploads_dir'] = sys_get_temp_dir() . '/sanatec-test-uploads';   // never the real files
     cfg_all($config);
+    @mkdir($config['uploads_dir'], 0700, true);
     ini_set('error_log', sys_get_temp_dir() . '/sanatec-tests.log');   // keep the log transport out of the report
     db(true);
 

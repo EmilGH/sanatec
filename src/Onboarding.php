@@ -9,6 +9,7 @@ if (!defined('SANATEC')) {
 
 require_once __DIR__ . '/Customers.php';
 require_once __DIR__ . '/MedicalForm.php';
+require_once __DIR__ . '/Uploads.php';
 
 /**
  * Diver onboarding: the steps between "I'd like to dive" and "cleared to dive".
@@ -129,20 +130,18 @@ function form_template_by_code(string $code): ?array
 }
 
 /**
- * Sign a form. Creates the submission (and, for the medical questionnaire,
- * the evaluation). Returns the submission id.
+ * Sign a form online. Creates the submission (and, for the medical
+ * questionnaire, the evaluation), stores the drawn signature, and records
+ * where the signer came from. Returns the submission id.
  *
- * $typedName is the signature: the signer's name as they typed it, which must
- * match the signer's record closely enough to be a signature and not a typo.
+ * $signature is the PNG data URL from the signature canvas. $provenance is
+ * ['referrer' => ..., 'utm' => [...]] as captured by the diver area.
  */
-function form_sign(array $customer, array $template, array $answers, string $typedName, array $signer): int
+function form_sign(array $customer, array $template, array $answers, string $signature, array $signer, array $provenance = []): int
 {
     $signerPerson = person_find($signer['person_id']);
     if ($signerPerson === null) {
         throw new RuntimeException('Signer not found.');
-    }
-    if (!names_match($typedName, $signerPerson['name'])) {
-        throw new InvalidArgumentException('Please type your name exactly as it appears on your profile: ' . $signerPerson['name']);
     }
     if ($template['code'] === 'medical') {
         $missing = array_diff(medical_required_ids($answers), array_keys($answers));
@@ -154,27 +153,30 @@ function form_sign(array $customer, array $template, array $answers, string $typ
     $expires = $template['validity_days'] ? date('Y-m-d', strtotime('+' . (int) $template['validity_days'] . ' days')) : null;
 
     $pdo = db();
-    $own = !$pdo->inTransaction();       // join an outer transaction if there is one
+    $own = !$pdo->inTransaction();
     if ($own) {
         $pdo->beginTransaction();
     }
     try {
         $pdo->prepare(
             'INSERT INTO form_submissions
-               (customer_id, template_id, status, answers, signed_by_person_id, signer_role, signature_typed,
-                signed_at, signed_ip, signed_user_agent, expires_on)
-             VALUES (:c, :t, "signed", :a, :s, :role, :sig, NOW(), :ip, :ua, :exp)'
+               (customer_id, template_id, status, source, answers, signed_by_person_id, signer_role,
+                signed_at, signed_ip, signed_user_agent, signed_referrer, signed_utm, expires_on)
+             VALUES (:c, :t, "signed", "online", :a, :s, :role, NOW(), :ip, :ua, :ref, :utm, :exp)'
         )->execute([
             ':c' => $customer['id'], ':t' => $template['id'], ':a' => json_encode($answers, JSON_UNESCAPED_UNICODE),
-            ':s' => $signer['person_id'], ':role' => $signer['role'], ':sig' => mb_substr(trim($typedName), 0, 200),
-            ':ip' => client_ip_binary(), ':ua' => mb_substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255), ':exp' => $expires,
+            ':s' => $signer['person_id'], ':role' => $signer['role'],
+            ':ip' => client_ip_binary(), ':ua' => mb_substr((string) ($_SERVER['HTTP_USER_AGENT'] ?? ''), 0, 255),
+            ':ref' => mb_substr((string) ($provenance['referrer'] ?? ''), 0, 500) ?: null,
+            ':utm' => isset($provenance['utm']) ? json_encode($provenance['utm'], JSON_UNESCAPED_UNICODE) : null,
+            ':exp' => $expires,
         ]);
         $submissionId = (int) $pdo->lastInsertId();
 
-        // Earlier signed copies of the same document are superseded, not deleted.
-        $pdo->prepare('UPDATE form_submissions SET status = "void" WHERE customer_id = :c AND template_id = :t AND id <> :id AND status = "signed"')
-            ->execute([':c' => $customer['id'], ':t' => $template['id'], ':id' => $submissionId]);
+        $path = store_signature($signature, 'submission-' . $submissionId);
+        $pdo->prepare('UPDATE form_submissions SET signature_image_path = :p WHERE id = :id')->execute([':p' => $path, ':id' => $submissionId]);
 
+        form_supersede($customer, $template, $submissionId);
         if ($template['code'] === 'medical') {
             $result = medical_outcome($answers);
             $pdo->prepare('INSERT INTO medical_evaluations (submission_id, customer_id, outcome, flagged_questions) VALUES (:s, :c, :o, :f)')
@@ -194,12 +196,109 @@ function form_sign(array $customer, array $template, array $answers, string $typ
     return $submissionId;
 }
 
-/** A typed signature must be the person's name; accents, case and spacing forgiven. */
-function names_match(string $typed, string $recorded): bool
+/** Earlier signed copies of the same document are superseded, not deleted. */
+function form_supersede(array $customer, array $template, int $keepId): void
 {
-    $fold = static fn (string $s): string => strtolower(preg_replace('/[^a-z]+/i', '', ascii_fold($s)) ?? '');
+    db()->prepare('UPDATE form_submissions SET status = "void" WHERE customer_id = :c AND template_id = :t AND id <> :id AND status = "signed"')
+        ->execute([':c' => $customer['id'], ':t' => $template['id'], ':id' => $keepId]);
+}
 
-    return $fold($typed) !== '' && $fold($typed) === $fold($recorded);
+/**
+ * A member of staff records a form signed on paper: a scan, the date it was
+ * signed, who signed. For the medical questionnaire the outcome is recorded
+ * as the staff member read it off the paper. Returns the submission id.
+ */
+function form_record_paper(array $customer, array $template, array $in, ?array $scan, int $recordedByTeamId): int
+{
+    $signedOn = (string) ($in['signed_on'] ?? '');
+    if ($signedOn === '' || strtotime($signedOn) === false || strtotime($signedOn) > time()) {
+        throw new InvalidArgumentException('When was it signed? A date today or earlier.');
+    }
+    $role = in_array($in['signer_role'] ?? '', ['participant', 'guardian'], true) ? $in['signer_role'] : 'participant';
+    $expires = $template['validity_days'] ? date('Y-m-d', strtotime($signedOn . ' +' . (int) $template['validity_days'] . ' days')) : null;
+    $outcome = null;
+    if ($template['code'] === 'medical') {
+        $outcome = (string) ($in['outcome'] ?? '');
+        if (!in_array($outcome, ['cleared', 'physician_required', 'physician_cleared'], true)) {
+            throw new InvalidArgumentException('Record the medical outcome: cleared, physician required, or physician cleared.');
+        }
+    }
+
+    $pdo = db();
+    $own = !$pdo->inTransaction();
+    if ($own) {
+        $pdo->beginTransaction();
+    }
+    try {
+        $pdo->prepare(
+            'INSERT INTO form_submissions
+               (customer_id, template_id, status, source, answers, signed_by_person_id, signer_role, signed_at, expires_on, recorded_by)
+             VALUES (:c, :t, "signed", "paper", :a, :s, :role, :at, :exp, :by)'
+        )->execute([
+            ':c' => $customer['id'], ':t' => $template['id'],
+            ':a' => json_encode(['note' => trim((string) ($in['note'] ?? ''))]),
+            ':s' => $role === 'guardian' ? ($customer['guardian_person_id'] ?: null) : $customer['person_id'],
+            ':role' => $role, ':at' => $signedOn . ' 12:00:00', ':exp' => $expires, ':by' => $recordedByTeamId,
+        ]);
+        $id = (int) $pdo->lastInsertId();
+
+        if ($scan !== null && ($scan['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            $path = store_upload($scan, 'forms', 'submission-' . $id);
+            $pdo->prepare('UPDATE form_submissions SET scan_path = :p WHERE id = :id')->execute([':p' => $path, ':id' => $id]);
+        }
+
+        form_supersede($customer, $template, $id);
+        if ($outcome !== null) {
+            $pdo->prepare('INSERT INTO medical_evaluations (submission_id, customer_id, outcome, physician_name, physician_cleared_on, reviewed_by, reviewed_at)
+                           VALUES (:s, :c, :o, :pn, :pd, :by, NOW())')
+                ->execute([
+                    ':s' => $id, ':c' => $customer['id'], ':o' => $outcome,
+                    ':pn' => $outcome === 'physician_cleared' ? (trim((string) ($in['physician_name'] ?? '')) ?: null) : null,
+                    ':pd' => $outcome === 'physician_cleared' ? ($in['physician_cleared_on'] ?: $signedOn) : null,
+                    ':by' => $recordedByTeamId,
+                ]);
+        }
+
+        if ($own) {
+            $pdo->commit();
+        }
+    } catch (Throwable $e) {
+        if ($own) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+
+    return $id;
+}
+
+/**
+ * The physician has signed: turn a physician_required evaluation into
+ * physician_cleared, with the letter attached. Staff only.
+ */
+function medical_record_clearance(int $submissionId, array $in, ?array $letter, int $reviewedByTeamId): void
+{
+    $stmt = db()->prepare('SELECT * FROM medical_evaluations WHERE submission_id = :s');
+    $stmt->execute([':s' => $submissionId]);
+    $ev = $stmt->fetch();
+    if (!$ev) {
+        throw new RuntimeException('No medical evaluation to clear.');
+    }
+    $on = (string) ($in['physician_cleared_on'] ?? '');
+    if ($on === '' || strtotime($on) === false || strtotime($on) > time()) {
+        throw new InvalidArgumentException('When did the physician sign? A date today or earlier.');
+    }
+    $path = null;
+    if ($letter !== null && ($letter['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        $path = store_upload($letter, 'medical', 'evaluation-' . $ev['id']);
+    }
+    db()->prepare('UPDATE medical_evaluations SET outcome = "physician_cleared", physician_name = :pn, physician_cleared_on = :pd,
+                   physician_document_path = COALESCE(:doc, physician_document_path), reviewed_by = :by, reviewed_at = NOW(), notes = :n
+                   WHERE id = :id')
+        ->execute([
+            ':pn' => trim((string) ($in['physician_name'] ?? '')) ?: null, ':pd' => $on, ':doc' => $path,
+            ':by' => $reviewedByTeamId, ':n' => trim((string) ($in['notes'] ?? '')) ?: null, ':id' => $ev['id'],
+        ]);
 }
 
 /** The instructors on a training event, for the liability form. No events yet: none. */

@@ -4,6 +4,26 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../src/Onboarding.php';
 
+/** A small PNG with ink on it, as the signature canvas would produce. */
+function test_signature(): string
+{
+    $img = imagecreatetruecolor(120, 40);
+    imagefill($img, 0, 0, imagecolorallocatealpha($img, 0, 0, 0, 127));
+    imagesavealpha($img, true);
+    imageline($img, 10, 30, 110, 10, imagecolorallocate($img, 11, 42, 53));
+    ob_start(); imagepng($img); $png = ob_get_clean();
+    return 'data:image/png;base64,' . base64_encode($png);
+}
+
+function blank_signature(): string
+{
+    $img = imagecreatetruecolor(120, 40);
+    imagefill($img, 0, 0, imagecolorallocatealpha($img, 0, 0, 0, 127));
+    imagesavealpha($img, true);
+    ob_start(); imagepng($img); $png = ob_get_clean();
+    return 'data:image/png;base64,' . base64_encode($png);
+}
+
 function make_customer(string $name, ?string $dob = null): array
 {
     $pid = person_create($name, $dob ? ['date_of_birth' => $dob] : []);
@@ -52,15 +72,23 @@ test('the checklist reflects consent, profile and each document', function (): v
     is_same(['consent', 'profile', 'medical', 'safe_diving', 'liability_excursion'], array_column(onboarding_steps($c, 'excursion'), 'key'));
 });
 
-test('signing requires the signer to type their own name, then supersedes older copies', function (): void {
+test('signing needs a drawn signature with ink, records provenance, and supersedes older copies', function (): void {
     $c = make_customer('Ana María Pérez', '1990-05-05');
     $tpl = form_template_by_code('safe_diving');
     $signer = onboarding_signer($c);
     is_same('participant', $signer['role']);
 
-    throws(static fn () => form_sign($c, $tpl, ['ack_read' => 'yes'], 'Someone Else', $signer));
-    $first = form_sign($c, $tpl, ['ack_read' => 'yes'], 'ana maria perez', $signer);   // accents and case forgiven
-    $second = form_sign($c, $tpl, ['ack_read' => 'yes'], 'Ana María Pérez', $signer);
+    throws(static fn () => form_sign($c, $tpl, ['ack_read' => 'yes'], '', $signer), 'no signature');
+    throws(static fn () => form_sign($c, $tpl, ['ack_read' => 'yes'], 'Ana María Pérez', $signer), 'a typed name is not a signature');
+    throws(static fn () => form_sign($c, $tpl, ['ack_read' => 'yes'], blank_signature(), $signer), 'an empty canvas is not a signature');
+
+    $first = form_sign($c, $tpl, ['ack_read' => 'yes'], test_signature(), $signer, ['referrer' => 'https://instagram.com/p/x', 'utm' => ['utm' => ['utm_source' => 'ig']]]);
+    $row = db()->query("SELECT * FROM form_submissions WHERE id = {$first}")->fetch();
+    is_true(str_starts_with((string) $row['signature_image_path'], 'signatures/'));
+    is_true(upload_path($row['signature_image_path']) !== null, 'the image is stored under the uploads directory');
+    is_same('https://instagram.com/p/x', $row['signed_referrer']);
+    is_same('ig', json_decode($row['signed_utm'], true)['utm']['utm_source']);
+    $second = form_sign($c, $tpl, ['ack_read' => 'yes'], test_signature(), $signer);
     is_same('void', db()->query("SELECT status FROM form_submissions WHERE id = {$first}")->fetchColumn(), 'the older copy is superseded, not deleted');
     is_same('signed', db()->query("SELECT status FROM form_submissions WHERE id = {$second}")->fetchColumn());
     is_true(array_values(array_filter(customer_document_status((int) $c['id']), static fn (array $d): bool => $d['template']['code'] === 'safe_diving'))[0]['ok']);
@@ -70,15 +98,15 @@ test('a signed medical produces an evaluation and an expiry a year out', functio
     $c = make_customer('Med Test', '1990-05-05');
     $tpl = form_template_by_code('medical');
     $answers = array_fill_keys(array_map(static fn (array $q): string => $q['id'], medical_questions()), 'no');
-    throws(static fn () => form_sign($c, $tpl, ['q1' => 'no'], 'Med Test', onboarding_signer($c)), 'every question must be answered');
+    throws(static fn () => form_sign($c, $tpl, ['q1' => 'no'], test_signature(), onboarding_signer($c)), 'every question must be answered');
 
-    $sid = form_sign($c, $tpl, $answers, 'Med Test', onboarding_signer($c));
+    $sid = form_sign($c, $tpl, $answers, test_signature(), onboarding_signer($c));
     $m = db()->query("SELECT * FROM medical_evaluations WHERE submission_id = {$sid}")->fetch();
     is_same('cleared', $m['outcome']);
     is_same(date('Y-m-d', strtotime('+365 days')), db()->query("SELECT expires_on FROM form_submissions WHERE id = {$sid}")->fetchColumn());
     is_true(array_values(array_filter(customer_document_status((int) $c['id']), static fn (array $d): bool => $d['template']['code'] === 'medical'))[0]['ok']);
 
-    $sid2 = form_sign($c, $tpl, ['q5' => 'yes'] + $answers, 'Med Test', onboarding_signer($c));
+    $sid2 = form_sign($c, $tpl, ['q5' => 'yes'] + $answers, test_signature(), onboarding_signer($c));
     is_same('physician_required', db()->query("SELECT outcome FROM medical_evaluations WHERE submission_id = {$sid2}")->fetchColumn());
     is_false(customer_documents_complete((int) $c['id']), 'physician_required blocks completeness');
 });
@@ -93,8 +121,7 @@ test('a minor signs through their guardian, or not at all', function (): void {
     $signer = onboarding_signer($kid);
     is_same('guardian', $signer['role']);
     $tpl = form_template_by_code('liability');
-    throws(static fn () => form_sign($kid, $tpl, ['ack_read' => 'yes'], 'Kid Diver', $signer), 'the child cannot sign for themselves');
-    $sid = form_sign($kid, $tpl, ['ack_read' => 'yes'], 'Guardian Person', $signer);
+    $sid = form_sign($kid, $tpl, ['ack_read' => 'yes'], test_signature(), $signer);
     is_same('guardian', db()->query("SELECT signer_role FROM form_submissions WHERE id = {$sid}")->fetchColumn());
 });
 
@@ -103,4 +130,32 @@ test('the privacy notice ships as a draft in both languages', function (): void 
     has('# Your rights', setting('privacy_notice', 'en'));
     has('# Tus derechos', setting('privacy_notice', 'es'));
     has('[PRIVACY EMAIL]', setting('privacy_notice', 'en'), 'placeholders remain until the shop fills them');
+});
+
+test('staff can record a paper form, and clear a physician-required medical', function (): void {
+    $c = make_customer('Paper Test', '1990-05-05');
+    $admin = person_create('Recorder');
+    db()->prepare('INSERT INTO team_members (person_id, is_system_admin, is_active) VALUES (:p, 1, 1)')->execute([':p' => $admin]);
+    $teamId = (int) db()->lastInsertId();
+
+    $tpl = form_template_by_code('liability');
+    throws(static fn () => form_record_paper($c, $tpl, ['signed_on' => date('Y-m-d', strtotime('+1 day'))], null, $teamId), 'not in the future');
+    $sid = form_record_paper($c, $tpl, ['signed_on' => '2026-09-20', 'signer_role' => 'participant'], null, $teamId);
+    $row = db()->query("SELECT * FROM form_submissions WHERE id = {$sid}")->fetch();
+    is_same('paper', $row['source']);
+    is_same($teamId, (int) $row['recorded_by']);
+    is_same('2026-09-20 12:00:00', $row['signed_at']);
+
+    $med = form_template_by_code('medical');
+    throws(static fn () => form_record_paper($c, $med, ['signed_on' => '2026-09-20'], null, $teamId), 'medical needs an outcome');
+    $msid = form_record_paper($c, $med, ['signed_on' => '2026-09-20', 'outcome' => 'physician_required'], null, $teamId);
+    is_same('physician_required', db()->query("SELECT outcome FROM medical_evaluations WHERE submission_id = {$msid}")->fetchColumn());
+    is_same(date('Y-m-d', strtotime('2026-09-20 +365 days')), db()->query("SELECT expires_on FROM form_submissions WHERE id = {$msid}")->fetchColumn());
+
+    medical_record_clearance($msid, ['physician_name' => 'Dr. Mar', 'physician_cleared_on' => '2026-09-22'], null, $teamId);
+    $ev = db()->query("SELECT * FROM medical_evaluations WHERE submission_id = {$msid}")->fetch();
+    is_same('physician_cleared', $ev['outcome']);
+    is_same('Dr. Mar', $ev['physician_name']);
+    is_true(customer_documents_complete((int) $c['id']) === false, 'other documents are still missing');
+    is_true(array_values(array_filter(customer_document_status((int) $c['id']), static fn (array $d): bool => $d['template']['code'] === 'medical'))[0]['ok']);
 });
