@@ -83,11 +83,11 @@ $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_
     </section>
   </div>
 
-  <?php if ($showIncluded): ?>
   <?php if ($teamCount > 0): ?>
   <p class="st-share st-wrap"><a class="st-link" href="<?= $lang === 'es' ? '/es/team/' : '/team/' ?>"><?= e(t('team_link', $lang)) ?> →</a></p>
   <?php endif; ?>
 
+  <?php if ($showIncluded): ?>
   <section class="st-section st-wrap" id="included" aria-label="<?= e(setting('included_title', $lang)) ?>">
     <div class="st-cols">
       <div><h3 class="st-h3 st-included__h"><?= e(setting('included_title', $lang)) ?></h3>

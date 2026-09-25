@@ -87,7 +87,7 @@ echo shell_page('Dive sites', 'Catalog', '<a class="btn btn-primary" href="/admi
     <div class="row g-3 mb-3">
       <div class="col-6 col-md-3"><label class="form-label" for="max_depth_m">Max depth (m)</label><input class="form-control" id="max_depth_m" name="max_depth_m" inputmode="numeric" value="<?= e((string) ($editing['max_depth_m'] ?? '')) ?>"></div>
       <div class="col-6 col-md-3"><label class="form-label" for="cert_required">Cert. required</label>
-        <select class="form-select" id="cert_required" name="cert_required"><option value="">—</option><?php foreach (CERT_LEVELS as $k => $l): ?><option value="<?= e($k) ?>" <?= ($editing['cert_required'] ?? '') === $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
+        <select class="form-select" id="cert_required" name="cert_required"><option value="">—</option><?php foreach (CERT_LEVELS as $k => $l): ?><option value="<?= e($k) ?>" <?= ($editing['cert_required'] ?? '') === $k ? 'selected' : '' ?>><?= e($l[0]) ?></option><?php endforeach; ?></select></div>
       <div class="col-6 col-md-3"><label class="form-label" for="latitude">Latitude</label><input class="form-control" id="latitude" name="latitude" inputmode="decimal" value="<?= e((string) ($editing['latitude'] ?? '')) ?>"></div>
       <div class="col-6 col-md-3"><label class="form-label" for="longitude">Longitude</label><input class="form-control" id="longitude" name="longitude" inputmode="decimal" value="<?= e((string) ($editing['longitude'] ?? '')) ?>"></div>
     </div>
@@ -109,7 +109,7 @@ echo shell_page('Dive sites', 'Catalog', '<a class="btn btn-primary" href="/admi
             <button class="btn btn-sm btn-outline-secondary" name="direction" value="1" title="Move down" <?= $i === count($rows) - 1 ? 'disabled' : '' ?>>↓</button></form></td>
         <td data-label="Cenote" class="st-table__main"><strong><?= e($row['name_en']) ?></strong><?= $row['name_es'] !== $row['name_en'] ? ' <span class="st-muted">/ ' . e($row['name_es']) . '</span>' : '' ?><br><small class="st-muted">/<?= e($row['slug']) ?></small></td>
         <td data-label="Depth" class="st-num"><?= $row['max_depth_m'] !== null ? (int) $row['max_depth_m'] . ' m' : '—' ?></td>
-        <td data-label="Cert." class="st-muted"><?= e(CERT_LEVELS[$row['cert_required']] ?? '—') ?></td>
+        <td data-label="Cert." class="st-muted"><?= e(CERT_LEVELS[$row['cert_required']][0] ?? '—') ?></td>
         <td data-label="Logged dives" class="st-num"><?= (int) ($usage[$row['id']] ?? 0) ?></td>
         <td data-label="Status"><form method="post" style="display:inline"><?= csrf_field() ?><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>">
             <button class="st-pill <?= $row['is_published'] ? 'st-pill--ok' : 'st-pill--neutral' ?>" type="submit" style="border:0;cursor:pointer"><?= $row['is_published'] ? ui_icon('check', 'st-icon') . 'Visible' : 'Hidden' ?></button></form></td>
