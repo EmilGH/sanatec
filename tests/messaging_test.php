@@ -53,3 +53,20 @@ test('templates render in both languages', function (): void {
     has('sign-in code', $en['subject']); has('código de acceso', $es['subject']);
     has('123456', $en['html']);
 });
+
+test('the email relay only carries sign-in and reminder mail', function (): void {
+    is_same(null, transport_refusal('email', 'login_code'));
+    is_true(is_string(transport_refusal('email', 'marketing_blast')), 'an unknown template cannot be emailed');
+
+    $cfg = cfg_all(); $cfg['mail'] = ['host' => 'x', 'purposes' => ['reminder']]; cfg_all($cfg);
+    is_true(is_string(transport_refusal('email', 'login_code')), 'purposes come from config');
+    is_same(null, transport_refusal('log', 'anything'), 'other transports are not gated here');
+    unset($cfg['mail']); cfg_all($cfg);
+
+    $id = message_queue('email', 'x@example.com', 'marketing_blast', ['subject' => 'S', 'text' => 'T']);
+    is_false(message_deliver($id));
+    $m = db()->query("SELECT status, attempts, error FROM messages WHERE id = {$id}")->fetch();
+    is_same('failed', $m['status']);
+    is_same(0, (int) $m['attempts'], 'refused before any attempt');
+    has('cannot be emailed', (string) $m['error']);
+});

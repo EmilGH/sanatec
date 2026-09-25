@@ -10,6 +10,36 @@ if (!defined('SANATEC')) {
 require_once __DIR__ . '/Smtp.php';
 
 /**
+ * What each template is for. The email relay is restricted by purpose in
+ * config — the shop's mailbox is for sign-in and reminders, not marketing —
+ * and a template with no purpose here cannot be sent by email at all.
+ */
+const MESSAGE_PURPOSES = [
+    'login_code' => 'login',
+    'login_link' => 'login',
+    // reminder templates register here as they are written, e.g.
+    // 'excursion_reminder' => 'reminder',
+];
+
+/** May this template leave through this transport? Returns null if yes, else the reason. */
+function transport_refusal(string $transport, string $template): ?string
+{
+    if ($transport !== 'email') {
+        return null;
+    }
+    $purpose = MESSAGE_PURPOSES[$template] ?? null;
+    $allowed = (array) (cfg('mail', [])['purposes'] ?? ['login', 'reminder']);
+    if ($purpose === null) {
+        return "Template '{$template}' has no purpose and cannot be emailed.";
+    }
+    if (!in_array($purpose, $allowed, true)) {
+        return "The mail relay is restricted to: " . implode(', ', $allowed) . " — not '{$purpose}'.";
+    }
+
+    return null;
+}
+
+/**
  * The outbox.
  *
  * message_queue() writes a row; message_deliver() hands it to a transport and
@@ -88,6 +118,13 @@ function message_deliver(int $id): bool
     $m = $stmt->fetch();
 
     if (!$m || !in_array($m['status'], ['queued', 'failed'], true)) {
+        return false;
+    }
+
+    if (($why = transport_refusal($m['transport'], $m['template'])) !== null) {
+        db()->prepare('UPDATE messages SET status = "failed", error = :err WHERE id = :id')->execute([':err' => $why, ':id' => $id]);
+        error_log("SanaTec message #{$id} refused: {$why}");
+
         return false;
     }
 
