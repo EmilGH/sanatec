@@ -27,6 +27,11 @@ shell_start(tr('My documents', 'Mis documentos'), $currentUser, 'diver');
   <li><span class="st-serif" style="font-size:22px;min-width:44px;text-align:center;line-height:1"><?= e(date('j', strtotime($ev['starts_on']))) ?><br><small class="st-muted" style="font:400 12px/1 var(--font-sans)"><?= e(date('M', strtotime($ev['starts_on']))) ?></small></span>
     <span class="st-rows__t"><?= e($lang === 'es' ? $ev['title_es'] : $ev['title_en']) ?><span class="st-rows__s"><?= e($ev['kind'] === 'training' ? tr('Course', 'Curso') : tr('Cenote trip', 'Salida a cenotes')) ?><?= $ev['agreed_price'] !== null ? ' · ' . e(money($ev['agreed_price'])) . ' MXN · ' . e($ps === 'paid' ? tr('paid', 'pagado') : ($ps === 'deposit' ? tr('deposit paid', 'anticipo pagado') : tr('payment pending', 'pago pendiente'))) : '' ?></span></span>
     <?= $ps === 'paid' ? ui_icon('check', 'st-icon') : '' ?></li>
+  <?php $plan = event_sessions((int) $ev['id']); if ($plan !== []): ?>
+  <li style="display:block;padding-top:0"><ul class="list-unstyled small st-muted mb-2" style="padding-left:56px">
+    <?php foreach ($plan as $s): ?><li><span class="st-num"><?= e(date('D j', strtotime($s['starts_at']))) ?> <?= e(date('H:i', strtotime($s['starts_at']))) ?></span> · <?= e($lang === 'es' && $s['title_es'] ? $s['title_es'] : $s['title_en']) ?><?= $s['location'] ? ' · ' . e($s['location']) : '' ?></li><?php endforeach; ?>
+  </ul></li>
+  <?php endif; ?>
   <?php endforeach; ?>
 </ul>
 <?php endif; ?>
@@ -54,6 +59,14 @@ shell_start(tr('My documents', 'Mis documentos'), $currentUser, 'diver');
   </a></li>
 <?php endforeach; ?>
 </ul>
+
+<?php $nDives = (int) db()->query('SELECT COUNT(*) FROM dives WHERE customer_id = ' . (int) $customer['id'])->fetchColumn(); ?>
+<a class="st-doc mb-4" href="/my/passport.php" style="display:flex">
+  <span class="st-doc__n"><?= ui_icon('wave') ?></span>
+  <span><span class="st-doc__t"><?= e(tr('My CENOTE passport', 'Mi pasaporte de cenotes')) ?></span>
+    <span class="st-doc__s"><?= $nDives > 0 ? e(sprintf(tr('%d dives logged · photos and notes', '%d buceos registrados · fotos y notas'), $nDives)) : e(tr('Your stamps, dives and photos will live here', 'Aquí vivirán tus sellos, buceos y fotos')) ?></span></span>
+  <?= ui_icon('chevron', 'st-doc__go') ?>
+</a>
 
 <div class="st-contact">
   <a href="https://wa.me/<?= e(setting('whatsapp_number')) ?>"><?= ui_icon('whatsapp') ?><span><?= e(tr('Questions? Message us on WhatsApp', '¿Dudas? Escríbenos por WhatsApp')) ?><br><small><?= e(setting('phone_display')) ?></small></span><?= ui_icon('chevron') ?></a>

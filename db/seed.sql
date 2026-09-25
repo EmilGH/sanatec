@@ -134,3 +134,23 @@ Propinas'),
  ('meta_description',     'Cenote diving and PADI/TDI training on the Riviera Maya. Course and cenote prices in MXN. Message us on WhatsApp to plan your dive.',
                           'Buceo en cenotes y cursos PADI/TDI en la Riviera Maya. Precios de cursos y cenotes en MXN. Escríbenos por WhatsApp para planear tu buceo.'),
  ('og_image',             '', NULL);   -- empty: the generated preview card
+
+-- ---------------------------------------------------------------------------
+-- Dive sites, and each route's sites in order
+-- ---------------------------------------------------------------------------
+INSERT IGNORE INTO dive_sites (slug, name_en, name_es, sort_order) VALUES
+ ('angelita','Angelita','Angelita',10),('carwash','Carwash','Carwash',20),('casa','Casa Cenote','Casa Cenote',30),
+ ('the-pit','The Pit','The Pit',40),('dos-ojos','Dos Ojos','Dos Ojos',50),('nic-te-ha','Nic Te-Ha','Nic Te-Ha',60),
+ ('dreamgate','Dreamgate','Dreamgate',70),('ponderosa','Ponderosa','Ponderosa',80),('chikin-ha','Chikin Ha','Chikin Ha',90),('yaa-kun','Yaa Kun','Yaa Kun',100);
+INSERT IGNORE INTO excursion_sites (excursion_id, dive_site_id, sort_order)
+SELECT e.id, s.id, m.ord FROM excursions e JOIN (
+  SELECT 'angelita-carwash' xslug,'angelita' sslug,0 ord UNION ALL SELECT 'angelita-carwash','carwash',1
+  UNION ALL SELECT 'angelita-carwash-casa','angelita',0 UNION ALL SELECT 'angelita-carwash-casa','carwash',1 UNION ALL SELECT 'angelita-carwash-casa','casa',2
+  UNION ALL SELECT 'pit-dos-ojos','the-pit',0 UNION ALL SELECT 'pit-dos-ojos','dos-ojos',1
+  UNION ALL SELECT 'pit-dos-ojos-nic-te-ha','the-pit',0 UNION ALL SELECT 'pit-dos-ojos-nic-te-ha','dos-ojos',1 UNION ALL SELECT 'pit-dos-ojos-nic-te-ha','nic-te-ha',2
+  UNION ALL SELECT 'dreamgate','dreamgate',0 UNION ALL SELECT 'dos-ojos','dos-ojos',0
+  UNION ALL SELECT 'ponderosa-chikin-ha','ponderosa',0 UNION ALL SELECT 'ponderosa-chikin-ha','chikin-ha',1
+  UNION ALL SELECT 'chikin-ha','chikin-ha',0 UNION ALL SELECT 'yaa-kun','yaa-kun',0
+  UNION ALL SELECT 'casa-carwash','casa',0 UNION ALL SELECT 'casa-carwash','carwash',1
+  UNION ALL SELECT 'dos-ojos-carwash','dos-ojos',0 UNION ALL SELECT 'dos-ojos-carwash','carwash',1
+) m ON m.xslug = e.slug JOIN dive_sites s ON s.slug = m.sslug;

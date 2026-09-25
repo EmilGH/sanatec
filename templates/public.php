@@ -28,6 +28,7 @@ if ($share !== null) {
 $showIncluded = setting('included_publish') === '1'
     && (setting_lines('included_items', $lang) !== [] || setting_lines('excluded_items', $lang) !== []);
 $hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bool) $r['is_special_price']);
+$teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_public = 1 AND is_active = 1 AND public_slug IS NOT NULL')->fetchColumn();
 ?>
 <?= ui_brand_defs('dark') ?>
 <div class="st-root" data-theme="dark">
@@ -83,6 +84,10 @@ $hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bo
   </div>
 
   <?php if ($showIncluded): ?>
+  <?php if ($teamCount > 0): ?>
+  <p class="st-share st-wrap"><a class="st-link" href="<?= $lang === 'es' ? '/es/team/' : '/team/' ?>"><?= e(t('team_link', $lang)) ?> →</a></p>
+  <?php endif; ?>
+
   <section class="st-section st-wrap" id="included" aria-label="<?= e(setting('included_title', $lang)) ?>">
     <div class="st-cols">
       <div><h3 class="st-h3 st-included__h"><?= e(setting('included_title', $lang)) ?></h3>

@@ -105,6 +105,23 @@ test('the training release names the instructors of the next course, and the sig
         'booked on a course: the checklist asks for the training release only');
 });
 
+test('a foreign-currency payment counts in pesos at the rate typed, or not at all', function (): void {
+    $id = event_create('excursion', ['catalog_id' => excursion_id('Dos Ojos'), 'date' => '2030-10-23', 'dives_count' => 2]);
+    $cid = customer_save(null, ['name' => 'Dollar Diver']);
+    $row = event_participant_add($id, $cid);
+    payment_add($row, ['amount' => '100', 'currency' => 'usd', 'fx_rate' => '18.50', 'method' => 'cash']);
+    $p = participant_payments($row)[0];
+    is_same('USD', $p['currency']);
+    is_same('18.500000', $p['fx_rate']);
+    is_same('1850.00', $p['amount_mxn']);
+    payment_add($row, ['amount' => '50', 'currency' => 'EUR']);
+    $paid = (float) db()->query("SELECT SUM(amount_mxn) FROM payments WHERE participant_id = {$row}")->fetchColumn();
+    is_same(1850.0, $paid, 'a payment without a rate is recorded but counts nothing');
+    throws(static fn () => payment_add($row, ['amount' => '10', 'currency' => 'USD', 'fx_rate' => '-2']));
+    payment_add($row, ['amount' => '1650', 'currency' => 'MXN']);
+    is_same('paid', participant_payment_state(event_participants($id)[0]));
+});
+
 test('documents per diver on an event count only what that kind needs', function (): void {
     $id = event_create('excursion', ['catalog_id' => excursion_id('Dos Ojos'), 'date' => '2030-10-22', 'dives_count' => 2]);
     $cid = customer_save(null, ['name' => 'Docs Diver']);

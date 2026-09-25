@@ -125,6 +125,11 @@ function team_profile_card(array $row): void
         <input class="form-check-input" type="checkbox" role="switch" id="profile_public" name="profile_public" value="1" <?= !empty($row['profile_public']) ? 'checked' : '' ?>>
         <label class="form-check-label" for="profile_public">Show my profile on the site</label>
       </div>
+      <div class="form-check form-switch mb-3">
+        <input class="form-check-input" type="checkbox" role="switch" id="show_whatsapp_public" name="show_whatsapp_public" value="1" <?= !empty($row['show_whatsapp_public']) ? 'checked' : '' ?>>
+        <label class="form-check-label" for="show_whatsapp_public">Show my WhatsApp number on my public profile</label>
+        <div class="form-text">Uses the mobile marked WhatsApp-capable under contact channels. Divers can message directly.</div>
+      </div>
       <div class="row g-3">
         <div class="col-12 col-md-6"><label class="form-label" for="title_en">Title <span class="text-aqua small">EN</span></label>
           <input class="form-control" id="title_en" name="title_en" value="<?= e((string) ($row['title_en'] ?? '')) ?>" placeholder="Cave Guide"></div>
@@ -140,6 +145,25 @@ function team_profile_card(array $row): void
         <div class="col-12 col-md-6"><label class="form-label" for="public_slug">Profile address</label>
           <div class="input-group"><span class="input-group-text">/team/</span>
             <input class="form-control" id="public_slug" name="public_slug" value="<?= e((string) ($row['public_slug'] ?? '')) ?>" placeholder="made from the name if blank"></div></div>
+      </div>
+    </div></div>
+    <?php
+}
+
+/** Profile photo: its own form, because it uploads a file. */
+function team_photo_card(array $row, string $postUrl): void
+{
+    ?>
+    <div class="card mb-3"><div class="card-body">
+      <h2 class="h6 text-aqua text-uppercase mb-1">Photo</h2>
+      <p class="text-secondary small mb-3">Shown on the public profile. Re-encoded on upload, so phone metadata such as location never leaves the server.</p>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <?php if (!empty($row['photo_path'])): ?><img src="/admin/team/photo.php?id=<?= (int) $row['id'] ?>&v=<?= e(substr(md5((string) $row['photo_path']), 0, 6)) ?>" alt="" width="96" height="96" style="border-radius:50%;object-fit:cover">
+        <?php else: ?><span class="st-muted small">No photo yet.</span><?php endif; ?>
+        <form method="post" enctype="multipart/form-data" class="d-flex gap-2 align-items-center"><?= csrf_field() ?><input type="hidden" name="action" value="photo_upload">
+          <input class="form-control form-control-sm" type="file" name="photo" accept="image/*" required style="max-width:260px">
+          <button class="btn btn-sm btn-outline-secondary" type="submit">Upload</button></form>
+        <?php if (!empty($row['photo_path'])): ?><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="photo_remove"><button class="btn btn-sm btn-outline-danger" type="submit">Remove</button></form><?php endif; ?>
       </div>
     </div></div>
     <?php
@@ -275,6 +299,23 @@ function team_handle_subforms(string $action, int $personId, ?int $teamId, array
                 channel_delete($personId, (int) ($_POST['channel_id'] ?? 0));
                 audit('update', 'person', $personId, 'channel removed');
                 flash('Channel removed.');
+                return true;
+
+            case 'photo_upload':
+                if ($teamId === null) {
+                    return true;
+                }
+                team_photo_set($teamId, $_FILES['photo'] ?? null);
+                audit('update', 'team_member', $teamId, 'photo changed');
+                flash('Photo saved.');
+                return true;
+
+            case 'photo_remove':
+                if ($teamId === null) {
+                    return true;
+                }
+                team_photo_set($teamId, null);
+                flash('Photo removed.');
                 return true;
 
             case 'cred_save':

@@ -187,6 +187,7 @@ function team_save(?int $teamId, array $in, array $actor): int
             'ended_on'        => ($in['ended_on'] ?? '') !== '' ? $in['ended_on'] : null,
             'internal_notes'  => trim((string) ($in['internal_notes'] ?? '')) ?: null,
             'profile_public'  => $profilePublic,
+            'show_whatsapp_public' => !empty($in['show_whatsapp_public']) ? 1 : 0,
             'public_slug'     => $slug !== '' ? $slug : null,
             'title_en'        => trim((string) ($in['title_en'] ?? '')) ?: null,
             'title_es'        => trim((string) ($in['title_es'] ?? '')) ?: null,
@@ -230,13 +231,65 @@ function team_save_self(array $actor, array $in): void
     $team = $actor['team'];
     $safe = array_intersect_key($in, array_flip([
         'name', 'date_of_birth', 'nationality', 'preferred_language', 'timezone', 'dan_number', 'dan_expires_on',
-        'profile_public', 'public_slug', 'title_en', 'title_es', 'bio_en', 'bio_es', 'languages',
+        'profile_public', 'show_whatsapp_public', 'public_slug', 'title_en', 'title_es', 'bio_en', 'bio_es', 'languages',
     ]));
     // Carry everything else through unchanged.
     foreach (array_merge(array_keys(TEAM_ROLES), array_keys(TEAM_PERMISSIONS), ['is_system_admin', 'is_active', 'job_title', 'started_on', 'ended_on', 'internal_notes', 'sort_order']) as $k) {
         $safe[$k] = $team[$k];
     }
     team_save((int) $team['id'], $safe, $actor);
+}
+
+// ---------------------------------------------------------------------------
+// Photo and the public team page
+// ---------------------------------------------------------------------------
+
+/** Store a profile photo (square-ish, 800px) and drop the old one. */
+function team_photo_set(int $teamId, ?array $file): void
+{
+    require_once __DIR__ . '/Uploads.php';
+    $row = team_find($teamId);
+    if ($row === null) {
+        throw new RuntimeException('That team member no longer exists.');
+    }
+    $path = $file !== null ? store_image($file, 'team', 'team-' . $teamId . '-' . bin2hex(random_bytes(3)), 800) : null;
+    db()->prepare('UPDATE team_members SET photo_path = :p WHERE id = :id')->execute([':p' => $path, ':id' => $teamId]);
+    if ($row['photo_path']) {
+        $old = upload_path((string) $row['photo_path']);
+        if ($old !== null) {
+            @unlink($old);
+        }
+    }
+}
+
+/**
+ * Team members shown on the public site: active, opted in. Carries the
+ * public WhatsApp number only when the member allowed it, and the
+ * professional credentials (agency + title, never numbers).
+ */
+function team_public_list(?string $slug = null): array
+{
+    $sql = 'SELECT t.id, t.public_slug, t.title_en, t.title_es, t.bio_en, t.bio_es, t.languages, t.photo_path,
+                   t.is_instructor, t.is_divemaster, t.is_cave_guide, t.show_whatsapp_public, p.name,
+                   (SELECT cc.value FROM contact_channels cc WHERE cc.person_id = p.id AND cc.kind = "mobile" AND cc.whatsapp_capable = 1
+                     ORDER BY cc.is_primary DESC, cc.id LIMIT 1) AS whatsapp
+            FROM team_members t JOIN people p ON p.id = t.person_id
+            WHERE t.profile_public = 1 AND t.is_active = 1 AND t.public_slug IS NOT NULL AND p.deleted_at IS NULL'
+        . ($slug !== null ? ' AND t.public_slug = :slug' : '') . ' ORDER BY t.sort_order, p.name';
+    $stmt = db()->prepare($sql);
+    $stmt->execute($slug !== null ? [':slug' => $slug] : []);
+    $rows = $stmt->fetchAll();
+    $creds = db()->prepare('SELECT agency, title FROM team_credentials WHERE team_member_id = :t AND kind IN ("professional", "technical") AND (expires_on IS NULL OR expires_on >= CURDATE()) ORDER BY FIELD(kind, "professional", "technical"), id');
+    foreach ($rows as &$r) {
+        if (!(int) $r['show_whatsapp_public']) {
+            $r['whatsapp'] = null;
+        }
+        $r['languages'] = is_string($r['languages']) ? (json_decode($r['languages'], true) ?: []) : [];
+        $creds->execute([':t' => $r['id']]);
+        $r['credentials'] = array_values(array_unique(array_map(static fn (array $c): string => trim($c['agency'] . ' ' . $c['title']), $creds->fetchAll())));
+    }
+
+    return $rows;
 }
 
 // ---------------------------------------------------------------------------

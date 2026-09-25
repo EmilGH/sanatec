@@ -9,6 +9,7 @@ if (!defined('SANATEC')) {
 
 require_once __DIR__ . '/Customers.php';
 require_once __DIR__ . '/Team.php';
+require_once __DIR__ . '/Passport.php';
 
 /**
  * Events: excursions and training, dated.
@@ -129,9 +130,14 @@ function event_create(string $kind, array $in, ?int $createdByTeamId = null): in
         $ins = $pdo->prepare('INSERT INTO event_sessions (event_id, starts_at, title_en, title_es, location, sort_order) VALUES (:e, :at, :te, :ts, :loc, :o)');
         if ($kind === 'excursion') {
             $ins->execute([':e' => $eventId, ':at' => "{$date} {$meet}:00", ':te' => 'Meet at the shop', ':ts' => 'Encuentro en el centro', ':loc' => setting('business_name'), ':o' => 0]);
+            $sites = excursion_sites((int) $item['id']);
             $t = strtotime("{$date} {$meet}:00") + 3600;
             for ($i = 1; $i <= $dives; $i++) {
-                $ins->execute([':e' => $eventId, ':at' => date('Y-m-d H:i:s', $t), ':te' => "Dive {$i}", ':ts' => "Inmersión {$i}", ':loc' => $item['name_en'], ':o' => $i]);
+                $site = $sites[$i - 1] ?? ($sites[count($sites) - 1] ?? null);
+                $ins->execute([':e' => $eventId, ':at' => date('Y-m-d H:i:s', $t), ':te' => "Dive {$i}", ':ts' => "Inmersión {$i}", ':loc' => $site['name_en'] ?? $item['name_en'], ':o' => $i]);
+                if ($site !== null) {
+                    $pdo->prepare('UPDATE event_sessions SET dive_site_id = :s WHERE id = :id')->execute([':s' => $site['id'], ':id' => $pdo->lastInsertId()]);
+                }
                 $t += 2 * 3600 + 15 * 60;
             }
         } else {
@@ -193,22 +199,25 @@ function event_session_save(int $eventId, ?int $sessionId, array $in): int
     if ($title === '') {
         throw new InvalidArgumentException('Give the session a title.');
     }
+    $siteId = (int) ($in['dive_site_id'] ?? 0) ?: null;
+    $site = $siteId !== null ? dive_site_find($siteId) : null;
     $fields = [
-        'starts_at' => date('Y-m-d H:i:s', strtotime($at)),
-        'ends_at'   => ($in['ends_at'] ?? '') !== '' && strtotime((string) $in['ends_at']) !== false ? date('Y-m-d H:i:s', strtotime((string) $in['ends_at'])) : null,
-        'title_en'  => $title,
-        'title_es'  => trim((string) ($in['title_es'] ?? '')) ?: $title,
-        'location'  => trim((string) ($in['location'] ?? '')) ?: null,
+        'starts_at'    => date('Y-m-d H:i:s', strtotime($at)),
+        'ends_at'      => ($in['ends_at'] ?? '') !== '' && strtotime((string) $in['ends_at']) !== false ? date('Y-m-d H:i:s', strtotime((string) $in['ends_at'])) : null,
+        'title_en'     => $title,
+        'title_es'     => trim((string) ($in['title_es'] ?? '')) ?: $title,
+        'location'     => trim((string) ($in['location'] ?? '')) ?: ($site['name_en'] ?? null),
+        'dive_site_id' => $site['id'] ?? null,
     ];
     if ($sessionId === null) {
         $fields['event_id'] = $eventId;
         $fields['sort_order'] = (int) db()->query("SELECT COALESCE(MAX(sort_order), 0) + 1 FROM event_sessions WHERE event_id = {$eventId}")->fetchColumn();
-        db()->prepare('INSERT INTO event_sessions (event_id, starts_at, ends_at, title_en, title_es, location, sort_order) VALUES (:event_id, :starts_at, :ends_at, :title_en, :title_es, :location, :sort_order)')->execute($fields);
+        db()->prepare('INSERT INTO event_sessions (event_id, starts_at, ends_at, title_en, title_es, location, dive_site_id, sort_order) VALUES (:event_id, :starts_at, :ends_at, :title_en, :title_es, :location, :dive_site_id, :sort_order)')->execute($fields);
         $sessionId = (int) db()->lastInsertId();
     } else {
         $fields['id'] = $sessionId;
         $fields['e'] = $eventId;
-        db()->prepare('UPDATE event_sessions SET starts_at = :starts_at, ends_at = :ends_at, title_en = :title_en, title_es = :title_es, location = :location WHERE id = :id AND event_id = :e')->execute($fields);
+        db()->prepare('UPDATE event_sessions SET starts_at = :starts_at, ends_at = :ends_at, title_en = :title_en, title_es = :title_es, location = :location, dive_site_id = :dive_site_id WHERE id = :id AND event_id = :e')->execute($fields);
     }
     db()->prepare('UPDATE events SET starts_on = (SELECT MIN(DATE(starts_at)) FROM event_sessions WHERE event_id = :e) WHERE id = :e2')->execute([':e' => $eventId, ':e2' => $eventId]);
 
@@ -282,7 +291,7 @@ function event_participants(int $eventId): array
                 (SELECT value FROM contact_channels WHERE person_id = p.id AND kind = "mobile" ORDER BY is_primary DESC, id LIMIT 1) AS mobile,
                 (SELECT whatsapp_capable FROM contact_channels WHERE person_id = p.id AND kind = "mobile" ORDER BY is_primary DESC, id LIMIT 1) AS whatsapp,
                 (SELECT level FROM certifications WHERE customer_id = c.id ORDER BY FIELD(level_code, "instructor","full_cave","dm","intro_cave","rescue","cavern","aow","sidemount","ow","other"), id LIMIT 1) AS top_cert,
-                (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE participant_id = ep.id AND currency = "MXN") AS paid_mxn
+                (SELECT COALESCE(SUM(amount_mxn), 0) FROM payments WHERE participant_id = ep.id) AS paid_mxn
          FROM event_participants ep
          JOIN customers c ON c.id = ep.customer_id
          JOIN people p ON p.id = c.person_id
@@ -330,6 +339,12 @@ function event_participant_set_status(int $eventId, int $rowId, string $status):
         return;
     }
     db()->prepare('UPDATE event_participants SET status = :s WHERE id = :id AND event_id = :e')->execute([':s' => $status, ':id' => $rowId, ':e' => $eventId]);
+
+    // Attended: every session with a site becomes a dive in the diver's passport.
+    if ($status === 'attended') {
+        require_once __DIR__ . '/Passport.php';
+        passport_record_attendance($eventId, $rowId);
+    }
 }
 
 function event_participant_remove(int $eventId, int $rowId): void
@@ -342,7 +357,7 @@ function customer_events(int $customerId): array
 {
     $stmt = db()->prepare(
         'SELECT e.*, ep.id AS participant_id, ep.status AS participation, ep.price_mxn AS agreed_price,
-                (SELECT COALESCE(SUM(amount), 0) FROM payments WHERE participant_id = ep.id AND currency = "MXN") AS paid_mxn
+                (SELECT COALESCE(SUM(amount_mxn), 0) FROM payments WHERE participant_id = ep.id) AS paid_mxn
          FROM event_participants ep JOIN events e ON e.id = ep.event_id
          WHERE ep.customer_id = :c ORDER BY e.starts_on DESC'
     );
@@ -378,9 +393,16 @@ function payment_add(int $participantId, array $in, ?int $receivedByTeamId = nul
     }
     $method = isset(PAYMENT_METHODS[$in['method'] ?? '']) ? $in['method'] : 'cash';
     $currency = strtoupper(substr(preg_replace('/[^A-Za-z]/', '', (string) ($in['currency'] ?? 'MXN')) ?: 'MXN', 0, 3));
-    db()->prepare('INSERT INTO payments (participant_id, amount, currency, method, received_by, received_at, note) VALUES (:p, :a, :c, :m, :by, :at, :n)')
+    // MXN needs no rate. Anything else converts at the rate typed (pesos per unit);
+    // without one the payment is on record but counts nothing toward the balance.
+    $rate = $currency === 'MXN' ? 1.0 : (($in['fx_rate'] ?? '') !== '' ? round((float) str_replace(',', '.', (string) $in['fx_rate']), 6) : null);
+    if ($rate !== null && $rate <= 0) {
+        throw new InvalidArgumentException('The exchange rate must be a positive number of pesos per ' . $currency . '.');
+    }
+    $amountMxn = $rate !== null ? round($amount * $rate, 2) : 0.0;
+    db()->prepare('INSERT INTO payments (participant_id, amount, currency, fx_rate, amount_mxn, method, received_by, received_at, note) VALUES (:p, :a, :c, :r, :mxn, :m, :by, :at, :n)')
         ->execute([
-            ':p' => $participantId, ':a' => $amount, ':c' => $currency, ':m' => $method, ':by' => $receivedByTeamId,
+            ':p' => $participantId, ':a' => $amount, ':c' => $currency, ':r' => $currency === 'MXN' ? null : $rate, ':mxn' => $amountMxn, ':m' => $method, ':by' => $receivedByTeamId,
             ':at' => ($in['received_at'] ?? '') !== '' && strtotime((string) $in['received_at']) !== false ? date('Y-m-d H:i:s', strtotime((string) $in['received_at'])) : date('Y-m-d H:i:s'),
             ':n' => trim((string) ($in['note'] ?? '')) ?: null,
         ]);

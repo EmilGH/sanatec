@@ -84,6 +84,7 @@ shell_start($row ? $row['name'] : 'New team member', $currentUser);
 </form>
 
 <?php if ($row): ?>
+  <?php team_photo_card($row, $self); ?>
   <?php team_channels_card((int) $row['person_id'], $self); ?>
   <?php team_credentials_card($teamId); ?>
 <?php else: ?>

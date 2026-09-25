@@ -74,6 +74,11 @@ It discovers databases dynamically, so `sanatec` is included without anyone
 having to remember to add it. MySQL binary logging is on, so point-in-time
 recovery between nightly dumps is possible.
 
+**Uploaded files are not in the nightly dump.** Signatures, medical PDFs, dive
+photos and team photos live under `/var/www/private/sanatecdiving/uploads` and
+the database only holds their paths. Until that directory is synced to S3 as
+well, a restore brings back the records but not the files. Open item.
+
 **The server can write backups but not read them.** Its instance role has
 `ListBucket` and `PutObject`, and deliberately not `GetObject` or `DeleteObject`.
 A compromised web server therefore cannot read the backup history and cannot

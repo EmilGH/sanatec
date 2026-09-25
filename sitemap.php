@@ -24,4 +24,10 @@ echo '<?xml version="1.0" encoding="UTF-8"?>', "\n";
     <changefreq>monthly</changefreq>
   </url>
 <?php endforeach; ?>
+<?php require_once __DIR__ . '/src/Team.php'; $team = team_public_list(); if ($team !== []): ?>
+<?php foreach (LANGUAGES as $code => $meta): $prefix = $code === 'es' ? '/es' : ''; ?>
+  <url><loc><?= e($baseUrl . $prefix) ?>/team/</loc><changefreq>monthly</changefreq></url>
+<?php foreach ($team as $m): ?>
+  <url><loc><?= e($baseUrl . $prefix) ?>/team/<?= e($m['public_slug']) ?></loc><changefreq>monthly</changefreq></url>
+<?php endforeach; endforeach; endif; ?>
 </urlset>

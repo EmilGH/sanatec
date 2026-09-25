@@ -87,6 +87,17 @@ RedirectMatch 404 "^/config\.local\.php$"
     RewriteRule ^c/([a-z0-9-]+)/?$ index.php?lang=en&share=$1 [L,QSA]
     RewriteRule ^es/c/([a-z0-9-]+)/?$ index.php?lang=es&share=$1 [L,QSA]
 
+    # The team, and one member's profile; their photo.
+    RewriteRule ^team/?$ team.php?lang=en [L,QSA]
+    RewriteRule ^es/team/?$ team.php?lang=es [L,QSA]
+    RewriteRule ^team/([a-z0-9-]+)/photo\.jpg$ team-photo.php?slug=$1 [L]
+    RewriteRule ^team/([a-z0-9-]+)/?$ team.php?lang=en&slug=$1 [L,QSA]
+    RewriteRule ^es/team/([a-z0-9-]+)/?$ team.php?lang=es&slug=$1 [L,QSA]
+
+    # A diver's public passport, when they have switched it on.
+    RewriteRule ^passport/([a-f0-9-]+)/?$ passport.php?lang=en&id=$1 [L,QSA]
+    RewriteRule ^es/passport/([a-f0-9-]+)/?$ passport.php?lang=es&id=$1 [L,QSA]
+
     # Generated link-preview images.
     RewriteRule ^og/([a-z0-9-]+)\.png$ og.php?f=$1 [L]
 

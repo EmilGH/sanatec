@@ -30,6 +30,25 @@ if (preg_match('#^/(es/)?c/([a-z0-9-]+)/?$#', $path, $m)) {
     require __DIR__ . '/../index.php';
     exit;
 }
+if (preg_match('#^/team/([a-z0-9-]+)/photo\.jpg$#', $path, $m)) {
+    $_GET['slug'] = $m[1];
+    require __DIR__ . '/../team-photo.php';
+    exit;
+}
+if (preg_match('#^/(es/)?team(?:/([a-z0-9-]+))?/?$#', $path, $m)) {
+    $_GET['lang'] = ($m[1] ?? '') !== '' ? 'es' : 'en';
+    if (($m[2] ?? '') !== '') {
+        $_GET['slug'] = $m[2];
+    }
+    require __DIR__ . '/../team.php';
+    exit;
+}
+if (preg_match('#^/(es/)?passport/([a-f0-9-]+)/?$#', $path, $m)) {
+    $_GET['lang'] = ($m[1] ?? '') !== '' ? 'es' : 'en';
+    $_GET['id'] = $m[2];
+    require __DIR__ . '/../passport.php';
+    exit;
+}
 if (preg_match('#^/og/([a-z0-9-]+)\.png$#', $path, $m)) {
     $_GET['f'] = $m[1];
     require __DIR__ . '/../og.php';

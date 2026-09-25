@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
 require_once __DIR__ . '/../src/Og.php';
+require_once __DIR__ . '/../src/Passport.php';
 
 const PRICE_COLUMNS = ['price_1_dive' => '1 dive', 'price_2_dives' => '2 dives', 'price_3_dives' => '3 dives'];
 
@@ -33,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $savedId = excursion_save($input, $id ?: null);
+        excursion_sites_set($savedId, array_map('intval', explode(',', post('site_ids'))));
         $prices  = implode(' / ', array_map(
             static fn (string $c): string => money(parse_money($input[$c])) ?? '—',
             array_keys(PRICE_COLUMNS)
@@ -85,6 +87,7 @@ echo shell_page('Cenote excursions', 'Catalog', '<a class="btn btn-primary" href
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php" <?= 'excursions' === 'courses' ? 'aria-current="page"' : '' ?>>Courses</a>
   <a href="/admin/catalog-excursions.php" <?= 'excursions' === 'excursions' ? 'aria-current="page"' : '' ?>>Cenote excursions</a>
+  <a href="/admin/catalog-sites.php">Dive sites</a>
 </div>
 
 <?php if ($editing !== null): ?>
@@ -98,6 +101,22 @@ echo shell_page('Cenote excursions', 'Catalog', '<a class="btn btn-primary" href
       <?php foreach (PRICE_COLUMNS as $column => $label): ?><div class="col-4 col-md-3"><?php field_price($column, 'Total for ' . $label, $editing); ?></div><?php endforeach; ?>
     </div>
     <div class="mt-3"><?php field_pair('cert', 'Certification required', $editing, 'text', 'OW, AOW, or a fuller sentence'); ?></div>
+    <?php $allSites = dive_sites(false); $chosen = isset($editing['id']) ? array_map('intval', array_column(excursion_sites((int) $editing['id']), 'id')) : []; ?>
+    <div class="mb-3">
+      <label class="form-label">Cenotes on this route, in dive order</label>
+      <div class="form-text mb-1">Tap to add or remove. Each becomes a dive on the day plan and a stamp in the diver's passport.</div>
+      <div class="st-chips" id="site-picker">
+        <?php foreach ($allSites as $site): $pos = array_search((int) $site['id'], $chosen, true); ?>
+          <button type="button" class="st-chip <?= $pos !== false ? 'st-chip--on' : '' ?>" data-id="<?= (int) $site['id'] ?>"><span class="n"><?= $pos !== false ? ($pos + 1) . '. ' : '' ?></span><?= e($site['name_en']) ?></button>
+        <?php endforeach; ?>
+      </div>
+      <input type="hidden" name="site_ids" id="site_ids" value="<?= e(implode(',', $chosen)) ?>">
+      <script>
+      (function(){var box=document.getElementById('site-picker'),hid=document.getElementById('site_ids'),order=hid.value?hid.value.split(',').map(Number):[];
+      function paint(){box.querySelectorAll('.st-chip').forEach(function(b){var i=order.indexOf(+b.dataset.id);b.classList.toggle('st-chip--on',i>=0);b.querySelector('.n').textContent=i>=0?(i+1)+'. ':''});hid.value=order.join(',')}
+      box.addEventListener('click',function(e){var b=e.target.closest('.st-chip');if(!b)return;var id=+b.dataset.id,i=order.indexOf(id);i>=0?order.splice(i,1):order.push(id);paint()});})();
+      </script>
+    </div>
     <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="is_special_price" name="is_special_price" value="1" <?= !empty($editing['is_special_price']) ? 'checked' : '' ?>><label class="form-check-label" for="is_special_price">Mark as a special price</label></div>
     <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1" <?= !empty($editing['is_published']) ? 'checked' : '' ?>><label class="form-check-label" for="is_published">Show this excursion on the public site</label></div>
     <div class="d-flex gap-2">

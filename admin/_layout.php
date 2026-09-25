@@ -138,6 +138,7 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
     <div id="st-sheet" class="st-sheet" hidden>
       <button type="button" onclick="document.getElementById('st-sheet').hidden=true"><?= ui_icon('x') ?><?= $lang === 'es' ? 'Cerrar' : 'Close' ?></button>
       <a href="/my/"><?= ui_icon('list') ?><?= $lang === 'es' ? 'Mis documentos' : 'My documents' ?></a>
+      <a href="/my/passport.php"><?= ui_icon('wave') ?><?= $lang === 'es' ? 'Mi pasaporte' : 'My passport' ?></a>
       <a href="/my/profile.php"><?= ui_icon('user') ?><?= $lang === 'es' ? 'Mi información' : 'My information' ?></a>
       <a href="/my/lang.php?lang=<?= $lang === 'es' ? 'en' : 'es' ?>"><?= ui_icon('globe') ?><?= $lang === 'es' ? 'English' : 'Español' ?></a>
       <a href="/my/logout.php"><?= ui_icon('logout') ?><?= $lang === 'es' ? 'Salir' : 'Sign out' ?></a>

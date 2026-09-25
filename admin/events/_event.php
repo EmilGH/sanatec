@@ -84,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $sessions = event_sessions($id);
+$siteNames = array_column(dive_sites(false), 'name_en', 'id');
 $team = event_team($id);
 $divers = event_participants($id);
 $money = event_money($id);
@@ -157,14 +158,15 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
               <form method="post" class="d-flex gap-2 align-items-end flex-wrap"><?= csrf_field() ?><input type="hidden" name="action" value="payment_add"><input type="hidden" name="participant_id" value="<?= (int) $d['id'] ?>">
                 <div><label class="form-label small">Payment</label><input class="form-control form-control-sm" name="amount" placeholder="<?= e((string) (money(max(0, (float) $d['price_mxn'] - (float) $d['paid_mxn'])) ?? '')) ?>" style="width:120px"></div>
                 <div><label class="form-label small">Method</label><select class="form-select form-select-sm" name="method"><?php foreach (PAYMENT_METHODS as $k => $l): ?><option value="<?= $k ?>"><?= $l ?></option><?php endforeach; ?></select></div>
-                <div><label class="form-label small">Currency</label><input class="form-control form-control-sm" name="currency" value="MXN" style="width:70px"></div>
+                <div><label class="form-label small">Currency</label><input class="form-control form-control-sm" name="currency" value="MXN" style="width:70px" list="currencies"></div>
+                <div><label class="form-label small" title="Pesos per unit of that currency on the day. Blank for MXN.">Rate → MXN</label><input class="form-control form-control-sm" name="fx_rate" placeholder="1" inputmode="decimal" style="width:90px"></div>
                 <label class="form-check small mb-1"><input class="form-check-input" type="checkbox" name="refund" value="1"> refund</label>
                 <button class="btn btn-sm btn-primary" type="submit">Record</button></form>
               <form method="post" class="d-flex gap-1 ms-auto"><?= csrf_field() ?><input type="hidden" name="action" value="diver_status"><input type="hidden" name="row_id" value="<?= (int) $d['id'] ?>">
                 <?php foreach (['attended' => 'Attended', 'no_show' => 'No-show', 'cancelled' => 'Cancel'] as $st => $lbl): ?><button class="btn btn-sm btn-outline-secondary" name="status" value="<?= $st ?>"><?= $lbl ?></button><?php endforeach; ?></form>
               <form method="post" onsubmit="return confirm('Remove <?= e(addslashes($d['name'])) ?> from this event?')"><?= csrf_field() ?><input type="hidden" name="action" value="diver_remove"><input type="hidden" name="row_id" value="<?= (int) $d['id'] ?>"><button class="btn btn-sm st-btn--danger" style="border-radius:var(--radius-pill)">Remove</button></form>
             </div>
-            <?php $pays = participant_payments((int) $d['id']); if ($pays !== []): ?><div class="small st-muted">Payments: <?php foreach ($pays as $pm): ?><span class="me-2"><?= e(money($pm['amount'])) ?> <?= e($pm['currency']) ?> <?= e($pm['method']) ?> · <?= e(substr($pm['received_at'], 0, 10)) ?><?= $pm['received_by_name'] ? ' · ' . e($pm['received_by_name']) : '' ?></span><?php endforeach; ?></div><?php endif; ?>
+            <?php $pays = participant_payments((int) $d['id']); if ($pays !== []): ?><div class="small st-muted">Payments: <?php foreach ($pays as $pm): ?><span class="me-2"><?= e(money($pm['amount'])) ?> <?= e($pm['currency']) ?><?= $pm['currency'] !== 'MXN' ? ' (' . e(money($pm['amount_mxn'])) . ' MXN @ ' . e(rtrim(rtrim((string) $pm['fx_rate'], '0'), '.')) . ')' : '' ?> <?= e($pm['method']) ?> · <?= e(substr($pm['received_at'], 0, 10)) ?><?= $pm['received_by_name'] ? ' · ' . e($pm['received_by_name']) : '' ?></span><?php endforeach; ?></div><?php endif; ?>
             <?php if ($docs['missing'] !== []): ?><div class="small" style="color:var(--warn)">Missing: <?= e(implode(' · ', $docs['missing'])) ?></div><?php endif; ?>
           </td></tr>
         <?php endforeach; ?>
@@ -173,6 +175,7 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
       <?php endif; ?>
     </div>
 
+    <datalist id="currencies"><option value="MXN"><option value="USD"><option value="EUR"><option value="CAD"><option value="GBP"></datalist>
     <div class="st-card mb-3" id="message">
       <h2 class="st-card__title">Message divers</h2>
       <p class="st-muted small">One tap per diver opens WhatsApp with a prefilled message. Sending from the system arrives with the messaging provider.</p>
@@ -192,11 +195,12 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
       <form method="post" class="collapse mb-3 row g-2" id="add-session"><?= csrf_field() ?><input type="hidden" name="action" value="session_save">
         <div class="col-7"><input class="form-control form-control-sm" type="datetime-local" name="starts_at" value="<?= e($event['starts_on']) ?>T09:00" required></div>
         <div class="col-5"><input class="form-control form-control-sm" name="location" placeholder="Where"></div>
+        <div class="col-12"><select class="form-select form-select-sm" name="dive_site_id"><option value="">Not a dive (briefing, meet, theory)</option><?php foreach (dive_sites(false) as $site): ?><option value="<?= (int) $site['id'] ?>"><?= e($site['name_en']) ?></option><?php endforeach; ?></select></div>
         <div class="col-12 d-flex gap-2"><input class="form-control form-control-sm" name="title_en" placeholder="What (e.g. Dive 3)" required><button class="btn btn-sm btn-primary" type="submit">Add</button></div></form>
       <ul class="st-rows">
         <?php foreach ($sessions as $s): ?>
         <li><span class="st-num st-muted"><?= e(date('H:i', strtotime($s['starts_at']))) ?><?php if (count($sessions) > 1 && date('Y-m-d', strtotime($s['starts_at'])) !== $event['starts_on']): ?><br><small><?= e(date('D j', strtotime($s['starts_at']))) ?></small><?php endif; ?></span>
-          <span class="st-rows__t"><?= e($s['title_en']) ?><span class="st-rows__s"><?= e((string) $s['location']) ?></span></span>
+          <span class="st-rows__t"><?= e($s['title_en']) ?><span class="st-rows__s"><?= e((string) $s['location']) ?><?= $s['dive_site_id'] ? ($s['location'] ? ' · ' : '') . '<span title="Counts as a dive in the passport">' . ui_icon('wave', 'st-icon') . e($siteNames[(int) $s['dive_site_id']] ?? '') . '</span>' : '' ?></span></span>
           <form method="post" onsubmit="return confirm('Remove this session?')"><?= csrf_field() ?><input type="hidden" name="action" value="session_delete"><input type="hidden" name="session_id" value="<?= (int) $s['id'] ?>"><button class="st-iconbtn" title="Remove"><?= ui_icon('x', 'st-icon st-muted') ?></button></form></li>
         <?php endforeach; ?>
       </ul>

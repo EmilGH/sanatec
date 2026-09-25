@@ -87,6 +87,45 @@ function store_upload(array $file, string $folder, string $name): string
     return write_upload($folder, $name . '.' . UPLOAD_TYPES[$mime], (string) file_get_contents($file['tmp_name']));
 }
 
+/**
+ * Store a photo: re-encoded as JPEG with GD, which drops EXIF (location,
+ * device) and caps the longest side. Returns the relative path.
+ */
+function store_image(array $file, string $folder, string $name, int $maxSide = 1200): string
+{
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        throw new InvalidArgumentException('The photo did not upload. Try again.');
+    }
+    if ((int) $file['size'] > UPLOAD_MAX_BYTES) {
+        throw new InvalidArgumentException('That photo is over 10 MB.');
+    }
+    $img = @imagecreatefromstring((string) file_get_contents($file['tmp_name']));
+    if ($img === false) {
+        throw new InvalidArgumentException('That file is not an image we can read (JPEG, PNG, GIF or WebP).');
+    }
+    // Respect EXIF orientation from phones before it is discarded.
+    if (function_exists('exif_read_data')) {
+        $exif = @exif_read_data($file['tmp_name']);
+        $o = (int) ($exif['Orientation'] ?? 1);
+        $rot = [3 => 180, 6 => -90, 8 => 90][$o] ?? 0;
+        if ($rot !== 0) {
+            $img = imagerotate($img, $rot, 0) ?: $img;
+        }
+    }
+    $w = imagesx($img);
+    $h = imagesy($img);
+    $scale = min(1.0, $maxSide / max($w, $h));
+    if ($scale < 1.0) {
+        $img = imagescale($img, (int) round($w * $scale), (int) round($h * $scale), IMG_BICUBIC) ?: $img;
+    }
+    ob_start();
+    imagejpeg($img, null, 84);
+    $bytes = (string) ob_get_clean();
+    imagedestroy($img);
+
+    return write_upload($folder, $name . '.jpg', $bytes);
+}
+
 function write_upload(string $folder, string $filename, string $bytes): string
 {
     $folder = preg_replace('/[^a-z0-9_-]/i', '', $folder) ?: 'misc';
@@ -105,7 +144,7 @@ function write_upload(string $folder, string $filename, string $bytes): string
 }
 
 /** Stream a stored file to the browser. */
-function send_upload(string $relative, string $downloadName = ''): never
+function send_upload(string $relative, string $downloadName = '', bool $public = false): never
 {
     $path = upload_path($relative);
     if ($path === null) {
@@ -116,7 +155,7 @@ function send_upload(string $relative, string $downloadName = ''): never
     header('Content-Type: ' . $mime);
     header('Content-Length: ' . filesize($path));
     header('Content-Disposition: inline; filename="' . ($downloadName ?: basename($path)) . '"');
-    header('Cache-Control: private, no-store');
+    header('Cache-Control: ' . ($public ? 'public, max-age=86400' : 'private, no-store'));
     header('X-Content-Type-Options: nosniff');
     readfile($path);
     exit;
