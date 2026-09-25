@@ -204,10 +204,10 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
 
     <div class="st-card mb-3">
       <div class="st-card__head"><h2 class="st-card__title">Team</h2><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#add-team"><?= ui_icon('plus', 'st-icon') ?>Add</button></div>
-      <form method="post" class="collapse mb-3 d-flex gap-2" id="add-team"><?= csrf_field() ?><input type="hidden" name="action" value="team_add">
+      <form method="post" class="collapse mb-3" id="add-team"><div class="d-flex gap-2"><?= csrf_field() ?><input type="hidden" name="action" value="team_add">
         <select class="form-select form-select-sm" name="team_member_id" required><option value="">Who</option><?php foreach ($allTeam as $m): if (in_array($m['id'], $onTeam)) continue; ?><option value="<?= (int) $m['id'] ?>"><?= e($m['name']) ?></option><?php endforeach; ?></select>
         <select class="form-select form-select-sm" name="role"><?php foreach (EVENT_ROLES as $k => $l): ?><option value="<?= $k ?>" <?= ($kind === 'training' ? $k === 'instructor' : $k === 'guide') ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select>
-        <button class="btn btn-sm btn-primary" type="submit">Add</button></form>
+        <button class="btn btn-sm btn-primary" type="submit">Add</button></div></form>
       <?php if ($team === []): ?><p class="st-muted mb-0">Nobody assigned.</p><?php else: ?>
       <ul class="st-rows">
         <?php foreach ($team as $m): ?>
