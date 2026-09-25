@@ -78,15 +78,15 @@ INSERT IGNORE INTO settings (skey, val_en, val_es) VALUES
                           'Desde tu primer curso Open Water hasta formación técnica y aventuras en cenotes. Encuentra tu siguiente paso con SanaTec Diving.'),
 
  -- Training section
- ('training_eyebrow',     '01 / Build your skills',          '01 / Desarrolla tus habilidades'),
- ('training_title',       'Dive training',                   'Formación de buceo'),
+ ('training_eyebrow',     'Dive training',                   'Formación de buceo'),
+ ('training_title',       'Build your skills',               'Desarrolla tus habilidades'),
  ('training_caption',     'Course prices in Mexican pesos (MXN)', 'Precios de cursos en pesos mexicanos (MXN)'),
  ('training_note',        'Not sure where to start? Message us about course prerequisites and availability.',
                           '¿No sabes por dónde empezar? Escríbenos sobre requisitos y disponibilidad.'),
 
  -- Adventures section
- ('adventures_eyebrow',   '02 / Explore the cenotes',        '02 / Explora los cenotes'),
- ('adventures_title',     'Adventure dives',                 'Buceos recreativos'),
+ ('adventures_eyebrow',   'Adventure dives',                 'Buceos recreativos'),
+ ('adventures_title',     'The cenotes',                     'Los cenotes'),
  ('adventures_caption',   'Prices in MXN · each column is the total price for that number of dives',
                           'Precios en MXN · cada columna es el precio total por ese número de inmersiones'),
  ('adventures_legend',    'OW = Open Water · AOW = Advanced Open Water · — = not offered as a trip of that length',

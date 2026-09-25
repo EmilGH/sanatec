@@ -57,8 +57,8 @@ test('the Spanish page renders', function (): void {
     $html = render_page('es');
 
     has('<html lang="es">', $html);
-    has('Formación de buceo', $html);
-    has('Buceos recreativos', $html);
+    has('Desarrolla tus habilidades', $html);
+    has('Los cenotes', $html);
     has('2 inmersiones', $html);
     has('Introducción a Cueva', $html, 'accented Spanish survives intact');
     has_not('Dive training', $html, 'no English leaking into the Spanish page');

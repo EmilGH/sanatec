@@ -29,7 +29,9 @@ function ui_brand_defs(string $theme = 'dark'): string
 
 function ui_wordmark(string $class = 'st-wm', string $label = 'SANA TEC Diving'): string
 {
-    return '<svg class="' . e($class) . '" role="img" aria-label="' . e($label) . '"><use href="#st-wm"/></svg>';
+    // The outer <svg> needs the viewBox too: without it a <use> of a symbol
+    // has no intrinsic ratio and the browser gives it 300×150.
+    return '<svg class="' . e($class) . '" viewBox="0 0 486.5 126.8" role="img" aria-label="' . e($label) . '"><use href="#st-wm"/></svg>';
 }
 
 /** The wave divider — the logo swoosh as a rule. */

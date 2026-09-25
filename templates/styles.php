@@ -31,7 +31,8 @@ $extra = <<<'CSS'
 .st-included__h--out{color:var(--danger)}
 .st-wm--small{height:24px}
 .st-foot p{margin:10px 0 0}
-.st-hdr .st-wm{height:34px;width:auto}
+.st-hdr .st-wm{height:34px;width:130px}
+.st-foot .st-wm--small{height:24px;width:92px;display:block}
 .st-hero__mark{pointer-events:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @container (min-width:900px){
