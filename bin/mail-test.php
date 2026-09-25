@@ -19,6 +19,7 @@ if (PHP_SAPI !== 'cli') {
 defined('SANATEC') || define('SANATEC', true);
 require_once __DIR__ . '/../src/bootstrap.php';
 require_once __DIR__ . '/../src/Messaging.php';
+require_once __DIR__ . '/../src/People.php';
 
 $to = normalize_email($argv[1] ?? '') ?? null;
 if ($to === null) {
