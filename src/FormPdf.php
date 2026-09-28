@@ -14,6 +14,7 @@ require_once __DIR__ . '/Customers.php';
 require_once __DIR__ . '/Events.php';
 
 use setasign\Fpdi\Fpdi;
+use setasign\Fpdi\PdfParser\StreamReader;
 
 /** FPDF keeps the current page protected; overlaying an imported document needs to move between pages. */
 final class SanatecPdf extends Fpdi
@@ -352,6 +353,56 @@ function customer_info_pdf(int $customerId): string
     $pdf->SetFont('Helvetica', '', 6.5);
     $pdf->SetTextColor(120, 130, 135);
     $pdf->Text(36, $pdf->GetPageHeight() - 10, pdf_latin('From the diver\'s record at ' . (setting('business_name') ?: 'SANA TEC DIVING') . ' · ' . date('d M Y')));
+
+    return $pdf->Output('S');
+}
+
+/**
+ * One PDF for the whole diver: the Diver Information Form filled from the
+ * record, then every completed form they have signed, in checklist order,
+ * then a physician's clearance letter when it is a PDF. A form whose PDF
+ * has not been rendered yet is rendered now. Returns the PDF bytes.
+ */
+function customer_forms_pdf(int $customerId): string
+{
+    $parts = [['bytes' => customer_info_pdf($customerId)]];
+    foreach (customer_document_status($customerId) as $d) {
+        $s = $d['submission'];
+        if ($s === null || $d['template']['code'] === 'diver_info') {
+            continue;
+        }
+        $rel = $s['rendered_pdf_path'];
+        if (!$rel || upload_path((string) $rel) === null) {
+            try {
+                $rel = form_pdf_render((int) $s['id']);
+            } catch (Throwable $e) {
+                error_log("SanaTec: PDF for submission #{$s['id']} not rendered: " . $e->getMessage());
+                continue;
+            }
+        }
+        $parts[] = ['file' => upload_path((string) $rel)];
+        $letter = db()->query('SELECT physician_document_path FROM medical_evaluations WHERE submission_id = ' . (int) $s['id'])->fetchColumn();
+        if ($letter && str_ends_with(strtolower((string) $letter), '.pdf') && upload_path((string) $letter) !== null) {
+            $parts[] = ['file' => upload_path((string) $letter)];
+        }
+    }
+
+    $pdf = new SanatecPdf('P', 'pt', 'Letter');
+    $pdf->SetAutoPageBreak(false);
+    foreach ($parts as $part) {
+        try {
+            $n = $pdf->setSourceFile(isset($part['bytes']) ? StreamReader::createByString($part['bytes']) : $part['file']);
+        } catch (Throwable $e) {
+            error_log('SanaTec: could not append a PDF to the diver pack: ' . $e->getMessage());
+            continue;
+        }
+        for ($i = 1; $i <= $n; $i++) {
+            $tpl = $pdf->importPage($i);
+            $size = $pdf->getTemplateSize($tpl);
+            $pdf->AddPage($size['orientation'], [$size['width'], $size['height']]);
+            $pdf->useTemplate($tpl);
+        }
+    }
 
     return $pdf->Output('S');
 }

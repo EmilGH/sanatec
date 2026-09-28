@@ -62,3 +62,15 @@ test('the diver information form is filled from the record', function (): void {
     is_true(str_starts_with($bytes, '%PDF-'));
     is_same(1, pdf_pages($bytes));
 });
+
+test('the diver pack is one PDF: the information form, then every signed form in order', function (): void {
+    $c = make_customer('Pack Diver', '1991-02-02');
+    $signer = onboarding_signer($c);
+    form_sign($c, form_template_by_code('liability_excursion'), ['ack_read' => 'yes'], test_signature(), $signer);
+    form_sign($c, form_template_by_code('safe_diving'), ['ack_read' => 'yes'], test_signature(), $signer);
+    db()->exec("UPDATE form_submissions SET rendered_pdf_path = NULL WHERE customer_id = {$c['id']}");
+    $bytes = customer_forms_pdf((int) $c['id']);
+    is_true(str_starts_with($bytes, '%PDF-'));
+    is_same(4, pdf_pages($bytes), 'info (1) + safe diving (1) + excursion release (2)');
+    is_same(2, (int) db()->query("SELECT COUNT(*) FROM form_submissions WHERE customer_id = {$c['id']} AND rendered_pdf_path IS NOT NULL")->fetchColumn(), 'missing PDFs were rendered on the way');
+});

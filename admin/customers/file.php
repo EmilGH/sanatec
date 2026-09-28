@@ -20,12 +20,13 @@ $relative = match ($kind) {
     default     => false,
 };
 
-// The shop's Diver Information Form, filled from the record on the fly.
+// Everything on one diver: the information form filled from the record, then every signed form.
 if ($kind === 'info') {
     require_once __DIR__ . '/../../src/FormPdf.php';
-    $bytes = customer_info_pdf($id);
+    $bytes = customer_forms_pdf($id);
+    $name = customer_find($id)['name'] ?? 'diver';
     header('Content-Type: application/pdf');
-    header('Content-Disposition: inline; filename="diver-information-' . $id . '.pdf"');
+    header('Content-Disposition: inline; filename="' . preg_replace('/[^A-Za-z0-9]+/', '-', ascii_fold($name)) . '-forms.pdf"');
     header('Content-Length: ' . strlen($bytes));
     header('Cache-Control: private, no-store');
     echo $bytes;
