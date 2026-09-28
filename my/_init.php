@@ -38,12 +38,36 @@ if ($currentUser === null && !defined('DIVER_PUBLIC')) {
 }
 
 $lang = $currentUser ? normalize_lang($currentUser['preferred_language'] ?? 'en') : normalize_lang($_SESSION['lang'] ?? 'en');
-$customer = $currentUser ? customer_for_person((int) $currentUser['id']) : null;
+// A diver gets a profile the first time they arrive. Staff do not: they see
+// the area as a diver would, and nothing they do here is written anywhere.
+// A team member who really dives gets a profile from the shop, in Customers.
+$customer = null;
+$staffPreview = false;
+if ($currentUser !== null) {
+    $customer = customer_find_by_person((int) $currentUser['id']);
+    if ($customer === null && $currentUser['team'] !== null) {
+        $staffPreview = true;
+        $customer = customer_preview_for($currentUser);
+    } elseif ($customer === null) {
+        $customer = customer_for_person((int) $currentUser['id']);
+    }
+}
 
 /** Translate inline. */
 function tr(string $en, string $es): string
 {
     return ($GLOBALS['lang'] ?? 'en') === 'es' ? $es : $en;
+}
+
+if ($staffPreview) {
+    $GLOBALS['st_notice'] = ($lang === 'es'
+        ? '<strong>Vista previa para el equipo.</strong> Estás viendo el área del buceador como la vería un cliente. Nada de lo que hagas aquí se guarda. Si también buceas como cliente, el centro te crea un perfil en Clientes.'
+        : '<strong>Staff preview.</strong> You are seeing the diver area as a customer would. Nothing you do here is saved. If you also dive as a customer, the shop creates a profile for you under Customers.');
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $_SESSION['flash'][] = ['message' => $lang === 'es' ? 'Vista previa: no se guardó nada.' : 'Preview only: nothing was saved.', 'kind' => 'warn'];
+        header('Location: ' . ($_SERVER['REQUEST_URI'] ?? '/my/'));
+        exit;
+    }
 }
 
 function flash(string $message, string $kind = 'ok'): void

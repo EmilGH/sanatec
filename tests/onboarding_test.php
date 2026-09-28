@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once __DIR__ . '/../src/Onboarding.php';
+require_once __DIR__ . '/../src/Team.php';
 
 test('the medical rule: starred questions and box answers require a physician', function (): void {
     $no = array_fill_keys(array_map(static fn (array $q): string => $q['id'], medical_questions()), 'no');
@@ -129,4 +130,25 @@ test('staff can record a paper form, and clear a physician-required medical', fu
     is_same('Dr. Mar', $ev['physician_name']);
     is_true(customer_documents_complete((int) $c['id']) === false, 'other documents are still missing');
     is_true(array_values(array_filter(customer_document_status((int) $c['id']), static fn (array $d): bool => $d['template']['code'] === 'medical'))[0]['ok']);
+});
+
+test('a staff preview profile has the shape of a real one, id 0, and writes nothing', function (): void {
+    $before = (int) db()->query('SELECT COUNT(*) FROM customers')->fetchColumn();
+    $actor = ['id' => 0, 'team' => ['is_system_admin' => 1]];
+    $tid = team_save(null, ['name' => 'Preview Staff', 'date_of_birth' => '1990-05-05'], $actor);
+    $person = person_find((int) team_find($tid)['person_id']);
+    is_same(null, customer_find_by_person((int) $person['id']), 'no profile was created with the team member');
+
+    $preview = customer_preview_for($person);
+    is_same(0, $preview['id']);
+    is_same((int) $person['id'], $preview['person_id']);
+    is_same('Preview Staff', $preview['name']);
+    is_same('1990-05-05', $preview['date_of_birth']);
+    is_true($preview['is_preview']);
+    $real = make_customer('Real Diver', '1988-01-01');
+    foreach (array_keys($real) as $k) {
+        is_true(array_key_exists($k, $preview), "preview carries '{$k}' like a real profile");
+    }
+    is_same(['person_id' => (int) $person['id'], 'role' => 'participant'], onboarding_signer($preview));
+    is_same($before + 1, (int) db()->query('SELECT COUNT(*) FROM customers')->fetchColumn(), 'only the real diver was written');
 });

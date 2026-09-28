@@ -10,11 +10,11 @@ $template = form_template_by_code((string) ($_GET['code'] ?? ''));
 if ($template === null || $template['code'] === 'diver_info') {
     redirect('/my/');
 }
-if (!privacy_consent_current((int) $currentUser['id'])) {
+if (!$staffPreview && !privacy_consent_current((int) $currentUser['id'])) {
     redirect('/my/consent.php');
 }
-$customer = customer_find((int) $customer['id']);
-if (!profile_complete($customer)) {
+$customer = customer_find((int) $customer['id']) ?? $customer;
+if (!$staffPreview && !profile_complete($customer)) {
     flash(tr('Please complete your information first.', 'Completa primero tu información.'), 'warn');
     redirect('/my/profile.php');
 }

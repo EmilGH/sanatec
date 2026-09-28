@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$row = customer_find((int) $customer['id']);
+$row = customer_find((int) $customer['id']) ?? $customer;
 $minor = is_minor($row['date_of_birth']);
 
 shell_start(tr('My information', 'Mi información'), $currentUser, 'diver', ['back' => '/my/']);

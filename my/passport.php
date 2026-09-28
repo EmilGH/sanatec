@@ -57,7 +57,7 @@ $stamps = customer_stamps($cid);
 $wish = customer_wishlist($cid);
 $sites = dive_sites();
 $stamped = array_column($stamps, 'id');
-$isPublic = (int) customer_find($cid)['passport_public'] === 1;
+$isPublic = (int) (customer_find($cid)['passport_public'] ?? 0) === 1;
 $shareUrl = rtrim((string) cfg('base_url'), '/') . '/passport/' . $currentUser['public_id'];
 
 shell_start(tr('My passport', 'Mi pasaporte'), $currentUser, 'diver', ['back' => '/my/']);

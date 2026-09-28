@@ -38,6 +38,27 @@ function customer_for_person(int $personId): array
     return customer_find((int) db()->lastInsertId());
 }
 
+/**
+ * A transient diver profile for a staff member who has none: the same shape
+ * customer_find() returns, id 0, nothing written. The diver area renders it
+ * as a preview, and every write is turned away in my/_init.php.
+ */
+function customer_preview_for(array $person): array
+{
+    static $columns = null;
+    $columns ??= db()->query('SHOW COLUMNS FROM customers')->fetchAll(PDO::FETCH_COLUMN);
+    $row = array_fill_keys($columns, null);
+    foreach (['name', 'public_id', 'date_of_birth', 'nationality', 'preferred_language', 'timezone', 'dan_number', 'dan_expires_on'] as $k) {
+        $row[$k] = $person[$k] ?? null;
+    }
+    $row['id'] = 0;
+    $row['person_id'] = (int) $person['id'];
+    $row['guardian_name'] = null;
+    $row['is_preview'] = true;
+
+    return $row;
+}
+
 /** Has this person consented to the current privacy notice version? */
 function privacy_consent_current(int $personId): bool
 {

@@ -147,6 +147,7 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
 <div class="st-shell" style="display:block">
   <div class="st-main" style="max-width:720px;margin:0 auto">
 <?php endif; ?>
+    <?php if (!empty($GLOBALS['st_notice'])): ?><div class="st-flashes"><div class="st-alert st-alert--info" role="status"><?= ui_icon('badge') ?><div><?= $GLOBALS['st_notice'] ?></div></div></div><?php endif; ?>
     <?php if ($flashes !== []): ?><div class="st-flashes">
       <?php foreach ($flashes as $f): ?><div class="st-alert st-alert--<?= $f['kind'] === 'warn' ? 'warn' : 'ok' ?>" role="alert"><?= ui_icon($f['kind'] === 'warn' ? 'warn' : 'check') ?><div><?= e($f['message']) ?></div></div><?php endforeach; ?>
     </div><?php endif; ?>
