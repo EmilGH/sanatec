@@ -94,6 +94,14 @@ function ui_contact_list(string $lang): string
 }
 
 /** One course as a menu row with a single price line. */
+/** The small link on every price row to that item's own page (its own URL and preview card). */
+function ui_row_link(string $slug, string $lang): string
+{
+    $href = ($lang === 'es' ? '/es' : '') . '/c/' . rawurlencode($slug);
+
+    return '<a class="st-row__link" href="' . e($href) . '" title="' . e(t('share_row', $lang)) . '" aria-label="' . e(t('share_row', $lang)) . '">' . ui_icon('link') . '</a>';
+}
+
 function ui_menu_course(array $c, string $lang): string
 {
     $name = ui_name($c, $lang);
@@ -102,7 +110,7 @@ function ui_menu_course(array $c, string $lang): string
     $price = money($c['price_mxn']);
 
     return '<li class="st-row" id="' . e($c['slug']) . '">'
-        . '<div class="st-row__head"><h3 class="st-row__name">' . e($name) . '</h3></div>'
+        . '<div class="st-row__head"><h3 class="st-row__name">' . e($name) . '</h3>' . ui_row_link($c['slug'], $lang) . '</div>'
         . ($c['note_' . $lang] ?? $c['note_en'] ? '<p class="st-row__note">' . e(ui_name($c, $lang, 'note')) . '</p>' : '')
         . '<a class="st-line" href="' . e(ui_wa_url($prefill)) . '"><span>' . e($duration) . '</span><span class="st-line__lead"></span>'
         . ($price !== null ? '<span class="st-line__price">' . e($price) . '</span>' : '<span class="st-line__ask">' . e(t('ask_for_pricing', $lang)) . '</span>')
@@ -126,7 +134,7 @@ function ui_menu_excursion(array $x, string $lang): string
     }
 
     $html = '<li class="st-row" id="' . e($x['slug']) . '">'
-        . '<div class="st-row__head"><h3 class="st-row__name">' . e($name) . '</h3>'
+        . '<div class="st-row__head"><h3 class="st-row__name">' . e($name) . '</h3>' . ui_row_link($x['slug'], $lang) . ''
         . '<span class="st-cert' . ($code === 'AOW' ? ' st-cert--aow' : '') . '">' . e($code) . '</span></div>'
         . ($note !== '' ? '<p class="st-row__note">' . e($note) . '</p>' : '');
 

@@ -14,6 +14,15 @@ require_once __DIR__ . '/ui/inline.php';
  * sections it uses, and a few page-only rules below.
  */
 $extra = <<<'CSS'
+body{margin:0}
+.st-row__link{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:var(--muted);align-self:center}
+.st-row__link svg{width:16px;height:16px}
+.st-row__link:hover{color:var(--aqua);background:var(--panel)}
+.st-seg__in{position:absolute;opacity:0;pointer-events:none}
+.st-seg{display:flex;margin:0 16px 4px;padding:4px;border-radius:var(--radius-pill);background:var(--panel);gap:4px}
+.st-seg label{flex:1;min-height:44px;display:grid;place-items:center;border-radius:var(--radius-pill);font:600 15px/1 var(--font-sans);color:var(--muted);cursor:pointer}
+#seg-training:checked~.st-seg label[for=seg-training],#seg-adventures:checked~.st-seg label[for=seg-adventures]{background:var(--bg);color:var(--ink)}
+#seg-training:checked~#adventures,#seg-adventures:checked~#training{display:none}
 .st-skip{position:absolute;left:-9999px;top:0;background:var(--aqua);color:var(--on-aqua);padding:12px 18px;font-weight:600;z-index:20}
 .st-skip:focus{left:0}
 .st-wrap{max-width:1120px;margin:0 auto}
@@ -36,12 +45,15 @@ $extra = <<<'CSS'
 .st-hero__mark{pointer-events:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 @container (min-width:900px){
-  .st-cols{grid-template-columns:1fr 1fr;gap:48px;padding:0 max(40px,calc((100% - 1120px)/2))}
+  /* .st-wrap centres each band at 1120px; inside it only a fixed gutter is needed. */
+  .st-cols{grid-template-columns:1fr 1fr;gap:56px;padding:0 40px}
+  .st-seg{display:none}
+  #seg-training:checked~#adventures,#seg-adventures:checked~#training{display:block}
   .st-section{padding:40px 0 8px}
-  .st-hdr{padding:0 max(40px,calc((100% - 1120px)/2))}
+  .st-hdr{padding:0 40px}
   .st-hero{min-height:420px}
   .st-ctabar{display:none}
-  #contact,#included,.st-foot{padding-left:max(40px,calc((100% - 1120px)/2));padding-right:max(40px,calc((100% - 1120px)/2))}
+  #contact,#included,.st-foot{padding-left:40px;padding-right:40px}
 }
 CSS;
 

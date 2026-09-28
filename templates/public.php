@@ -58,6 +58,12 @@ $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_
   <?php endif; ?>
 
   <div class="st-cols st-wrap">
+    <input class="st-seg__in" type="radio" name="st-seg" id="seg-training" checked>
+    <input class="st-seg__in" type="radio" name="st-seg" id="seg-adventures">
+    <div class="st-seg" role="tablist" aria-label="<?= e(t('nav_label', $lang)) ?>">
+      <label for="seg-training" role="tab"><?= e(t('tab_training', $lang)) ?></label>
+      <label for="seg-adventures" role="tab"><?= e(t('tab_adventures', $lang)) ?></label>
+    </div>
     <section class="st-section" id="training" aria-labelledby="training-title">
       <div class="st-section__head">
         <p class="st-eyebrow"><?= e(setting('training_eyebrow', $lang)) ?></p>
@@ -107,6 +113,7 @@ $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_
     <?= ui_contact_list($lang) ?>
   </section>
 </main>
+<script src="/assets/js/public.js" defer></script>
 
 <?= ui_public_footer($lang) ?>
 <?= ui_ctabar($lang) ?>
