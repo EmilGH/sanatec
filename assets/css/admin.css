@@ -22,8 +22,11 @@ body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f
   body.has-tabbar .st-main { padding-bottom: 96px; }
 }
 @media (min-width: 900px) {
-  .st-appbar, .st-tabbar { display: none; }
+  /* The sidebar replaces the app bar in the admin. The diver area has no
+     sidebar, so its app bar (and the menu with sign-out) stays at every width. */
+  .st-shell:not(.st-shell--diver) .st-appbar, .st-tabbar { display: none; }
   .st-main { max-width: 1100px; }
+  .st-shell--diver .st-sheet { inset: auto 0 auto auto; max-width: 360px; margin: 0 auto; border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-bar); }
 }
 
 /* Bootstrap grid inside the shell keeps our gutters. */

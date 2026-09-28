@@ -126,7 +126,7 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
       <a href="/admin/logout.php"><?= ui_icon('logout') ?>Sign out</a>
     </div>
 <?php elseif ($user !== null): ?>
-<div class="st-shell" style="display:block">
+<div class="st-shell st-shell--diver" style="display:block">
   <div class="st-main" style="max-width:720px;margin:0 auto">
     <header class="st-appbar">
       <?php if (!empty($opts['back'])): ?><a class="st-appbar__back st-iconbtn" href="<?= e($opts['back']) ?>" aria-label="Back"><?= ui_icon('back') ?></a>
