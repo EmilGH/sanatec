@@ -179,3 +179,19 @@ test('a remembered device restores a session without a code', function (): void 
     $_COOKIE[DEVICE_COOKIE] = $d['id'] . '.' . str_repeat('0', 64);
     is_same(null, device_restore(), 'a wrong device secret is refused');
 });
+
+test("a diver's code lasts a day; a staff member's ten minutes", function (): void {
+    $diver = make_customer('Code Diver');
+    $r = login_begin('code.diver@example.com');
+    is_true($r['ok']);
+    $exp = db()->query("SELECT TIMESTAMPDIFF(MINUTE, NOW(), expires_at) FROM login_tokens WHERE id = {$r['token_id']}")->fetchColumn();
+    is_true((int) $exp >= 24 * 60 - 2 && (int) $exp <= 24 * 60, "diver code minutes: {$exp}");
+    has('24 hours', db()->query("SELECT body_text FROM messages ORDER BY id DESC LIMIT 1")->fetchColumn());
+
+    $admin = db()->query("SELECT cc.value FROM team_members t JOIN contact_channels cc ON cc.person_id = t.person_id WHERE t.is_active = 1 AND cc.kind = 'email' LIMIT 1")->fetchColumn();
+    if ($admin) {
+        $r = login_begin((string) $admin);
+        $exp = db()->query("SELECT TIMESTAMPDIFF(MINUTE, NOW(), expires_at) FROM login_tokens WHERE id = {$r['token_id']}")->fetchColumn();
+        is_true((int) $exp <= 10, "staff code minutes: {$exp}");
+    }
+});

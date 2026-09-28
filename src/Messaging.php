@@ -208,16 +208,19 @@ function render_message(string $template, string $locale, array $vars): array
         case 'login_code':
             $code = $vars['code'];
             $minutes = (int) ($vars['minutes'] ?? 10);
+            $for = $minutes >= 60
+                ? $t(($minutes / 60) . ' hours', ($minutes / 60) . ' horas')
+                : $t("{$minutes} minutes", "{$minutes} minutos");
             $subject = $t("Your {$business} sign-in code: {$code}", "Tu código de acceso a {$business}: {$code}");
             $text = $t(
-                "Your sign-in code is {$code}\n\nIt expires in {$minutes} minutes. If you did not ask for it, ignore this message.",
-                "Tu código de acceso es {$code}\n\nCaduca en {$minutes} minutos. Si no lo solicitaste, ignora este mensaje."
+                "Your sign-in code is {$code}\n\nIt expires in {$for}. If you did not ask for it, ignore this message.",
+                "Tu código de acceso es {$code}\n\nCaduca en {$for}. Si no lo solicitaste, ignora este mensaje."
             );
             $html = '<p style="font:16px/1.5 sans-serif">' . $t('Your sign-in code is', 'Tu código de acceso es') . '</p>'
                 . '<p style="font:32px/1 monospace;letter-spacing:6px;margin:12px 0">' . e($code) . '</p>'
                 . '<p style="font:14px/1.5 sans-serif;color:#555">'
-                . $t("It expires in {$minutes} minutes. If you did not ask for it, ignore this message.",
-                     "Caduca en {$minutes} minutos. Si no lo solicitaste, ignora este mensaje.")
+                . $t("It expires in {$for}. If you did not ask for it, ignore this message.",
+                     "Caduca en {$for}. Si no lo solicitaste, ignora este mensaje.")
                 . '</p>';
             return ['subject' => $subject, 'text' => $text, 'html' => $html];
 

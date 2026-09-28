@@ -23,7 +23,8 @@ require_once __DIR__ . '/Messaging.php';
  */
 
 const LOGIN_CODE_DIGITS        = 6;
-const LOGIN_CODE_MINUTES       = 10;
+const LOGIN_CODE_MINUTES       = 10;          // staff
+const DIVER_CODE_MINUTES       = 24 * 60;     // divers: a code sent in the morning still works that evening
 const LOGIN_LINK_MINUTES       = 15;
 const LOGIN_MAX_CODE_ATTEMPTS  = 5;     // wrong guesses before a token is dead
 const LOGIN_MAX_BEGINS         = 10;    // codes one IP may request per window
@@ -181,10 +182,13 @@ function login_begin(string $identifier, ?string $preferTransport = null): array
 
     $transport = transport_for_channel($channel);
     $code = str_pad((string) random_int(0, 10 ** LOGIN_CODE_DIGITS - 1), LOGIN_CODE_DIGITS, '0', STR_PAD_LEFT);
-    $tokenId = login_token_create($personId, (int) $channel['id'], 'login', $code, LOGIN_CODE_MINUTES);
+    // Staff codes are short-lived; a diver's code lasts the day.
+    $isStaff = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE is_active = 1 AND person_id = ' . $personId)->fetchColumn() > 0;
+    $minutes = $isStaff ? LOGIN_CODE_MINUTES : DIVER_CODE_MINUTES;
+    $tokenId = login_token_create($personId, (int) $channel['id'], 'login', $code, $minutes);
 
     $locale = (string) ($found['preferred_language'] ?? 'en');
-    $rendered = render_message('login_code', $locale, ['code' => $code, 'minutes' => LOGIN_CODE_MINUTES]);
+    $rendered = render_message('login_code', $locale, ['code' => $code, 'minutes' => $minutes]);
     $messageId = message_queue($transport, $channel['value'], 'login_code', $rendered, [
         'person_id' => $personId, 'channel_id' => (int) $channel['id'], 'locale' => $locale,
     ]);
