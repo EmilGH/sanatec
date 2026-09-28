@@ -147,7 +147,7 @@ function login_page(string $area): void
     shell_start($t('Sign in', 'Entrar'), null, $isDiver ? 'diver' : 'admin');
     ?>
 <div class="row justify-content-center">
-  <div class="col-12 col-sm-8 col-md-6 col-lg-4 mt-4">
+  <div class="col-12 mt-4 mx-auto" style="max-width:440px">
     <?php if ($isDiver): ?>
     <div class="d-flex justify-content-between align-items-center mb-3">
       <span class="text-secondary small"><?= e(setting('business_name') ?: 'SanaTec Diving') ?></span>
