@@ -41,7 +41,7 @@ function is_minor(?string $dateOfBirth): bool
     if ($dateOfBirth === null || $dateOfBirth === '') {
         return false;
     }
-    $dob = new DateTimeImmutable($dateOfBirth);
+    $dob = new DateTimeImmutable((string) parse_date_input($dateOfBirth));
 
     return $dob->diff(new DateTimeImmutable('today'))->y < ADULT_AGE;
 }
