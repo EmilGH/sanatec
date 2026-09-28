@@ -117,6 +117,24 @@ sudo mysql -e "SELECT val_en FROM sanatec_restore.settings WHERE skey='addr_loca
 
 Rehearse this occasionally. A backup nobody has restored is a hypothesis.
 
+## Completed form PDFs
+
+Every signature is rendered onto the shop's own source PDF (the file under
+`private/forms/` the online form was transcribed from): answers, names, dates,
+the shop's name and the drawn signature are written where the paper form has
+its blanks. The file lands in `uploads/signed/submission-<id>.pdf` and the
+submission's `rendered_pdf_path` points at it. It is generated at signing
+time; if that fails (missing source file, for example) the signature is still
+the record and the customer page offers "generate PDF" to try again.
+
+The placement is a coordinate map per template code in `src/FormPdf.php`,
+read off the source files with `pdftotext -bbox`. **A new PADI revision of a
+form needs a new map** — check the output against the new file before
+switching the template's `source_document_path`.
+
+The PDF libraries are vendored under `lib/` (FPDF 1.86 and FPDI 2.6.3, plain
+files, no Composer). `.htaccess` blocks `/lib/` from the web.
+
 ## Signing in when mail is down
 
 There are no passwords. If no message can be delivered — provider outage,

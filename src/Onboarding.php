@@ -59,6 +59,23 @@ function customer_preview_for(array $person): array
     return $row;
 }
 
+/**
+ * Fill the source PDF for a submission, if the layout and the file exist.
+ * Never throws: the signature is the record; the PDF is a copy of it and can
+ * be generated again from the admin.
+ */
+function form_pdf_try(int $submissionId): ?string
+{
+    require_once __DIR__ . '/FormPdf.php';
+    try {
+        return form_pdf_render($submissionId);
+    } catch (Throwable $e) {
+        error_log("SanaTec: PDF for submission #{$submissionId} not rendered: " . $e->getMessage());
+
+        return null;
+    }
+}
+
 /** Has this person consented to the current privacy notice version? */
 function privacy_consent_current(int $personId): bool
 {
@@ -226,6 +243,8 @@ function form_sign(array $customer, array $template, array $answers, string $sig
         }
         throw $e;
     }
+
+    form_pdf_try($submissionId);
 
     return $submissionId;
 }

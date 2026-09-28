@@ -16,8 +16,21 @@ $relative = match ($kind) {
     'scan'      => db()->query("SELECT scan_path FROM form_submissions WHERE id = {$id}")->fetchColumn(),
     'signature' => db()->query("SELECT signature_image_path FROM form_submissions WHERE id = {$id}")->fetchColumn(),
     'physician' => db()->query("SELECT physician_document_path FROM medical_evaluations WHERE submission_id = {$id}")->fetchColumn(),
+    'pdf'       => db()->query("SELECT rendered_pdf_path FROM form_submissions WHERE id = {$id}")->fetchColumn(),
     default     => false,
 };
+
+// The shop's Diver Information Form, filled from the record on the fly.
+if ($kind === 'info') {
+    require_once __DIR__ . '/../../src/FormPdf.php';
+    $bytes = customer_info_pdf($id);
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: inline; filename="diver-information-' . $id . '.pdf"');
+    header('Content-Length: ' . strlen($bytes));
+    header('Cache-Control: private, no-store');
+    echo $bytes;
+    exit;
+}
 
 if (!$relative) {
     http_response_code(404);

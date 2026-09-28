@@ -62,7 +62,7 @@ DirectoryIndex index.php
 RedirectMatch 404 "^/\.git(/|$)"
 
 # Application code, templates, schema, scripts, tests and docs.
-RedirectMatch 404 "^/(src|templates|db|bin|tests|docs)(/|$)"
+RedirectMatch 404 "^/(src|templates|db|bin|tests|docs|lib)(/|$)"
 
 # Local development configuration, if one is ever left behind.
 RedirectMatch 404 "^/config\.local\.php$"

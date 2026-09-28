@@ -96,6 +96,7 @@ shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
 <?php if ($status && $status['status'] === 'signed'): $s = $status['submission']; ?>
   <div class="st-signed mb-3"><?= ui_icon('check') ?><div><strong><?= e(tr('Signed', 'Firmado')) ?></strong> <?= e(substr($s['signed_at'], 0, 10)) ?><?= $s['expires_on'] ? ' · ' . e(tr('valid until', 'válido hasta')) . ' ' . e($s['expires_on']) : '' ?></div>
     <?php if ($s['signature_image_path']): ?><img src="/my/signature.php?id=<?= (int) $s['id'] ?>" alt="" class="st-sig-thumb"><?php endif; ?></div>
+  <?php if ($s['rendered_pdf_path']): ?><p class="small mb-3"><a class="st-link" href="/my/document.php?signed=<?= (int) $s['id'] ?>" target="_blank"><?= ui_icon('file', 'st-icon') ?><?= e(tr('Your signed copy (PDF)', 'Tu copia firmada (PDF)')) ?></a></p><?php endif; ?>
   <?php if ($isMedical && $status['outcome'] === 'physician_required'): ?>
     <div class="st-alert st-alert--warn mb-3"><?= ui_icon('warn') ?><div>
       <strong><?= e(tr('Your dive cannot go ahead until a physician has signed the evaluation form.', 'Tu buceo no puede realizarse hasta que un médico firme el formulario de evaluación.')) ?></strong>

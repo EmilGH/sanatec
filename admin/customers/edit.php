@@ -68,6 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 audit('record_paper', 'form_submission', $sid, $tpl['code'] . ' for ' . $row['name']);
                 flash('Paper form recorded.');
                 redirect($self . '#documents');
+            case 'render_pdf':
+                require_once __DIR__ . '/../../src/FormPdf.php';
+                $sid = (int) ($_POST['submission_id'] ?? 0);
+                $own = (int) db()->query("SELECT customer_id FROM form_submissions WHERE id = {$sid}")->fetchColumn();
+                if ($own !== $id) {
+                    throw new RuntimeException('That submission is not on this customer.');
+                }
+                form_pdf_render($sid);
+                audit('render_pdf', 'form_submission', $sid, $row['name']);
+                flash('PDF generated.');
+                redirect($self . '#documents');
             case 'physician_clear':
                 medical_record_clearance((int) ($_POST['submission_id'] ?? 0), $_POST, $_FILES['letter'] ?? null, (int) $teamId);
                 audit('physician_cleared', 'form_submission', (int) ($_POST['submission_id'] ?? 0), $row['name']);
@@ -107,6 +118,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
   <div class="d-flex gap-2">
   <form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="onboarding_link">
     <button class="btn btn-outline-info btn-sm" type="submit" title="A one-time link into their onboarding, valid 24 hours — send it to them yourself"><i class="fa-solid fa-link me-1"></i>Onboarding link</button></form>
+  <a class="btn btn-outline-secondary btn-sm" href="/admin/customers/file.php?kind=info&id=<?= (int) $id ?>" target="_blank" title="The shop's Diver Information Form, filled from this record"><i class="fa-solid fa-file-pdf me-1"></i>Diver information (PDF)</a>
   <form method="post" onsubmit="return confirm('Archive <?= e(addslashes($row['name'])) ?>? They disappear from lists; nothing is deleted.')">
     <?= csrf_field() ?><input type="hidden" name="action" value="archive">
     <button class="btn btn-outline-danger btn-sm" type="submit"><i class="fa-solid fa-box-archive me-1"></i>Archive</button>
@@ -175,6 +187,8 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
           <?php if ($s): ?><br>
             <?php if ($s['signature_image_path']): ?><a href="/admin/customers/file.php?kind=signature&id=<?= (int) $s['id'] ?>" target="_blank"><i class="fa-solid fa-signature"></i> signature</a> <?php endif; ?>
             <?php if ($s['scan_path']): ?><a href="/admin/customers/file.php?kind=scan&id=<?= (int) $s['id'] ?>" target="_blank"><i class="fa-solid fa-file"></i> scan</a> <?php endif; ?>
+            <?php if ($s['rendered_pdf_path']): ?><a href="/admin/customers/file.php?kind=pdf&id=<?= (int) $s['id'] ?>" target="_blank"><i class="fa-solid fa-file-pdf"></i> completed form (PDF)</a>
+            <?php else: ?><form method="post" class="d-inline"><?= csrf_field() ?><input type="hidden" name="action" value="render_pdf"><input type="hidden" name="submission_id" value="<?= (int) $s['id'] ?>"><button class="btn btn-link btn-sm p-0 align-baseline" type="submit"><i class="fa-solid fa-file-pdf"></i> generate PDF</button></form><?php endif; ?>
             <?php if ($isMed && $d['outcome'] === 'physician_cleared' && !empty($s['physician_cleared_on'])): ?><a href="/admin/customers/file.php?kind=physician&id=<?= (int) $s['id'] ?>" target="_blank"><i class="fa-solid fa-user-doctor"></i> physician letter</a><?php endif; ?>
           <?php endif; ?>
         </td>
