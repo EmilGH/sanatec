@@ -204,3 +204,14 @@ test('preview images render for home and for an item, and are cached', function 
     og_invalidate('excursion', 'yaa-kun');
     is_false(is_file($item), 'invalidation removes the cached file');
 });
+
+test('the diver area has its own preview card', function (): void {
+    require_once __DIR__ . '/../src/Og.php';
+    foreach (['en', 'es'] as $lang) {
+        $f = og_file('diver-' . $lang);
+        is_true($f !== null && is_file($f), "diver-{$lang} card rendered");
+        [$w, $h] = getimagesize($f);
+        is_same([1200, 630], [$w, $h]);
+    }
+    is_same(null, og_file('diver-fr'));
+});

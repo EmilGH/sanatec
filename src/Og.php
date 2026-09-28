@@ -227,10 +227,40 @@ function og_item_from_row(string $type, array $row, string $lang): array
             'prices' => [$num($row['price_1_dive']), $num($row['price_2_dives']), $num($row['price_3_dives'])]];
 }
 
-/** Path of the cached PNG for a name like "excursion-dos-ojos-en" or "home-es"; rendered if absent. */
+/** The diver-area card: what a diver sees when the sign-in link is shared with them. */
+function og_render_diver(string $lang): GdImage
+{
+    [$im, $x0, $maxw] = og_canvas();
+    $sans = og_font('Outfit-Medium');
+    $bold = og_font('Outfit-Bold');
+    $serif = og_font('Fraunces-SoftMedium');
+    $business = setting('business_name') ?: 'SANA TEC DIVING';
+
+    og_text($im, 15, $x0, 206, og_col($im, OG_SHAFT), $bold, mb_strtoupper($lang === 'es' ? 'Área del buceador · Tulum' : 'Diver area · Tulum'), 0.14);
+    $y = 290;
+    foreach (og_wrap(46, $serif, ($lang === 'es' ? 'Bienvenido a ' : 'Welcome to ') . $business, $maxw) as $ln) {
+        imagettftext($im, 46, 0, $x0, $y, og_col($im, OG_INK), $serif, $ln);
+        $y += 58;
+    }
+    imagettftext($im, 46, 0, $x0, $y, og_col($im, OG_AQUA), $serif, $lang === 'es' ? 'Acceso para buzos' : 'Diver Access');
+    $y += 64;
+    foreach (og_wrap(19, $sans, $lang === 'es'
+        ? 'Tus formularios, tu pasaporte de cenotes y tus salidas. Entra con un código: sin contraseña.'
+        : 'Your forms, your cenote passport and your trips. Sign in with a code, no password.', $maxw) as $i => $ln) {
+        if ($i > 2) {
+            break;
+        }
+        og_text($im, 19, $x0, $y, og_col($im, OG_MUTED), $sans, $ln);
+        $y += 28;
+    }
+    og_text($im, 16, $x0, 540, og_col($im, OG_MUTED), $sans, 'sanatecdiving.com/my');
+    return $im;
+}
+
+/** Path of the cached PNG for a name like "excursion-dos-ojos-en", "home-es" or "diver-en"; rendered if absent. */
 function og_file(string $name): ?string
 {
-    if (preg_match('/^(home|course|excursion)(?:-([a-z0-9-]+))?-(en|es)$/', $name, $m) !== 1) {
+    if (preg_match('/^(home|diver|course|excursion)(?:-([a-z0-9-]+))?-(en|es)$/', $name, $m) !== 1) {
         return null;
     }
     [, $type, $slug, $lang] = $m;
@@ -241,6 +271,8 @@ function og_file(string $name): ?string
 
     if ($type === 'home') {
         $im = og_render_home($lang);
+    } elseif ($type === 'diver') {
+        $im = og_render_diver($lang);
     } else {
         $table = $type === 'course' ? 'courses' : 'excursions';
         $stmt = db()->prepare("SELECT * FROM {$table} WHERE slug = :s AND is_published = 1");
@@ -269,7 +301,7 @@ function og_invalidate(?string $type = null, ?string $slug = null): void
         @unlink($f);
     }
     if ($type === null || $type === 'home') {
-        foreach (glob(og_cache_dir() . '/home-*.png') ?: [] as $f) {
+        foreach (array_merge(glob(og_cache_dir() . '/home-*.png') ?: [], glob(og_cache_dir() . '/diver-*.png') ?: []) as $f) {
             @unlink($f);
         }
     }

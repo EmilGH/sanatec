@@ -67,6 +67,17 @@ function shell_start(string $title, ?array $user = null, string $area = 'admin',
 <meta name="theme-color" content="#04263a" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#f5f8f9" media="(prefers-color-scheme: light)">
 <title><?= e($title) ?> · <?= e($business) ?></title>
+<?php if (!empty($opts['og'])): $og = $opts['og']; ?>
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="<?= e($business) ?>">
+<meta property="og:title" content="<?= e($og['title']) ?>">
+<meta property="og:description" content="<?= e($og['description'] ?? '') ?>">
+<meta property="og:url" content="<?= e($og['url'] ?? '') ?>">
+<meta property="og:image" content="<?= e($og['image'] ?? '') ?>">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="description" content="<?= e($og['description'] ?? '') ?>">
+<?php endif; ?>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
 <script>

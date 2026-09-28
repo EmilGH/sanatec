@@ -144,7 +144,18 @@ function login_page(string $area): void
     $transportLabel = ['email' => 'email', 'sms' => 'SMS', 'whatsapp' => 'WhatsApp', 'log' => 'the server log'];
     $hidden = static fn () => csrf_field() . '<input type="hidden" name="next" value="' . e($next) . '"><input type="hidden" name="lang" value="' . e($lang) . '">';
 
-    shell_start($t('Sign in', 'Entrar'), null, $isDiver ? 'diver' : 'admin');
+    $og = null;
+    if ($isDiver) {
+        $baseUrl = rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/');
+        $business = setting('business_name') ?: 'SANA TEC DIVING';
+        $og = [
+            'title'       => $t("Welcome to {$business}", "Bienvenido a {$business}"),
+            'description' => $t('Diver Access', 'Acceso para buzos'),
+            'url'         => $baseUrl . '/my/',
+            'image'       => $baseUrl . '/og/diver-' . $lang . '.png',
+        ];
+    }
+    shell_start($t('Sign in', 'Entrar'), null, $isDiver ? 'diver' : 'admin', $og ? ['og' => $og] : []);
     ?>
 <div class="row justify-content-center">
   <div class="col-12 mt-4 mx-auto" style="max-width:440px">
