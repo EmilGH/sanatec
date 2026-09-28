@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+require_once __DIR__ . '/../src/Onboarding.php';
+
 require_once __DIR__ . '/../src/People.php';
 
 /** A person with a verified email and a WhatsApp-capable mobile. */
