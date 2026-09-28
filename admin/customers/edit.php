@@ -176,7 +176,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
     <p class="text-secondary small mb-3">Signed forms on file. Medical is only "ok" once cleared — a signature alone is not clearance.
       A form signed on paper can be recorded here with its scan.</p>
     <div class="table-responsive"><table class="table table-sm align-middle mb-0"><tbody>
-    <?php foreach (customer_document_status((int) $row['id']) as $d): $s = $d['submission']; $t = $d['template']; $isMed = $t['code'] === 'medical'; ?>
+    <?php foreach (customer_document_status((int) $row['id']) as $d): $s = $d['submission']; $t = $d['template']; $isMed = $t['code'] === 'medical'; if ($t['code'] === 'diver_info') { continue; } ?>
       <tr>
         <td><?= e($t['title']) ?> <span class="text-secondary small">v<?= e($t['version']) ?><?= $t['applies_to'] !== 'all' ? ' · ' . e($t['applies_to']) : '' ?></span></td>
         <td class="text-nowrap"><span class="badge text-bg-<?= $statusBadge[$d['status']] ?>"><?= e($d['status']) ?></span>

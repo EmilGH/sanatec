@@ -399,10 +399,20 @@ function customer_document_status(int $customerId): array
 }
 
 /** True when every active document is signed, current, and (for medical) cleared. */
+/**
+ * Complete: the diver information is filled in and every signed form is in
+ * date. The Diver Information Form template is the profile, never a signed
+ * submission, so it is judged by the record, not by a signature.
+ */
 function customer_documents_complete(int $customerId): bool
 {
+    require_once __DIR__ . '/Onboarding.php';
+    $c = customer_find($customerId);
+    if ($c === null || !profile_complete($c)) {
+        return false;
+    }
     foreach (customer_document_status($customerId) as $row) {
-        if (!$row['ok']) {
+        if ($row['template']['code'] !== 'diver_info' && !$row['ok']) {
             return false;
         }
     }

@@ -99,3 +99,17 @@ test('customer_save joins an outer transaction instead of failing on it', functi
     db()->commit();
     is_same('1991-01-01', customer_find($id)['date_of_birth']);
 });
+
+test('a diver with the profile filled and every form signed counts as complete', function (): void {
+    require_once __DIR__ . '/../src/Onboarding.php';
+    $c = make_customer('Complete Diver', '1980-08-08');
+    is_false(customer_documents_complete((int) $c['id']), 'nothing signed yet');
+    $signer = onboarding_signer($c);
+    foreach (['medical', 'safe_diving', 'liability', 'liability_excursion'] as $code) {
+        $answers = $code === 'medical' ? array_fill_keys(array_map(static fn (array $q): string => $q['id'], medical_questions()), 'no') : ['ack_read' => 'yes'];
+        form_sign($c, form_template_by_code($code), $answers, test_signature(), $signer);
+    }
+    is_true(customer_documents_complete((int) $c['id']), 'the information form is the profile, not a signature');
+    db()->exec("UPDATE people SET date_of_birth = NULL WHERE id = {$c['person_id']}");
+    is_false(customer_documents_complete((int) $c['id']), 'a gap in the profile makes it incomplete again');
+});
