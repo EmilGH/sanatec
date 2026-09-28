@@ -116,7 +116,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
 </div>
 <?php if (!empty($_SESSION['onboarding_link'])): $link = $_SESSION['onboarding_link']; unset($_SESSION['onboarding_link']); ?>
   <div class="alert alert-info">
-    <div class="fw-semibold mb-1">Onboarding link for <?= e($row['name']) ?> — works once, valid 24 hours. Send it to them on WhatsApp or by email.</div>
+    <div class="fw-semibold mb-1">Onboarding link for <?= e($row['name']) ?> — works once, valid 24 hours. Send it to them on WhatsApp or by email. Opening it yourself signs you in as them.</div>
     <input class="form-control font-monospace small" readonly value="<?= e($link) ?>" onclick="this.select()">
   </div>
 <?php endif; ?>

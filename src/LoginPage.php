@@ -24,7 +24,12 @@ function login_page(string $area): void
     $selfUrl = $isDiver ? '/my/login.php' : '/admin/login.php';
     $user = current_user();
 
-    if ($user !== null && ($isDiver || $user['team'] !== null)) {
+    // Already signed in: straight to the area — unless this is a sign-in link,
+    // which may be for someone else (a staff member opening a diver's
+    // onboarding link on their own device). Then show the confirm page, so
+    // the link is honoured and the switch is explicit.
+    $switching = $user !== null && (string) ($_GET['t'] ?? $_POST['t'] ?? '') !== '';
+    if ($user !== null && !$switching && ($isDiver || $user['team'] !== null)) {
         header('Location: ' . $home);
         exit;
     }
@@ -158,6 +163,11 @@ function login_page(string $area): void
       <div class="card"><div class="card-body">
         <p class="mb-1 text-secondary small"><?= e($t('Signing in as', 'Entrando como')) ?></p>
         <p class="fs-5 fw-semibold mb-3"><i class="fa-solid fa-user text-aqua me-2"></i><?= e($linkToken['person_name']) ?></p>
+        <?php if ($switching && (int) $user['id'] !== (int) $linkToken['person_id']): ?>
+          <div class="alert alert-info small"><?= e($t("You are currently signed in as {$user['name']}. Continuing signs you out of that and in as {$linkToken['person_name']}.", "Ahora estás dentro como {$user['name']}. Al continuar saldrás de esa sesión y entrarás como {$linkToken['person_name']}.")) ?></div>
+        <?php elseif ($switching): ?>
+          <div class="alert alert-info small"><?= e($t('You are already signed in as this person.', 'Ya estás dentro como esta persona.')) ?></div>
+        <?php endif; ?>
         <form method="post"><?= $hidden() ?><input type="hidden" name="step" value="confirm_link"><input type="hidden" name="t" value="<?= e($rawLink) ?>">
           <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="remember" name="remember" value="1" checked>
             <label class="form-check-label" for="remember"><?= e($t('Remember this device for ' . REMEMBER_DEVICE_DAYS . ' days', 'Recordar este dispositivo ' . REMEMBER_DEVICE_DAYS . ' días')) ?></label></div>

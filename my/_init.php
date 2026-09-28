@@ -61,8 +61,8 @@ function tr(string $en, string $es): string
 
 if ($staffPreview) {
     $GLOBALS['st_notice'] = ($lang === 'es'
-        ? '<strong>Vista previa para el equipo.</strong> Estás viendo el área del buceador como la vería un cliente. Nada de lo que hagas aquí se guarda. Si también buceas como cliente, el centro te crea un perfil en Clientes.'
-        : '<strong>Staff preview.</strong> You are seeing the diver area as a customer would. Nothing you do here is saved. If you also dive as a customer, the shop creates a profile for you under Customers.');
+        ? '<strong>Vista previa para el equipo.</strong> Estás dentro como ' . e($currentUser['name']) . ' y ves el área del buceador como la vería un cliente; nada se guarda. Para entrar como un cliente, <a href="/my/logout.php">sal de esta sesión</a> y abre su enlace de alta.'
+        : '<strong>Staff preview.</strong> You are signed in as ' . e($currentUser['name']) . ' and seeing the diver area as a customer would; nothing is saved. To act as a customer, <a href="/my/logout.php">sign out</a> and open their onboarding link.');
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['flash'][] = ['message' => $lang === 'es' ? 'Vista previa: no se guardó nada.' : 'Preview only: nothing was saved.', 'kind' => 'warn'];
         header('Location: ' . ($_SERVER['REQUEST_URI'] ?? '/my/'));
