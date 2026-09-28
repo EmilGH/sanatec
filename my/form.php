@@ -132,7 +132,7 @@ shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
         </div>
       <?php endif; ?>
     <?php endforeach; ?>
-  </div></div>
+  </div>
   <script>
   // A box only applies when its question is "yes". Hide it otherwise, and clear it so it is not submitted.
   document.querySelectorAll('[data-box]').forEach(function (box) {
@@ -163,7 +163,7 @@ shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
     </div>
     <?php if (form_document_path($template)): ?><p class="small mt-2 mb-0"><a class="st-link" href="/my/document.php?code=<?= e($template['code']) ?>" target="_blank"><?= e(tr('Open the original PDF', 'Abrir el PDF original')) ?></a></p><?php endif; ?>
     <label class="st-check mt-3"><input type="checkbox" name="ack_read" value="yes" required><span class="st-box"><?= ui_icon('check') ?></span><span><?= e(tr('I have read this document in full, and I understand and agree to its terms.', 'He leído este documento en su totalidad, y entiendo y acepto sus términos.')) ?></span></label>
-  </div></div>
+  </div>
 <?php endif; ?>
 
   <div class="st-card mb-3">
@@ -184,16 +184,24 @@ shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
   <script>
   (function () {
     var canvas = document.getElementById('sig'), pad = new SignaturePad(canvas, { minWidth: 1, maxWidth: 2.5, penColor: '#0b2a35' });
-    function resize() { var r = Math.max(window.devicePixelRatio || 1, 1), d = pad.toData(); canvas.width = canvas.offsetWidth * r; canvas.height = canvas.offsetHeight * r; canvas.getContext('2d').scale(r, r); pad.clear(); pad.fromData(d); }
+    // Phones fire "resize" when the address bar collapses while scrolling down
+    // to the button. Redrawing the strokes then left the pad believing it was
+    // empty, so a visible signature was refused. Only rebuild the canvas when
+    // its width really changed, and judge emptiness by the strokes themselves.
+    var lastWidth = 0;
+    function resize() {
+      var w = canvas.offsetWidth; if (w === lastWidth) { return; } lastWidth = w;
+      var r = Math.max(window.devicePixelRatio || 1, 1), d = pad.toData();
+      canvas.width = w * r; canvas.height = canvas.offsetHeight * r; canvas.getContext('2d').scale(r, r);
+      pad.clear(); if (d.length) { pad.fromData(d); }
+    }
     window.addEventListener('resize', resize); resize();
     document.getElementById('sig-clear').addEventListener('click', function () { pad.clear(); });
     canvas.closest('form').addEventListener('submit', function (ev) {
-      if (pad.isEmpty()) { ev.preventDefault(); alert(<?= json_encode(tr('Please sign in the box before continuing.', 'Firma en el recuadro antes de continuar.')) ?>); return; }
+      if (pad.toData().length === 0) { ev.preventDefault(); alert(<?= json_encode(tr('Please sign in the box before continuing.', 'Firma en el recuadro antes de continuar.')) ?>); return; }
       document.getElementById('sig-data').value = pad.toDataURL('image/png');
     });
   })();
   </script>
-
-  </div></div>
 </form>
 <?php shell_end($currentUser, 'diver');
