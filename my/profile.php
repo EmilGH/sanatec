@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/_init.php';
 require_once __DIR__ . '/../src/Customers.php';
+require_once __DIR__ . '/../src/Countries.php';
 
 if (!privacy_consent_current((int) $currentUser['id'])) {
     redirect('/my/consent.php');
@@ -63,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         db()->commit();
         audit('update', 'customer', $customer['id'], 'diver information (self)');
         flash(tr('Saved.', 'Guardado.'));
-        redirect('/my/');
+        redirect($showTabs ? '/my/profile.php' : '/my/forms.php');
     } catch (Throwable $e) {
         db()->rollBack();
         flash($e->getMessage(), 'warn');
@@ -74,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $row = customer_find((int) $customer['id']) ?? $customer;
 $minor = is_minor($row['date_of_birth']);
 
-shell_start(tr('My information', 'Mi información'), $currentUser, 'diver', ['back' => '/my/']);
+shell_start(tr('Diver Info', 'Mis datos'), $currentUser, 'diver', $showTabs ? ['nav' => 'profile'] : ['back' => '/my/forms.php']);
 ?>
 <h1 class="st-h1 mb-1"><?= e(tr('Diver information', 'Información del buceador')) ?></h1>
 <p class="st-lede mb-4"><?= e(tr('What the shop needs to plan your dives safely.', 'Lo que el centro necesita para planear tus buceos con seguridad.')) ?></p>
@@ -84,8 +85,13 @@ shell_start(tr('My information', 'Mi información'), $currentUser, 'diver', ['ba
     <h2 class="st-card__title mb-3"><?= e(tr('Contact', 'Contacto')) ?></h2>
     <div class="row g-3">
       <div class="col-12 col-md-6"><label class="form-label" for="name"><?= e(tr('Full name', 'Nombre completo')) ?></label><input class="form-control" id="name" name="name" value="<?= e($row['name']) ?>" required autocomplete="name"></div>
-      <div class="col-6 col-md-3"><label class="form-label" for="date_of_birth"><?= e(tr('Date of birth', 'Fecha de nacimiento')) ?></label><input class="form-control" type="date" id="date_of_birth" name="date_of_birth" value="<?= e((string) $row['date_of_birth']) ?>" required></div>
-      <div class="col-6 col-md-3"><label class="form-label" for="nationality"><?= e(tr('Nationality', 'Nacionalidad')) ?></label><input class="form-control" id="nationality" name="nationality" value="<?= e((string) $row['nationality']) ?>" maxlength="2" pattern="[A-Za-z]{2}" placeholder="MX, US, DE" style="text-transform:uppercase"></div>
+      <div class="col-6 col-md-3"><?php ui_date_field('date_of_birth', $row['date_of_birth'], tr('Date of birth', 'Fecha de nacimiento'), true); ?></div>
+      <div class="col-6 col-md-3"><label class="form-label" for="nationality"><?= e(tr('Nationality', 'Nacionalidad')) ?></label>
+        <select class="form-select form-control" id="nationality" name="nationality"><option value="">—</option>
+          <?php [$first, $rest] = countries_ordered($lang); foreach ($first as [$code, $name]): ?><option value="<?= e($code) ?>" <?= ($row['nationality'] ?? '') === $code ? 'selected' : '' ?>><?= e($name) ?></option><?php endforeach; ?>
+          <option disabled>──────────</option>
+          <?php foreach ($rest as [$code, $name]): ?><option value="<?= e($code) ?>" <?= ($row['nationality'] ?? '') === $code ? 'selected' : '' ?>><?= e($name) ?></option><?php endforeach; ?>
+        </select></div>
       <div class="col-12 col-md-6"><label class="form-label" for="mobile"><?= e(tr('Mobile (with country code)', 'Móvil (con código de país)')) ?></label><input class="form-control" id="mobile" name="mobile" value="<?= e($primary('mobile')) ?>" placeholder="+52 984 …" autocomplete="tel"></div>
       <div class="col-12 col-md-6"><label class="form-label" for="email"><?= e(tr('Email', 'Correo')) ?></label><input class="form-control" id="email" name="email" value="<?= e($primary('email')) ?>" autocomplete="email"></div>
       <div class="col-12"><label class="form-label" for="local_address"><?= e(tr('Hotel / address in Mexico', 'Hotel / dirección en México')) ?></label><input class="form-control" id="local_address" name="local_address" value="<?= e((string) $row['local_address']) ?>"></div>
@@ -107,19 +113,18 @@ shell_start(tr('My information', 'Mi información'), $currentUser, 'diver', ['ba
   <?php endif; ?>
 
   <div class="st-card mb-3">
-    <h2 class="st-card__title mb-3"><?= e(tr('Experience', 'Experiencia')) ?></h2>
+    <h2 class="st-card__title mb-3"><?= e(tr('Highest Certification', 'Certificación más alta')) ?></h2>
     <div class="row g-3">
       <div class="col-6 col-md-3"><label class="form-label" for="cert_agency"><?= e(tr('Agency', 'Agencia')) ?></label>
         <select class="form-select form-control" id="cert_agency" name="cert_agency"><option value=""><?= e(tr('— not certified yet', '— aún sin certificar')) ?></option><?php foreach (CERT_AGENCIES as $a): ?><option <?= ($cert['agency'] ?? '') === $a ? 'selected' : '' ?>><?= e($a) ?></option><?php endforeach; ?></select></div>
       <div class="col-6 col-md-3"><label class="form-label" for="cert_level_code"><?= e(tr('Highest level', 'Nivel más alto')) ?></label>
         <select class="form-select form-control" id="cert_level_code" name="cert_level_code"><option value="">—</option><?php foreach (CERT_LEVELS as $k => [$l]): ?><option value="<?= $k ?>" <?= ($cert['level_code'] ?? '') === $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
-      <div class="col-12 col-md-3"><label class="form-label" for="cert_level"><?= e(tr('As the card says', 'Como dice la tarjeta')) ?></label><input class="form-control" id="cert_level" name="cert_level" value="<?= e((string) ($cert['level'] ?? '')) ?>"></div>
-      <div class="col-12 col-md-3"><label class="form-label" for="cert_number"><?= e(tr('Certification number', 'Número de certificación')) ?></label><input class="form-control" id="cert_number" name="cert_number" value="<?= e((string) ($cert['number'] ?? '')) ?>"></div>
-      <div class="col-4 col-md-2"><label class="form-label" for="total_dives"><?= e(tr('Total dives', 'Buceos en total')) ?></label><input class="form-control" type="number" min="0" id="total_dives" name="total_dives" value="<?= e((string) $row['total_dives']) ?>"></div>
-      <div class="col-4 col-md-2"><label class="form-label" for="dives_last_year"><?= e(tr('Last year', 'Último año')) ?></label><input class="form-control" type="number" min="0" id="dives_last_year" name="dives_last_year" value="<?= e((string) $row['dives_last_year']) ?>"></div>
-      <div class="col-4 col-md-3"><label class="form-label" for="last_dive_on"><?= e(tr('Last dive', 'Último buceo')) ?></label><input class="form-control" type="date" id="last_dive_on" name="last_dive_on" value="<?= e((string) $row['last_dive_on']) ?>"></div>
-      <div class="col-6 col-md-3"><label class="form-label" for="dan_number"><?= e(tr('DAN number', 'Número DAN')) ?></label><input class="form-control" id="dan_number" name="dan_number" value="<?= e((string) $row['dan_number']) ?>"></div>
-      <div class="col-6 col-md-2"><label class="form-label" for="dan_expires_on"><?= e(tr('DAN expires', 'DAN vence')) ?></label><input class="form-control" type="date" id="dan_expires_on" name="dan_expires_on" value="<?= e((string) $row['dan_expires_on']) ?>"></div>
+      <div class="col-12 col-md-6"><label class="form-label" for="cert_number"><?= e(tr('Certification number', 'Número de certificación')) ?></label><input class="form-control" id="cert_number" name="cert_number" value="<?= e((string) ($cert['number'] ?? '')) ?>"></div>
+      <div class="col-4 col-md-3"><label class="form-label" for="total_dives"><?= e(tr('Total dives', 'Buceos en total')) ?></label><input class="form-control" type="number" min="0" id="total_dives" name="total_dives" value="<?= e((string) $row['total_dives']) ?>"></div>
+      <div class="col-4 col-md-3"><label class="form-label" for="dives_last_year"><?= e(tr('Last year', 'Último año')) ?></label><input class="form-control" type="number" min="0" id="dives_last_year" name="dives_last_year" value="<?= e((string) $row['dives_last_year']) ?>"></div>
+      <div class="col-4 col-md-6"><?php ui_date_field('last_dive_on', $row['last_dive_on'], tr('Last dive', 'Último buceo')); ?></div>
+      <div class="col-6 col-md-6"><label class="form-label" for="dan_number"><?= e(tr('DAN number', 'Número DAN')) ?></label><input class="form-control" id="dan_number" name="dan_number" value="<?= e((string) $row['dan_number']) ?>"></div>
+      <div class="col-6 col-md-6"><?php ui_date_field('dan_expires_on', $row['dan_expires_on'], tr('DAN expires', 'DAN vence')); ?></div>
     </div>
   </div>
 

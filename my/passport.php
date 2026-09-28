@@ -60,7 +60,7 @@ $stamped = array_column($stamps, 'id');
 $isPublic = (int) (customer_find($cid)['passport_public'] ?? 0) === 1;
 $shareUrl = rtrim((string) cfg('base_url'), '/') . '/passport/' . $currentUser['public_id'];
 
-shell_start(tr('My passport', 'Mi pasaporte'), $currentUser, 'diver', ['back' => '/my/']);
+shell_start(tr('Cenote Passport', 'Pasaporte'), $currentUser, 'diver', ['nav' => 'passport']);
 ?>
 <p class="st-eyebrow"><?= e(tr('CENOTE Exploration Passport', 'Pasaporte de exploración de cenotes')) ?></p>
 <h1 class="st-h1 mb-3"><?= e($currentUser['name']) ?></h1>

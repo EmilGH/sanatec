@@ -133,6 +133,30 @@ function send_header(string $header): void
  * the process locale and yields "?" under C, which is what PHP-FPM runs in;
  * Unicode decomposition does not.
  */
+/**
+ * A date typed by a person: ISO (2026-09-28) or day-first (28/09/2026,
+ * 28.09.2026, 28-09-2026). Empty is null. Anything else throws.
+ */
+function parse_date_input(?string $raw): ?string
+{
+    $v = trim((string) $raw);
+    if ($v === '') {
+        return null;
+    }
+    if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $v, $m)) {
+        [$y, $mo, $d] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+    } elseif (preg_match('#^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})$#', $v, $m)) {
+        [$d, $mo, $y] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+    } else {
+        throw new InvalidArgumentException("Date not understood: '{$v}'. Use DD/MM/YYYY.");
+    }
+    if (!checkdate($mo, $d, $y)) {
+        throw new InvalidArgumentException("That date does not exist: '{$v}'.");
+    }
+
+    return sprintf('%04d-%02d-%02d', $y, $mo, $d);
+}
+
 function ascii_fold(string $s): string
 {
     if (class_exists('Normalizer')) {

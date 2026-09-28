@@ -152,3 +152,52 @@ test('a staff preview profile has the shape of a real one, id 0, and writes noth
     is_same(['person_id' => (int) $person['id'], 'role' => 'participant'], onboarding_signer($preview));
     is_same($before + 1, (int) db()->query('SELECT COUNT(*) FROM customers')->fetchColumn(), 'only the real diver was written');
 });
+
+test('every form now expires after twelve months, and onboarding is complete once the checklist is', function (): void {
+    $c = make_customer('Onboard Diver', '1987-03-03');
+    is_false(onboarding_complete($c), 'nothing signed yet');
+    is_same(null, customer_find((int) $c['id'])['onboarded_at']);
+    privacy_consent_record((int) $c['person_id']);
+    $signer = onboarding_signer($c);
+    foreach (['medical', 'safe_diving', 'liability', 'liability_excursion'] as $code) {
+        $answers = $code === 'medical' ? array_fill_keys(array_map(static fn (array $q): string => $q['id'], medical_questions()), 'no') : ['ack_read' => 'yes'];
+        $sid = form_sign($c, form_template_by_code($code), $answers, test_signature(), $signer);
+        is_same(date('Y-m-d', strtotime('+365 days')), db()->query("SELECT expires_on FROM form_submissions WHERE id = {$sid}")->fetchColumn(), "{$code} expires in a year");
+    }
+    $c = customer_find((int) $c['id']);
+    is_true(onboarding_complete($c), 'consent, profile and every form done');
+    customer_mark_onboarded((int) $c['id']);
+    is_true(customer_find((int) $c['id'])['onboarded_at'] !== null);
+
+    // A form that has run out reopens the step but does not undo onboarding.
+    db()->exec("UPDATE form_submissions SET expires_on = '2020-01-01' WHERE customer_id = {$c['id']} LIMIT 1");
+    is_false(onboarding_complete(customer_find((int) $c['id'])), 'an expired form is a step to do');
+    is_true(customer_find((int) $c['id'])['onboarded_at'] !== null, 'once onboarded, always onboarded');
+});
+
+test('dates may be typed day-first or ISO, and nonsense is refused', function (): void {
+    is_same('1990-04-12', parse_date_input('12/04/1990'));
+    is_same('1990-04-12', parse_date_input('12.04.1990'));
+    is_same('1990-04-12', parse_date_input('1990-04-12'));
+    is_same('1990-04-02', parse_date_input('2/4/1990'));
+    is_same(null, parse_date_input('  '));
+    throws(static fn () => parse_date_input('31/02/1990'), 'February 31st');
+    throws(static fn () => parse_date_input('April 12 1990'));
+    $c = make_customer('Typed Dates', '1990-01-01');
+    customer_save((int) $c['id'], ['name' => 'Typed Dates', 'date_of_birth' => '05/06/1991', 'last_dive_on' => '28/09/2026', 'dan_expires_on' => '1/1/2028']);
+    $c = customer_find((int) $c['id']);
+    is_same('1991-06-05', $c['date_of_birth']);
+    is_same('2026-09-28', $c['last_dive_on']);
+    is_same('2028-01-01', $c['dan_expires_on']);
+});
+
+test('the nationality list leads with the usual visitors, then everyone by name', function (): void {
+    require_once __DIR__ . '/../src/Countries.php';
+    [$first, $rest] = countries_ordered('en');
+    is_same(['MX', 'CA', 'GB', 'US'], array_column($first, 0));
+    is_true(count($rest) > 180);
+    is_same('Afghanistan', $rest[0][1]);
+    is_same('Alemania', countries_ordered('es')[1][0][1] === 'Afganistán' ? 'Alemania' : 'x', 'Spanish names sort in Spanish');
+    is_same('México', country_name('mx', 'es'));
+    is_same('United Kingdom', country_name('GB'));
+});

@@ -59,6 +59,48 @@ function tr(string $en, string $es): string
     return ($GLOBALS['lang'] ?? 'en') === 'es' ? $es : $en;
 }
 
+// Onboarded: the checklist was completed once. The tabs appear from then on.
+// A diver on any excursion or course gets an Excursions tab, and it leads.
+$onboarded = false;
+$hasEvents = false;
+if ($customer !== null && !$staffPreview) {
+    $onboarded = !empty($customer['onboarded_at']);
+    if (!$onboarded && onboarding_complete($customer, $lang)) {
+        customer_mark_onboarded((int) $customer['id']);
+        $onboarded = true;
+    }
+    $hasEvents = (int) db()->query('SELECT COUNT(*) FROM event_participants WHERE customer_id = ' . (int) $customer['id'])->fetchColumn() > 0;
+}
+$showTabs = $onboarded || $staffPreview;
+
+/** The diver area's sections: [href, label, key]. Empty until onboarding is complete. */
+function diver_nav(): array
+{
+    if (!$GLOBALS['showTabs']) {
+        return [];
+    }
+    $es = ($GLOBALS['lang'] ?? 'en') === 'es';
+    $nav = [];
+    if ($GLOBALS['hasEvents'] || $GLOBALS['staffPreview']) {
+        $nav[] = ['/my/excursions.php', $es ? 'Excursiones' : 'Excursions', 'excursions'];
+    }
+    $nav[] = ['/my/passport.php', $es ? 'Pasaporte' : 'Cenote Passport', 'passport'];
+    $nav[] = ['/my/forms.php', $es ? 'Formularios' : 'Forms & Waivers', 'forms'];
+    $nav[] = ['/my/profile.php', $es ? 'Mis datos' : 'Diver Info', 'profile'];
+
+    return $nav;
+}
+
+/** Where /my/ should land. */
+function diver_home(): string
+{
+    if (!$GLOBALS['showTabs']) {
+        return '/my/forms.php';
+    }
+
+    return $GLOBALS['hasEvents'] ? '/my/excursions.php' : '/my/passport.php';
+}
+
 if ($staffPreview) {
     $GLOBALS['st_notice'] = ($lang === 'es'
         ? '<strong>Vista previa para el equipo.</strong> Estás dentro como ' . e($currentUser['name']) . ' y ves el área del buceador como la vería un cliente; nada se guarda. Para entrar como un cliente, <a href="/my/logout.php">sal de esta sesión</a> y abre su enlace de alta.'

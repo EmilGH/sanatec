@@ -103,7 +103,7 @@ function customer_save(?int $id, array $in): int
 
     $int = static fn (string $k): ?int => ($in[$k] ?? '') === '' ? null : max(0, (int) $in[$k]);
     $str = static fn (string $k, int $max): ?string => trim((string) ($in[$k] ?? '')) === '' ? null : mb_substr(trim((string) $in[$k]), 0, $max);
-    $date = static fn (string $k): ?string => ($in[$k] ?? '') === '' ? null : (string) $in[$k];
+    $date = static fn (string $k): ?string => parse_date_input(isset($in[$k]) ? (string) $in[$k] : null);
 
     $discount = ($in['discount_pct'] ?? '') === '' ? null : round((float) $in['discount_pct'], 2);
     if ($discount !== null && ($discount < 0 || $discount > 100)) {
@@ -305,7 +305,7 @@ function certification_save(int $customerId, ?int $certId, array $in, ?int $veri
         'level_code' => $code,
         'level'      => trim((string) ($in['level'] ?? '')) ?: CERT_LEVELS[$code][0],
         'number'     => trim((string) ($in['number'] ?? '')) ?: null,
-        'issued_on'  => ($in['issued_on'] ?? '') !== '' ? $in['issued_on'] : null,
+        'issued_on'  => parse_date_input(isset($in['issued_on']) ? (string) $in['issued_on'] : null),
         'notes'      => trim((string) ($in['notes'] ?? '')) ?: null,
     ];
     if (!empty($in['verified']) && $verifiedByTeamId !== null) {

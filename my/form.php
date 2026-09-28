@@ -49,6 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && post('action') === 'physician_uploa
     redirect('/my/form.php?code=medical');
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $status && $status['status'] === 'signed') {
+    flash(tr('That form is already signed and still valid.', 'Ese formulario ya está firmado y sigue vigente.'), 'warn');
+    redirect('/my/forms.php');
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $answers = array_filter($_POST, static fn ($v, $k): bool => is_string($v) && preg_match('/^(q\d+|[A-G]\d+|ack_\w+)$/', $k) === 1, ARRAY_FILTER_USE_BOTH);
@@ -67,10 +72,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ? tr('Medical questionnaire signed — no physician evaluation needed.', 'Cuestionario médico firmado: no se requiere evaluación médica.')
                 : tr('Signed. One or more answers mean a physician must evaluate you before you dive — see below.', 'Firmado. Una o más respuestas requieren que un médico te evalúe antes de bucear; ver abajo.'),
                 $outcome === 'cleared' ? 'ok' : 'warn');
-            redirect('/my/form.php?code=medical');
+            redirect($outcome === 'cleared' ? '/my/forms.php' : '/my/form.php?code=medical');
         }
         flash(tr('Signed. Thank you.', 'Firmado. Gracias.'));
-        redirect('/my/');
+        redirect('/my/forms.php');
     } catch (Throwable $e) {
         $error = $e->getMessage();
     }
@@ -88,7 +93,8 @@ $yesNo = static function (string $id, string $q, bool $star = false) use ($answe
     echo '</div></div>';
 };
 
-shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
+$signedAndValid = $status && $status['status'] === 'signed';
+shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/forms.php']);
 ?>
 <p class="st-eyebrow"><?= e($template['publisher']) ?> · v<?= e($template['version']) ?></p>
 <h1 class="st-h1 mb-3"><?= e($template['title']) ?></h1>
@@ -115,8 +121,10 @@ shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
   <?php elseif ($isMedical && $status['outcome'] === 'physician_cleared'): ?>
     <div class="st-alert st-alert--ok mb-3"><?= ui_icon('check') ?><div><?= e(tr('Cleared by physician on', 'Autorizado por un médico el')) ?> <?= e((string) $s['physician_cleared_on']) ?>.</div></div>
   <?php endif; ?>
-  <p class="st-muted small"><?= e(tr('You can sign again if anything has changed; the new copy replaces the old one.', 'Puedes firmar de nuevo si algo cambió; la nueva copia sustituye a la anterior.')) ?></p>
+  <p class="st-muted small"><?= e(tr('This form stays on file until it expires. If something has changed, tell the shop and they will ask you to sign a new one.', 'Este formulario queda archivado hasta que caduque. Si algo cambió, avisa al centro y te pedirán firmar uno nuevo.')) ?></p>
+  <a class="st-btn st-btn--secondary" href="/my/forms.php"><?= ui_icon('back') ?><?= e(tr('Back to Forms & Waivers', 'Volver a Formularios')) ?></a>
 <?php endif; ?>
+<?php if (!$signedAndValid): ?>
 
 <?php if ($error): ?><div class="alert alert-warning"><?= e($error) ?></div><?php endif; ?>
 
@@ -205,4 +213,5 @@ shell_start($template['title'], $currentUser, 'diver', ['back' => '/my/']);
   })();
   </script>
 </form>
+<?php endif; ?>
 <?php shell_end($currentUser, 'diver');

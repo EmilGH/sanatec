@@ -125,24 +125,22 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
       <a href="/" target="_blank" rel="noopener"><?= ui_icon('external') ?>View the site</a>
       <a href="/admin/logout.php"><?= ui_icon('logout') ?>Sign out</a>
     </div>
-<?php elseif ($user !== null): ?>
+<?php elseif ($user !== null):
+    $nav = function_exists('diver_nav') ? diver_nav() : [];
+    $navKey = (string) ($opts['nav'] ?? ''); ?>
 <div class="st-shell st-shell--diver" style="display:block">
   <div class="st-main" style="max-width:720px;margin:0 auto">
     <header class="st-appbar">
       <?php if (!empty($opts['back'])): ?><a class="st-appbar__back st-iconbtn" href="<?= e($opts['back']) ?>" aria-label="Back"><?= ui_icon('back') ?></a>
       <?php else: ?><a href="/my/"><?= $wordmark('st-appbar__wm') ?></a><?php endif; ?>
       <div class="st-appbar__title"><?= e($title) ?></div>
-      <div class="st-appbar__actions"><?= $themeBtn ?>
-        <button type="button" class="st-iconbtn" onclick="document.getElementById('st-sheet').hidden=false" aria-label="Menu"><?= ui_icon('menu') ?></button></div>
+      <div class="st-appbar__actions"><?= $themeBtn ?></div>
     </header>
-    <div id="st-sheet" class="st-sheet" hidden>
-      <button type="button" onclick="document.getElementById('st-sheet').hidden=true"><?= ui_icon('x') ?><?= $lang === 'es' ? 'Cerrar' : 'Close' ?></button>
-      <a href="/my/"><?= ui_icon('list') ?><?= $lang === 'es' ? 'Mis documentos' : 'My documents' ?></a>
-      <a href="/my/passport.php"><?= ui_icon('wave') ?><?= $lang === 'es' ? 'Mi pasaporte' : 'My passport' ?></a>
-      <a href="/my/profile.php"><?= ui_icon('user') ?><?= $lang === 'es' ? 'Mi información' : 'My information' ?></a>
-      <a href="/my/lang.php?lang=<?= $lang === 'es' ? 'en' : 'es' ?>"><?= ui_icon('globe') ?><?= $lang === 'es' ? 'English' : 'Español' ?></a>
-      <a href="/my/logout.php"><?= ui_icon('logout') ?><?= $lang === 'es' ? 'Salir' : 'Sign out' ?></a>
-    </div>
+    <?php if ($nav !== []): ?>
+    <nav class="st-tabs st-tabs--diver mb-3" aria-label="<?= $lang === 'es' ? 'Secciones' : 'Sections' ?>">
+      <?php foreach ($nav as [$href, $label, $key]): ?><a href="<?= e($href) ?>" <?= $key === $navKey ? 'aria-current="page"' : '' ?>><?= e($label) ?></a><?php endforeach; ?>
+    </nav>
+    <?php endif; ?>
 <?php else: ?>
 <div class="st-shell" style="display:block">
   <div class="st-main" style="max-width:720px;margin:0 auto">
@@ -160,6 +158,13 @@ function shell_end(?array $user = null, string $area = 'admin'): void
     ?>
   </div>
 </div>
+<?php if ($user !== null && $area === 'diver'):
+    $lang = $user['preferred_language'] ?? 'en'; ?>
+<footer class="st-diverfoot" style="max-width:720px;margin:0 auto">
+  <a href="/my/lang.php?lang=<?= $lang === 'es' ? 'en' : 'es' ?>"><?= ui_icon('globe', 'st-icon') ?><?= $lang === 'es' ? 'English' : 'Español' ?></a>
+  <a href="/my/logout.php"><?= ui_icon('logout', 'st-icon') ?><?= $lang === 'es' ? 'Salir' : 'Sign out' ?></a>
+</footer>
+<?php endif; ?>
 <?php if ($user !== null && $area === 'admin'):
     $tabs = array_slice(array_values(array_filter(admin_sections(), static fn (array $s): bool => $s[4] && ($s[3] === null || can($s[3], $user)))), 0, 4); ?>
 <nav class="st-tabbar" aria-label="Sections">
@@ -216,5 +221,26 @@ function field_price(string $name, string $label, array $row, string $help = '')
       <input class="form-control" type="text" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" inputmode="numeric" placeholder="—">
       <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
     </div>
+    <?php
+}
+
+/**
+ * A date the person can type (DD/MM/YYYY or YYYY-MM-DD) or pick from a
+ * calendar. The text box is what is submitted; the calendar button opens a
+ * native picker and copies the choice into it.
+ */
+function ui_date_field(string $name, ?string $value, string $label, bool $required = false, string $help = ''): void
+{
+    $shown = $value ? date('d/m/Y', strtotime($value)) : '';
+    ?>
+    <label class="form-label" for="<?= e($name) ?>"><?= e($label) ?></label>
+    <div class="input-group st-datefield">
+      <input class="form-control" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" placeholder="DD/MM/YYYY" inputmode="numeric" autocomplete="off" pattern="\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4}|\d{4}-\d{1,2}-\d{1,2}" <?= $required ? 'required' : '' ?>>
+      <input type="date" class="visually-hidden" tabindex="-1" aria-hidden="true" value="<?= e((string) $value) ?>"
+        onchange="if(this.value){var p=this.value.split('-');this.previousElementSibling.value=p[2]+'/'+p[1]+'/'+p[0];}">
+      <button class="btn btn-outline-secondary" type="button" aria-label="<?= e($label) ?>" title="<?= e($label) ?>"
+        onclick="var d=this.previousElementSibling;try{d.showPicker()}catch(e){d.click()}"><?= ui_icon('calendar', 'st-icon') ?></button>
+    </div>
+    <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
     <?php
 }

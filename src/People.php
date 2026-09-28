@@ -94,6 +94,11 @@ function person_create(string $name, array $extra = []): int
             throw new InvalidArgumentException('Nationality is a two-letter country code.');
         }
     }
+    foreach (['date_of_birth', 'dan_expires_on'] as $d) {
+        if (isset($fields[$d])) {
+            $fields[$d] = parse_date_input((string) $fields[$d]);
+        }
+    }
 
     $cols = implode(', ', array_keys($fields));
     $params = implode(', ', array_map(static fn (string $k): string => ':' . $k, array_keys($fields)));
@@ -214,6 +219,11 @@ function person_update(int $id, array $in): void
     foreach (['date_of_birth', 'dan_expires_on', 'dan_number', 'nationality'] as $nullable) {
         if (array_key_exists($nullable, $fields) && trim((string) $fields[$nullable]) === '') {
             $fields[$nullable] = null;
+        }
+    }
+    foreach (['date_of_birth', 'dan_expires_on'] as $d) {
+        if (isset($fields[$d])) {
+            $fields[$d] = parse_date_input((string) $fields[$d]);
         }
     }
     if (isset($fields['nationality'])) {

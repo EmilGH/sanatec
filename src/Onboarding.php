@@ -76,6 +76,32 @@ function form_pdf_try(int $submissionId): ?string
     }
 }
 
+/**
+ * Onboarding is complete when every step on the checklist is done: privacy
+ * consent, the diver information, and each form the diver needs, signed and
+ * in date. The first time that is true the moment is recorded on the
+ * customer, and from then on the diver area shows its tabs even if a form
+ * later expires.
+ */
+function onboarding_complete(array $customer, string $lang = 'en'): bool
+{
+    if (empty($customer['id'])) {
+        return false;
+    }
+    foreach (onboarding_steps($customer, 'auto', $lang) as $step) {
+        if (!$step['done']) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function customer_mark_onboarded(int $customerId): void
+{
+    db()->prepare('UPDATE customers SET onboarded_at = COALESCE(onboarded_at, NOW()) WHERE id = :id')->execute([':id' => $customerId]);
+}
+
 /** Has this person consented to the current privacy notice version? */
 function privacy_consent_current(int $personId): bool
 {

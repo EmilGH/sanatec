@@ -10,12 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         privacy_consent_record((int) $currentUser['id']);
         audit('consent', 'person', $currentUser['id'], 'privacy notice v' . setting('privacy_notice_version'));
         flash(tr('Thank you.', 'Gracias.'));
-        redirect('/my/');
+        redirect('/my/forms.php');
     }
 }
 
 $version = setting('privacy_notice_version');
-shell_start(tr('Privacy notice', 'Aviso de privacidad'), $currentUser, 'diver', ['back' => '/my/']);
+shell_start(tr('Privacy notice', 'Aviso de privacidad'), $currentUser, 'diver', ['back' => '/my/forms.php']);
 ?>
 <h1 class="st-h1 mb-3"><?= e(tr('Privacy notice', 'Aviso de privacidad')) ?> <span class="text-secondary fs-6">v<?= e($version) ?></span></h1>
 <?php if (stripos($version, 'draft') !== false): ?><div class="alert alert-warning small"><?= e(tr('This notice is a draft pending legal review.', 'Este aviso es un borrador pendiente de revisión legal.')) ?></div><?php endif; ?>
