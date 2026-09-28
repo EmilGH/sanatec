@@ -15,6 +15,9 @@ require_once __DIR__ . '/ui/inline.php';
  */
 $extra = <<<'CSS'
 body{margin:0}
+/* Short pages (a team profile, a passport) must still fill the screen so the CTA bar sits at the bottom. */
+.st-root{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.st-root>main{flex:1 0 auto}
 .st-row__link{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:var(--muted);align-self:center}
 .st-row__link svg{width:16px;height:16px}
 .st-row__link:hover{color:var(--aqua);background:var(--panel)}
