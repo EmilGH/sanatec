@@ -80,7 +80,7 @@ $langNames = ['en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'fr' => 
         <?php if ($m['languages'] !== []): ?><p class="st-note" style="margin-top:6px"><?= e(t('team_speaks', $lang)) ?> <?= e(implode(', ', array_map(static fn (string $c): string => $langNames[$c] ?? strtoupper($c), $m['languages']))) ?></p><?php endif; ?>
         <?php if (trim((string) ($m['bio_' . $lang] ?: $m['bio_en'])) !== ''): ?><p class="st-profile__bio" style="margin-top:16px"><?= e(trim((string) ($m['bio_' . $lang] ?: $m['bio_en']))) ?></p><?php endif; ?>
         <?php if ($m['whatsapp']): ?>
-        <div class="st-actions"><a class="st-btn st-btn--primary" href="https://wa.me/<?= e(ltrim($m['whatsapp'], '+')) ?>?text=<?= rawurlencode(t('team_wa_prefill', $lang)) ?>" rel="noopener"><?= ui_icon('whatsapp') ?><?= e(t('team_message', $lang)) ?></a></div>
+        <div class="st-actions"><a class="st-btn st-btn--primary" href="https://wa.me/<?= e(ltrim($m['whatsapp'], '+')) ?>?text=<?= rawurlencode(t('team_wa_prefill', $lang)) ?>" rel="noopener"><?= ui_icon('whatsapp') ?><?= e(strtr(t('team_message', $lang), ['{name}' => explode(' ', trim($m['name']))[0]])) ?></a></div>
         <?php endif; ?>
       </div>
     </div>

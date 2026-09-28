@@ -93,7 +93,7 @@ function ui_strings(): array
         'team_link'        => ['en' => 'Meet the team',              'es' => 'Conoce al equipo'],
         'team_all'         => ['en' => 'The whole team',             'es' => 'Todo el equipo'],
         'team_speaks'      => ['en' => 'Speaks',                     'es' => 'Habla'],
-        'team_message'     => ['en' => 'Message on WhatsApp',        'es' => 'Escribir por WhatsApp'],
+        'team_message'     => ['en' => 'Message {name} on WhatsApp', 'es' => 'Escribir a {name} por WhatsApp'],
         'team_wa_prefill'  => ['en' => 'Hi! I found you on the SanaTec Diving site. ',
                                'es' => '¡Hola! Te encontré en el sitio de SanaTec Diving. '],
         'team_none'        => ['en' => 'Team profiles are on their way.',
