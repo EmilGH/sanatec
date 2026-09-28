@@ -72,8 +72,11 @@ a.st-doc:hover .st-doc__t { color: var(--aqua); }
 .lang-tag { font-size: 10px; font-weight: 700; letter-spacing: .7px; color: var(--aqua); text-transform: uppercase; }
 
 /* Diver area: tabs under the app bar, a footer with language and sign-out. */
-.st-tabs--diver { padding: 0 16px; }
-.st-tabs--diver a { flex: 1; text-align: center; }
+.st-tabs--diver { padding: 0 8px; }
+.st-tabs--diver a { flex: 1; text-align: center; padding: 6px 4px; line-height: 1.15; white-space: normal; }
+@media (max-width: 480px) { .st-tabs--diver a { font-size: 13px; } }
+.st-datefield input.form-control { padding-left: 10px; padding-right: 4px; min-width: 0; }
+.st-datefield .btn { padding: 0 8px; }
 .st-diverfoot { display: flex; justify-content: center; gap: 24px; padding: 28px 16px 40px; border-top: 1px solid var(--line); margin-top: 24px; }
 .st-diverfoot a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--muted); font: 600 14px/1 var(--font-sans); text-decoration: none; }
 .st-diverfoot a:hover { color: var(--ink); }

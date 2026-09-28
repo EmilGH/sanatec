@@ -85,8 +85,8 @@ shell_start(tr('Diver Info', 'Mis datos'), $currentUser, 'diver', $showTabs ? ['
     <h2 class="st-card__title mb-3"><?= e(tr('Contact', 'Contacto')) ?></h2>
     <div class="row g-3">
       <div class="col-12 col-md-6"><label class="form-label" for="name"><?= e(tr('Full name', 'Nombre completo')) ?></label><input class="form-control" id="name" name="name" value="<?= e($row['name']) ?>" required autocomplete="name"></div>
-      <div class="col-6 col-md-3"><?php ui_date_field('date_of_birth', $row['date_of_birth'], tr('Date of birth', 'Fecha de nacimiento'), true); ?></div>
-      <div class="col-6 col-md-3"><label class="form-label" for="nationality"><?= e(tr('Nationality', 'Nacionalidad')) ?></label>
+      <div class="col-7 col-md-3"><?php ui_date_field('date_of_birth', $row['date_of_birth'], tr('Date of birth', 'Fecha de nacimiento'), true); ?></div>
+      <div class="col-5 col-md-3"><label class="form-label" for="nationality"><?= e(tr('Nationality', 'Nacionalidad')) ?></label>
         <select class="form-select form-control" id="nationality" name="nationality"><option value="">—</option>
           <?php [$first, $rest] = countries_ordered($lang); foreach ($first as [$code, $name]): ?><option value="<?= e($code) ?>" <?= ($row['nationality'] ?? '') === $code ? 'selected' : '' ?>><?= e($name) ?></option><?php endforeach; ?>
           <option disabled>──────────</option>
