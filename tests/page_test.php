@@ -224,3 +224,21 @@ test('the diver area has its own preview card', function (): void {
     }
     is_same(null, og_file('diver-fr'));
 });
+
+test('a referral link renders the home page with the affiliate strip and sets the cookie', function (): void {
+    require_once SANATEC_ROOT . '/src/Affiliates.php';
+    $id = affiliate_save(null, ['name' => 'Astrid Hotel', 'description_en' => 'Beach hotel in Tulum.']);
+    $_GET = ['lang' => 'en', 'ref' => 'astrid-hotel'];
+    $_COOKIE = [];
+    $_SERVER['REQUEST_URI'] = '/a/astrid-hotel';
+    settings_cache_clear();
+    ob_start();
+    require SANATEC_ROOT . '/index.php';
+    $html = (string) ob_get_clean();
+    has('Welcome, guests of Astrid Hotel', $html);
+    has('Beach hotel in Tulum.', $html);
+    is_same('astrid-hotel', $_COOKIE[AFFILIATE_COOKIE] ?? null, 'the cookie is set for the rest of the visit');
+    is_same(1, affiliate_stats($id)['visits'], 'the visit is logged');
+    $_GET = [];
+    $_COOKIE = [];
+});

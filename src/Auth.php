@@ -392,11 +392,6 @@ function device_forget(): void
     }
 }
 
-function is_https(): bool
-{
-    return (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off')
-        || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
-}
 
 function logout(): void
 {

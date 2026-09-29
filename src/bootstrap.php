@@ -167,6 +167,12 @@ function parse_date_input(?string $raw): ?string
     return sprintf('%04d-%02d-%02d', $y, $mo, $d);
 }
 
+function is_https(): bool
+{
+    return (($_SERVER['HTTPS'] ?? '') !== '' && $_SERVER['HTTPS'] !== 'off')
+        || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+}
+
 function ascii_fold(string $s): string
 {
     if (class_exists('Normalizer')) {
