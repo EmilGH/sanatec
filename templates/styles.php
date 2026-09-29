@@ -21,6 +21,9 @@ body{margin:0}
 /* Short pages (a team profile, a passport) must still fill the screen so the CTA bar sits at the bottom. */
 .st-root{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 .st-root>main{flex:1 0 auto}
+/* In a column flex box an auto-margined child shrinks to its content; every band is full width up to its cap. */
+.st-root>*{box-sizing:border-box;width:100%}
+.st-root>.st-affil{width:calc(100% - 32px)}
 .st-row__link{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:var(--muted);align-self:center}
 .st-row__link svg{width:16px;height:16px}
 .st-row__link:hover{color:var(--aqua);background:var(--panel)}
