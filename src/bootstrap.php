@@ -143,10 +143,20 @@ function parse_date_input(?string $raw): ?string
     if ($v === '') {
         return null;
     }
+    // Digits alone, as a phone's number pad produces: DDMMYYYY or DDMMYY.
+    if (preg_match('/^\d{8}$/', $v)) {
+        $v = substr($v, 0, 2) . '/' . substr($v, 2, 2) . '/' . substr($v, 4);
+    } elseif (preg_match('/^\d{6}$/', $v)) {
+        $v = substr($v, 0, 2) . '/' . substr($v, 2, 2) . '/' . substr($v, 4);
+    }
     if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $v, $m)) {
         [$y, $mo, $d] = [(int) $m[1], (int) $m[2], (int) $m[3]];
-    } elseif (preg_match('#^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})$#', $v, $m)) {
+    } elseif (preg_match('#^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4}|\d{2})$#', $v, $m)) {
         [$d, $mo, $y] = [(int) $m[1], (int) $m[2], (int) $m[3]];
+        if ($y < 100) {
+            // Two-digit year: a year past this one is last century (a 1974 birth, not 2074).
+            $y += $y > (int) date('y') ? 1900 : 2000;
+        }
     } else {
         throw new InvalidArgumentException("Date not understood: '{$v}'. Use DD/MM/YYYY.");
     }

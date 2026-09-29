@@ -181,6 +181,10 @@ test('dates may be typed day-first or ISO, and nonsense is refused', function ()
     is_same('1990-04-12', parse_date_input('1990-04-12'));
     is_same('1990-04-02', parse_date_input('2/4/1990'));
     is_same(null, parse_date_input('  '));
+    is_same('2026-08-10', parse_date_input('100826'), 'digits only, two-digit year this century');
+    is_same('1974-04-19', parse_date_input('190474'), 'digits only, two-digit year last century');
+    is_same('1974-04-19', parse_date_input('19041974'), 'digits only, four-digit year');
+    is_same('1974-04-19', parse_date_input('19/04/74'));
     is_true(is_minor('01/01/' . (date('Y') - 10)), 'a typed day-first birth date counts as a minor');
     throws(static fn () => parse_date_input('31/02/1990'), 'February 31st');
     throws(static fn () => parse_date_input('April 12 1990'));

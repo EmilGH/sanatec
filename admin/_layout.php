@@ -246,7 +246,9 @@ function ui_date_field(string $name, ?string $value, string $label, bool $requir
     ?>
     <label class="form-label" for="<?= e($name) ?>"><?= e($label) ?></label>
     <div class="input-group st-datefield">
-      <input class="form-control" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" placeholder="DD/MM/YYYY" inputmode="numeric" autocomplete="off" pattern="\d{1,2}[/.\-]\d{1,2}[/.\-]\d{4}|\d{4}-\d{1,2}-\d{1,2}" <?= $required ? 'required' : '' ?>>
+      <input class="form-control" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" placeholder="DD/MM/YYYY" inputmode="numeric" autocomplete="off" maxlength="10"
+        pattern="\d{1,2}[/.\-]\d{1,2}[/.\-](\d{4}|\d{2})|\d{4}-\d{1,2}-\d{1,2}|\d{6}|\d{8}" <?= $required ? 'required' : '' ?>
+        oninput="var d=this.value.replace(/\D/g,'').slice(0,8);if(this.value.length>=this.selectionStart){this.value=d.length>4?d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4):d.length>2?d.slice(0,2)+'/'+d.slice(2):d;}">
       <input type="date" class="visually-hidden" tabindex="-1" aria-hidden="true" value="<?= e((string) $value) ?>"
         onchange="if(this.value){var p=this.value.split('-');this.previousElementSibling.value=p[2]+'/'+p[1]+'/'+p[0];}">
       <button class="btn btn-outline-secondary" type="button" aria-label="<?= e($label) ?>" title="<?= e($label) ?>"
