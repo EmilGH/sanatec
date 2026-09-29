@@ -135,6 +135,22 @@ switching the template's `source_document_path`.
 The PDF libraries are vendored under `lib/` (FPDF 1.86 and FPDI 2.6.3, plain
 files, no Composer). `.htaccess` blocks `/lib/` from the web.
 
+## Affiliates and item pages
+
+`/a/<code>` is an affiliate's referral link. It sets the `st_ref` cookie for
+ninety days, logs a row in `affiliate_visits`, and shows the welcome strip.
+The first affiliate a diver arrives from is written on the customer
+(`referred_by_affiliate_id`) and on every booking (`event_participants.
+affiliate_id` and `affiliate_amount_mxn`), computed in `affiliate_pricing()`
+from retail, floor, the diver's discount and the affiliate's arrangement.
+Affiliates are managed under Catalog → Affiliates (permission
+`can_manage_affiliates`); the contact signs in at `/partner/` with the same
+passwordless flow and sees only their own numbers, first names only.
+
+`/c/<slug>` is an item's page (`item.php`). Photos are stored under
+`uploads/catalog/` as 1500×1000 and 600×400 JPEGs and served through
+`/photo/<id>.jpg`; the first photo becomes the item's preview image.
+
 ## Signing in when mail is down
 
 There are no passwords. If no message can be delivered — provider outage,
