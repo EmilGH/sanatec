@@ -15,9 +15,10 @@ require_once __DIR__ . '/ui/inline.php';
  */
 $extra = <<<'CSS'
 body{margin:0}
-.st-affil{display:flex;align-items:center;gap:14px;margin:8px 16px 0;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--panel)}
-.st-affil__logo{max-height:44px;max-width:120px;background:#fff;padding:4px 8px;border-radius:8px;flex:none}
-.st-affil div{display:grid;gap:2px;font-size:14px;line-height:1.4}.st-affil span{color:var(--muted)}
+.st-affil{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;margin:8px 16px 0;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--panel)}
+.st-affil__logo{max-height:72px;max-width:min(220px,60vw);background:#fff;padding:6px 12px;border-radius:8px;flex:none}
+.st-affil div{display:grid;gap:2px;font-size:15px;line-height:1.4}.st-affil strong{font-size:17px}.st-affil span{color:var(--muted)}
+@container (min-width:900px){.st-affil__logo{max-height:88px;max-width:280px}}
 /* Short pages (a team profile, a passport) must still fill the screen so the CTA bar sits at the bottom. */
 .st-root{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 .st-root>main{flex:1 0 auto}
@@ -46,7 +47,8 @@ body{margin:0}
 .st-included__h--out{color:var(--danger)}
 .st-wm--small{height:24px}
 .st-foot p{margin:10px 0 0}
-.st-hdr .st-wm{height:34px;width:130px}
+.st-hdr .st-wm{height:48px;width:184px}
+.st-hdr{min-height:76px}
 .st-foot .st-wm--small{height:24px;width:92px;display:block}
 .st-hero__mark{pointer-events:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -57,6 +59,7 @@ body{margin:0}
   #seg-training:checked~#adventures,#seg-adventures:checked~#training{display:block}
   .st-section{padding:40px 0 8px}
   .st-hdr{padding:0 40px}
+  .st-hdr .st-wm{height:52px;width:200px}
   .st-hero{min-height:420px}
   .st-ctabar{display:none}
   #contact,#included,.st-foot{padding-left:40px;padding-right:40px}
