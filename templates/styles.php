@@ -15,10 +15,9 @@ require_once __DIR__ . '/ui/inline.php';
  */
 $extra = <<<'CSS'
 body{margin:0}
-.st-affil{display:flex;flex-wrap:wrap;align-items:center;gap:14px 18px;margin:8px 16px 0;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--panel)}
-.st-affil__logo{max-height:72px;max-width:min(220px,60vw);background:#fff;padding:6px 12px;border-radius:8px;flex:none}
-.st-affil div{display:grid;gap:2px;font-size:15px;line-height:1.4}.st-affil strong{font-size:17px}.st-affil span{color:var(--muted)}
-@container (min-width:900px){.st-affil__logo{max-height:88px;max-width:280px}}
+.st-affil{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;margin:8px 16px 0;padding:18px 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--panel)}
+.st-affil__logo{width:75%;max-width:420px;height:auto;background:#fff;padding:10px 16px;border-radius:10px;box-sizing:border-box}
+.st-affil div{display:grid;gap:2px;font-size:15px;line-height:1.4;justify-items:center}.st-affil strong{font-size:18px}.st-affil span{color:var(--muted)}
 /* Short pages (a team profile, a passport) must still fill the screen so the CTA bar sits at the bottom. */
 .st-root{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 .st-root>main{flex:1 0 auto}
@@ -47,8 +46,10 @@ body{margin:0}
 .st-included__h--out{color:var(--danger)}
 .st-wm--small{height:24px}
 .st-foot p{margin:10px 0 0}
-.st-hdr .st-wm{height:48px;width:184px}
-.st-hdr{min-height:76px}
+/* Phones and tablets: the wordmark spans the screen, the language switch sits centred beneath it. */
+.st-hdr{flex-direction:column;align-items:center;gap:10px;padding:14px 12px 6px;min-height:0}
+.st-hdr__brand{width:100%;justify-content:center}
+.st-hdr .st-wm,.st-hdr__brand svg.st-wm{width:100%;height:auto;aspect-ratio:486.5/126.8}
 .st-foot .st-wm--small{height:24px;width:92px;display:block}
 .st-hero__mark{pointer-events:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -58,8 +59,9 @@ body{margin:0}
   .st-seg{display:none}
   #seg-training:checked~#adventures,#seg-adventures:checked~#training{display:block}
   .st-section{padding:40px 0 8px}
-  .st-hdr{padding:0 40px}
-  .st-hdr .st-wm{height:52px;width:200px}
+  .st-hdr{flex-direction:row;justify-content:space-between;padding:12px 40px;min-height:76px}
+  .st-hdr__brand{width:auto}
+  .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:64px;width:246px;aspect-ratio:auto}
   .st-hero{min-height:420px}
   .st-ctabar{display:none}
   #contact,#included,.st-foot{padding-left:40px;padding-right:40px}
