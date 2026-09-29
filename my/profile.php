@@ -27,7 +27,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     try {
         db()->beginTransaction();
-        customer_save((int) $customer['id'], $_POST);
+        $in = $_POST;
+        // Height and weight are stored in cm and kg whatever the diver typed in.
+        if (($in['units'] ?? 'metric') === 'imperial') {
+            $ft = (float) ($in['height_ft'] ?? 0);
+            $inch = (float) ($in['height_in'] ?? 0);
+            $in['height_cm'] = ($ft > 0 || $inch > 0) ? (string) (int) round(($ft * 12 + $inch) * 2.54) : '';
+            $in['weight_kg'] = ($in['weight_lb'] ?? '') !== '' ? (string) (int) round((float) $in['weight_lb'] / 2.20462) : '';
+        }
+        customer_save((int) $customer['id'], $in);
 
         foreach (['email', 'mobile'] as $kind) {
             $value = post($kind);
@@ -137,15 +145,42 @@ shell_start(tr('Diver Info', 'Mis datos'), $currentUser, 'diver', $showTabs ? ['
     </div>
   </div>
 
+  <?php
+    $sizeOptions = ['none' => tr("Don't need one / have my own", 'No necesito / tengo el mío'), 'XS' => 'X-Small', 'S' => 'Small', 'M' => 'Medium', 'L' => 'Large', 'XL' => 'X-Large', 'XXL' => 'XX-Large', 'other' => tr('Other', 'Otra')];
+    $sizeSelect = static function (string $name, string $label, ?string $value) use ($sizeOptions): void {
+        $value = (string) $value;
+        if ($value !== '' && !isset($sizeOptions[$value])) { $value = 'other'; }   // a size typed before the list existed
+        echo '<label class="form-label" for="', $name, '">', e($label), '</label><select class="form-select form-control" id="', $name, '" name="', $name, '">';
+        echo '<option value="" disabled ', $value === '' ? 'selected' : '', '>', e(tr('Choose…', 'Elige…')), '</option>';
+        foreach ($sizeOptions as $k => $l) { echo '<option value="', $k, '" ', $value === $k ? 'selected' : '', '>', e($l), '</option>'; }
+        echo '</select>';
+    };
+    $imperial = ($row['nationality'] ?? '') === 'US';
+    $hCm = $row['height_cm'] !== null ? (int) $row['height_cm'] : null;
+    $wKg = $row['weight_kg'] !== null ? (int) $row['weight_kg'] : null;
+    $totalIn = $hCm !== null ? (int) round($hCm / 2.54) : null;
+  ?>
   <div class="st-card mb-3">
     <h2 class="st-card__title mb-3"><?= e(tr('Gear sizes', 'Tallas de equipo')) ?></h2>
     <div class="row g-3">
-      <?php foreach (['wetsuit_size' => tr('Wetsuit', 'Traje'), 'bcd_size' => 'BCD', 'fin_size' => tr('Fins', 'Aletas'), 'boot_size' => tr('Boots', 'Botines')] as $k => $l): ?>
-        <div class="col-6 col-md-2"><label class="form-label" for="<?= $k ?>"><?= e($l) ?></label><input class="form-control" id="<?= $k ?>" name="<?= $k ?>" value="<?= e((string) $row[$k]) ?>"></div>
-      <?php endforeach; ?>
-      <div class="col-6 col-md-2"><label class="form-label" for="height_cm"><?= e(tr('Height cm', 'Estatura cm')) ?></label><input class="form-control" type="number" min="0" id="height_cm" name="height_cm" value="<?= e((string) $row['height_cm']) ?>"></div>
-      <div class="col-6 col-md-2"><label class="form-label" for="weight_kg"><?= e(tr('Weight kg', 'Peso kg')) ?></label><input class="form-control" type="number" min="0" id="weight_kg" name="weight_kg" value="<?= e((string) $row['weight_kg']) ?>"></div>
+      <div class="col-6 col-md-3"><?php $sizeSelect('wetsuit_size', tr('Wetsuit', 'Traje'), $row['wetsuit_size']); ?></div>
+      <div class="col-6 col-md-3"><?php $sizeSelect('bcd_size', 'BCD', $row['bcd_size']); ?></div>
+      <div class="col-6 col-md-3"><label class="form-label" for="fin_size"><?= e(tr('Fins', 'Aletas')) ?></label><input class="form-control" id="fin_size" name="fin_size" value="<?= e((string) $row['fin_size']) ?>"></div>
+      <div class="col-6 col-md-3"><label class="form-label" for="boot_size"><?= e(tr('Boots', 'Botines')) ?></label><input class="form-control" id="boot_size" name="boot_size" value="<?= e((string) $row['boot_size']) ?>"></div>
     </div>
+    <div class="row g-3 mt-0" id="body-metrics">
+      <div class="col-12 col-md-3"><label class="form-label" for="units"><?= e(tr('Units', 'Unidades')) ?></label>
+        <select class="form-select form-control" id="units" name="units" onchange="stUnits(this.value)"><option value="metric" <?= !$imperial ? 'selected' : '' ?>>cm / kg</option><option value="imperial" <?= $imperial ? 'selected' : '' ?>>ft in / lb</option></select></div>
+      <div class="col-6 col-md-3 u-metric"><label class="form-label" for="height_cm"><?= e(tr('Height', 'Estatura')) ?> <span class="st-muted">cm</span></label><input class="form-control" type="number" min="0" max="250" id="height_cm" name="height_cm" value="<?= e((string) $hCm) ?>"></div>
+      <div class="col-6 col-md-3 u-metric"><label class="form-label" for="weight_kg"><?= e(tr('Weight', 'Peso')) ?> <span class="st-muted">kg</span></label><input class="form-control" type="number" min="0" max="300" id="weight_kg" name="weight_kg" value="<?= e((string) $wKg) ?>"></div>
+      <div class="col-6 col-md-3 u-imperial"><label class="form-label"><?= e(tr('Height', 'Estatura')) ?> <span class="st-muted">ft in</span></label>
+        <div class="input-group"><input class="form-control" type="number" min="0" max="8" name="height_ft" aria-label="feet" value="<?= $totalIn !== null ? intdiv($totalIn, 12) : '' ?>"><span class="input-group-text">ft</span><input class="form-control" type="number" min="0" max="11" name="height_in" aria-label="inches" value="<?= $totalIn !== null ? $totalIn % 12 : '' ?>"><span class="input-group-text">in</span></div></div>
+      <div class="col-6 col-md-3 u-imperial"><label class="form-label" for="weight_lb"><?= e(tr('Weight', 'Peso')) ?> <span class="st-muted">lb</span></label><input class="form-control" type="number" min="0" max="660" id="weight_lb" name="weight_lb" value="<?= $wKg !== null ? (int) round($wKg * 2.20462) : '' ?>"></div>
+    </div>
+    <script>
+    function stUnits(u) { document.querySelectorAll('#body-metrics .u-metric').forEach(function (el) { el.hidden = u !== 'metric'; }); document.querySelectorAll('#body-metrics .u-imperial').forEach(function (el) { el.hidden = u !== 'imperial'; }); }
+    stUnits(document.getElementById('units').value);
+    </script>
   </div>
 
   <button class="st-btn st-btn--primary st-btn--block" type="submit"><?= e(tr('Save', 'Guardar')) ?></button>
