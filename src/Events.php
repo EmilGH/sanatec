@@ -10,6 +10,7 @@ if (!defined('SANATEC')) {
 require_once __DIR__ . '/Customers.php';
 require_once __DIR__ . '/Team.php';
 require_once __DIR__ . '/Passport.php';
+require_once __DIR__ . '/Affiliates.php';
 
 /**
  * Events: excursions and training, dated.
@@ -103,6 +104,7 @@ function event_create(string $kind, array $in, ?int $createdByTeamId = null): in
         if ($kind === 'training') {
             $dives = null;
             $price = $item['price_mxn'];
+            $floor = $item['floor_price_mxn'] ?? null;
             $title_en = $item['name_en'];
             $title_es = $item['name_es'] ?: $item['name_en'];
         } else {
@@ -112,17 +114,18 @@ function event_create(string $kind, array $in, ?int $createdByTeamId = null): in
                 throw new InvalidArgumentException('That route is not sold with ' . $dives . ' dive' . ($dives > 1 ? 's' : '') . '.');
             }
             $price = $item[$col];
+            $floor = $item['floor_' . $col] ?? null;
             $title_en = $item['name_en'] . ' · ' . $dives . ' dive' . ($dives > 1 ? 's' : '');
             $title_es = ($item['name_es'] ?: $item['name_en']) . ' · ' . $dives . ' inmersi' . ($dives > 1 ? 'ones' : 'ón');
         }
 
         $pdo->prepare(
-            'INSERT INTO events (kind, slug, title_en, title_es, excursion_id, course_id, dives_count, price_mxn, capacity, starts_on, created_by)
-             VALUES (:k, :slug, :te, :ts, :x, :c, :d, :p, :cap, :on, :by)'
+            'INSERT INTO events (kind, slug, title_en, title_es, excursion_id, course_id, dives_count, price_mxn, floor_mxn, capacity, starts_on, created_by)
+             VALUES (:k, :slug, :te, :ts, :x, :c, :d, :p, :f, :cap, :on, :by)'
         )->execute([
             ':k' => $kind, ':slug' => event_slug_for($date, $item['name_en']), ':te' => $title_en, ':ts' => $title_es,
             ':x' => $kind === 'excursion' ? $item['id'] : null, ':c' => $kind === 'training' ? $item['id'] : null,
-            ':d' => $dives, ':p' => $price, ':cap' => $capacity, ':on' => $date, ':by' => $createdByTeamId,
+            ':d' => $dives, ':p' => $price, ':f' => $floor, ':cap' => $capacity, ':on' => $date, ':by' => $createdByTeamId,
         ]);
         $eventId = (int) $pdo->lastInsertId();
 
@@ -319,13 +322,22 @@ function event_participant_add(int $eventId, int $customerId, ?int $addedByTeamI
     if (event_places_taken($eventId) >= (int) $event['capacity']) {
         throw new RuntimeException('This ' . strtolower(event_kind_label($event['kind'])) . ' is full (' . $event['capacity'] . ' places).');
     }
-    $price = $event['price_mxn'] !== null
-        ? round((float) $event['price_mxn'] * (1 - ((float) ($customer['discount_pct'] ?? 0)) / 100), 2)
-        : null;
+    // Retail less the diver's discount, never below the floor; and the
+    // affiliate who sent them, with what that affiliate earns on this booking.
+    $affiliate = $customer['referred_by_affiliate_id'] ? affiliate_find((int) $customer['referred_by_affiliate_id']) : null;
+    if ($affiliate !== null && (int) $affiliate['is_active'] !== 1) {
+        $affiliate = null;
+    }
+    $money = affiliate_pricing(
+        $event['price_mxn'] !== null ? (float) $event['price_mxn'] : null,
+        $event['floor_mxn'] !== null ? (float) $event['floor_mxn'] : null,
+        (float) ($customer['discount_pct'] ?? 0),
+        $affiliate
+    );
 
     try {
-        db()->prepare('INSERT INTO event_participants (event_id, customer_id, price_mxn, added_by) VALUES (:e, :c, :p, :by)')
-            ->execute([':e' => $eventId, ':c' => $customerId, ':p' => $price, ':by' => $addedByTeamId]);
+        db()->prepare('INSERT INTO event_participants (event_id, customer_id, price_mxn, floor_mxn, affiliate_id, affiliate_amount_mxn, added_by) VALUES (:e, :c, :p, :f, :a, :aa, :by)')
+            ->execute([':e' => $eventId, ':c' => $customerId, ':p' => $money['price'], ':f' => $money['floor'], ':a' => $affiliate['id'] ?? null, ':aa' => $money['affiliate_amount'], ':by' => $addedByTeamId]);
     } catch (PDOException $ex) {
         throw new RuntimeException($customer['name'] . ' is already on this event.');
     }

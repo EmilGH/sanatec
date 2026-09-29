@@ -20,8 +20,8 @@ require_once __DIR__ . '/Onboarding.php';
 function login_page(string $area): void
 {
     $isDiver = $area === 'diver';
-    $home = $isDiver ? '/my/' : '/admin/';
-    $selfUrl = $isDiver ? '/my/login.php' : '/admin/login.php';
+    $home = ['diver' => '/my/', 'partner' => '/partner/'][$area] ?? '/admin/';
+    $selfUrl = ['diver' => '/my/login.php', 'partner' => '/partner/login.php'][$area] ?? '/admin/login.php';
     $user = current_user();
 
     // Already signed in: straight to the area — unless this is a sign-in link,
@@ -29,7 +29,7 @@ function login_page(string $area): void
     // onboarding link on their own device). Then show the confirm page, so
     // the link is honoured and the switch is explicit.
     $switching = $user !== null && (string) ($_GET['t'] ?? $_POST['t'] ?? '') !== '';
-    if ($user !== null && !$switching && ($isDiver || $user['team'] !== null)) {
+    if ($user !== null && !$switching && ($isDiver || $area === 'partner' || $user['team'] !== null)) {
         header('Location: ' . $home);
         exit;
     }
@@ -155,7 +155,7 @@ function login_page(string $area): void
             'image'       => $baseUrl . '/og/diver-' . $lang . '.png',
         ];
     }
-    shell_start($t('Sign in', 'Entrar'), null, $isDiver ? 'diver' : 'admin', $og ? ['og' => $og] : []);
+    shell_start($t('Sign in', 'Entrar'), null, $isDiver ? 'diver' : ($area === 'partner' ? 'partner' : 'admin'), $og ? ['og' => $og] : []);
     ?>
 <div class="row justify-content-center">
   <div class="col-12 mt-4 mx-auto" style="max-width:440px">

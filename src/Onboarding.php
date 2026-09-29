@@ -34,8 +34,11 @@ function customer_for_person(int $personId): array
         return $c;
     }
     db()->prepare('INSERT INTO customers (person_id) VALUES (:p)')->execute([':p' => $personId]);
+    $id = (int) db()->lastInsertId();
+    require_once __DIR__ . '/Affiliates.php';
+    affiliate_attach_customer($id);
 
-    return customer_find((int) db()->lastInsertId());
+    return customer_find($id);
 }
 
 /**

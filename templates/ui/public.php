@@ -46,6 +46,19 @@ function ui_public_header(string $lang): string
         . '</header>';
 }
 
+/** The band under the header for a diver who arrived through an affiliate's link. */
+function ui_affiliate_strip(?array $affiliate, string $lang): string
+{
+    if ($affiliate === null) {
+        return '';
+    }
+    $desc = trim((string) ($affiliate['description_' . $lang] ?? '')) ?: (string) ($affiliate['description_en'] ?? '');
+    $logo = $affiliate['logo_path'] ? '<img class="st-affil__logo" src="/affiliate-logo.php?code=' . e($affiliate['code']) . '" alt="' . e($affiliate['name']) . '">' : '';
+
+    return '<div class="st-affil st-wrap">' . $logo . '<div><strong>' . e(strtr(t('affiliate_strip', $lang), ['{name}' => $affiliate['name']])) . '</strong>'
+        . ($desc !== '' ? '<span>' . e(mb_substr($desc, 0, 160)) . '</span>' : '') . '</div></div>';
+}
+
 function ui_public_footer(string $lang): string
 {
     $privacy = $lang === 'es' ? '/es/privacy' : '/privacy';

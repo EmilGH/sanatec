@@ -8,6 +8,7 @@ require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
 require_once __DIR__ . '/../src/Customers.php';
 require_once __DIR__ . '/../src/Passport.php';
+require __DIR__ . '/_photos.php';
 
 $currentUser = require_permission('can_manage_catalog');
 
@@ -15,6 +16,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $id = (int) ($_POST['id'] ?? 0);
     try {
+        if ($id > 0 && str_starts_with(post('action'), 'photo_')) {
+            photos_handle(post('action'), 'dive_site', $id);
+            redirect('/admin/catalog-sites.php?edit=' . $id . '#photos');
+        }
         switch (post('action')) {
             case 'save':
                 $savedId = dive_site_save($id ?: null, $_POST);
@@ -75,7 +80,8 @@ echo shell_page('Dive sites', 'Catalog', '<a class="btn btn-primary" href="/admi
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php">Courses</a>
   <a href="/admin/catalog-excursions.php">Cenote excursions</a>
-  <a href="/admin/catalog-sites.php" aria-current="page">Dive sites</a>
+  <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive sites</a>
+  <?php if (can('can_manage_affiliates', $currentUser)): ?><a href="/admin/catalog-affiliates.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-affiliates.php' ? 'aria-current="page"' : '' ?>>Affiliates</a><?php endif; ?>
 </div>
 
 <?php if ($editing !== null): ?>
@@ -95,6 +101,7 @@ echo shell_page('Dive sites', 'Catalog', '<a class="btn btn-primary" href="/admi
     <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1" <?= !empty($editing['is_published']) ? 'checked' : '' ?>><label class="form-check-label" for="is_published">Divers can see this site (passport wish list)</label></div>
     <div class="d-flex gap-2"><button class="btn btn-primary" type="submit">Save</button><a class="btn btn-outline-secondary" href="/admin/catalog-sites.php">Cancel</a></div>
   </form>
+  <?php if (isset($editing['id'])) { photos_card('dive_site', (int) $editing['id'], '/admin/catalog-sites.php?edit=' . (int) $editing['id']); } ?>
 <?php endif; ?>
 
 <div class="st-card" style="padding:0 16px">

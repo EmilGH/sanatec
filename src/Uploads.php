@@ -87,6 +87,25 @@ function store_upload(array $file, string $folder, string $name): string
     return write_upload($folder, $name . '.' . UPLOAD_TYPES[$mime], (string) file_get_contents($file['tmp_name']));
 }
 
+/** An uploaded image as a GD image, turned the way the phone meant it (EXIF orientation), metadata left behind. */
+function image_load_oriented(string $tmpPath): GdImage
+{
+    $img = @imagecreatefromstring((string) file_get_contents($tmpPath));
+    if ($img === false) {
+        throw new InvalidArgumentException('That file is not an image we can read (JPEG, PNG, GIF or WebP).');
+    }
+    if (function_exists('exif_read_data')) {
+        $exif = @exif_read_data($tmpPath);
+        $o = (int) ($exif['Orientation'] ?? 1);
+        $rot = [3 => 180, 6 => -90, 8 => 90][$o] ?? 0;
+        if ($rot !== 0) {
+            $img = imagerotate($img, $rot, 0) ?: $img;
+        }
+    }
+
+    return $img;
+}
+
 /**
  * Store a photo: re-encoded as JPEG with GD, which drops EXIF (location,
  * device) and caps the longest side. Returns the relative path.
@@ -99,19 +118,7 @@ function store_image(array $file, string $folder, string $name, int $maxSide = 1
     if ((int) $file['size'] > UPLOAD_MAX_BYTES) {
         throw new InvalidArgumentException('That photo is over 10 MB.');
     }
-    $img = @imagecreatefromstring((string) file_get_contents($file['tmp_name']));
-    if ($img === false) {
-        throw new InvalidArgumentException('That file is not an image we can read (JPEG, PNG, GIF or WebP).');
-    }
-    // Respect EXIF orientation from phones before it is discarded.
-    if (function_exists('exif_read_data')) {
-        $exif = @exif_read_data($file['tmp_name']);
-        $o = (int) ($exif['Orientation'] ?? 1);
-        $rot = [3 => 180, 6 => -90, 8 => 90][$o] ?? 0;
-        if ($rot !== 0) {
-            $img = imagerotate($img, $rot, 0) ?: $img;
-        }
-    }
+    $img = image_load_oriented((string) $file['tmp_name']);
     $w = imagesx($img);
     $h = imagesy($img);
     $scale = min(1.0, $maxSide / max($w, $h));

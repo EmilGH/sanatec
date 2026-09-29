@@ -167,18 +167,27 @@ test('the contact number comes from one place', function (): void {
     settings_save(['phone_e164' => ['en' => '+529841063306'], 'whatsapp_number' => ['en' => '529841063306']]);
 });
 
-test('a share link puts its item first and gets its own card', function (): void {
-    $_GET = ['lang' => 'en', 'share' => 'dos-ojos'];
-    $_SERVER['REQUEST_URI'] = '/c/dos-ojos';
+test('an item has its own page with its card, prices, cenotes and a prefilled WhatsApp button', function (): void {
+    require_once SANATEC_ROOT . '/src/Passport.php';
+    $ex = (int) db()->query("SELECT id FROM excursions WHERE slug = 'pit-dos-ojos'")->fetchColumn();
+    excursion_save(['name_en' => 'Pit + Dos Ojos', 'name_es' => 'Pit + Dos Ojos', 'price_2_dives' => '3900', 'price_3_dives' => '4300', 'cert_en' => 'AOW', 'cert_es' => 'AOW',
+        'intro_en' => 'Two of the most famous cenotes in one day.', 'body_en' => "Deep light beams in The Pit.\n\nThen the caverns of Dos Ojos.", 'is_published' => true], $ex);
+    $_GET = ['lang' => 'en', 'slug' => 'pit-dos-ojos'];
+    $_SERVER['REQUEST_URI'] = '/c/pit-dos-ojos';
     settings_cache_clear();
     ob_start();
-    require SANATEC_ROOT . '/index.php';
+    require SANATEC_ROOT . '/item.php';
     $html = (string) ob_get_clean();
 
-    has('<link rel="canonical" href="https://sanatecdiving.com/c/dos-ojos">', $html);
-    has('/og/excursion-dos-ojos-en.png', $html);
-    has('Shared with you:', $html);
-    is_true(strpos($html, 'id="dos-ojos"') < strpos($html, 'id="angelita-carwash"'), 'the shared excursion leads its section');
+    has('<link rel="canonical" href="https://sanatecdiving.com/c/pit-dos-ojos">', $html);
+    has('/og/excursion-pit-dos-ojos-en.png', $html, 'no photo yet: the generated card');
+    has('Two of the most famous cenotes in one day.', $html);
+    has('The cenotes on this route', $html);
+    has('The Pit', $html);
+    has('4,300', $html);
+    has('Ask about this on WhatsApp', $html);
+    has_not('id="angelita-carwash"', $html, 'not the whole menu');
+    has('/#adventures', $html, 'a way back to the list');
 });
 
 test('slugs are made from the English name and stay unique', function (): void {

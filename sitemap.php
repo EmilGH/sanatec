@@ -24,6 +24,9 @@ echo '<?xml version="1.0" encoding="UTF-8"?>', "\n";
     <changefreq>monthly</changefreq>
   </url>
 <?php endforeach; ?>
+<?php foreach (['courses' => catalog_published('courses'), 'excursions' => catalog_published('excursions')] as $items): foreach ($items as $it): foreach (LANGUAGES as $code => $meta): ?>
+  <url><loc><?= e($baseUrl . ($code === 'es' ? '/es' : '')) ?>/c/<?= e($it['slug']) ?></loc><lastmod><?= e($modified) ?></lastmod><changefreq>monthly</changefreq></url>
+<?php endforeach; endforeach; endforeach; ?>
 <?php require_once __DIR__ . '/src/Team.php'; $team = team_public_list(); if ($team !== []): ?>
 <?php foreach (LANGUAGES as $code => $meta): $prefix = $code === 'es' ? '/es' : ''; ?>
   <url><loc><?= e($baseUrl . $prefix) ?>/team/</loc><changefreq>monthly</changefreq></url>

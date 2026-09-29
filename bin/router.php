@@ -26,8 +26,22 @@ if ($path === '/es' || $path === '/es/') {
 
 if (preg_match('#^/(es/)?c/([a-z0-9-]+)/?$#', $path, $m)) {
     $_GET['lang'] = $m[1] !== '' ? 'es' : 'en';
-    $_GET['share'] = $m[2];
+    $_GET['slug'] = $m[2];
+    require __DIR__ . '/../item.php';
+    exit;
+}
+if (preg_match('#^/(es/)?a/([a-z0-9-]+)/?$#', $path, $m)) {
+    $_GET['lang'] = $m[1] !== '' ? 'es' : 'en';
+    $_GET['ref'] = $m[2];
     require __DIR__ . '/../index.php';
+    exit;
+}
+if (preg_match('#^/photo/([0-9]+)(-s)?\.jpg$#', $path, $m)) {
+    $_GET['id'] = $m[1];
+    if (($m[2] ?? '') !== '') {
+        $_GET['s'] = '1';
+    }
+    require __DIR__ . '/../photo.php';
     exit;
 }
 if (preg_match('#^/team/([a-z0-9-]+)/photo\.jpg$#', $path, $m)) {

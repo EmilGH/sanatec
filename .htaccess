@@ -83,9 +83,15 @@ RedirectMatch 404 "^/config\.local\.php$"
     # Spanish edition. English is served from the document root.
     RewriteRule ^es/?$ index.php?lang=es [L,QSA]
 
-    # Share links: one course or excursion first, with its own preview card.
-    RewriteRule ^c/([a-z0-9-]+)/?$ index.php?lang=en&share=$1 [L,QSA]
-    RewriteRule ^es/c/([a-z0-9-]+)/?$ index.php?lang=es&share=$1 [L,QSA]
+    # One course or excursion on its own page, with its own preview card.
+    RewriteRule ^c/([a-z0-9-]+)/?$ item.php?lang=en&slug=$1 [L,QSA]
+    RewriteRule ^es/c/([a-z0-9-]+)/?$ item.php?lang=es&slug=$1 [L,QSA]
+
+    # An affiliate's referral link, and their logo; catalogue photos.
+    RewriteRule ^a/([a-z0-9-]+)/?$ index.php?lang=en&ref=$1 [L,QSA]
+    RewriteRule ^es/a/([a-z0-9-]+)/?$ index.php?lang=es&ref=$1 [L,QSA]
+    RewriteRule ^photo/([0-9]+)\.jpg$ photo.php?id=$1 [L]
+    RewriteRule ^photo/([0-9]+)-s\.jpg$ photo.php?id=$1&s=1 [L]
 
     # The team, and one member's profile; their photo.
     RewriteRule ^team/?$ team.php?lang=en [L,QSA]

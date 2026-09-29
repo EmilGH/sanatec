@@ -169,11 +169,11 @@ function shell_end(?array $user = null, string $area = 'admin'): void
     ?>
   </div>
 </div>
-<?php if ($user !== null && $area === 'diver'):
-    $lang = $user['preferred_language'] ?? 'en'; ?>
+<?php if ($user !== null && ($area === 'diver' || $area === 'partner')):
+    $lang = $user['preferred_language'] ?? 'en'; $base = $area === 'partner' ? '/partner' : '/my'; ?>
 <footer class="st-diverfoot" style="max-width:720px;margin:0 auto">
-  <a href="/my/lang.php?lang=<?= $lang === 'es' ? 'en' : 'es' ?>"><?= ui_icon('globe', 'st-icon') ?><?= $lang === 'es' ? 'English' : 'Español' ?></a>
-  <a href="/my/logout.php"><?= ui_icon('logout', 'st-icon') ?><?= $lang === 'es' ? 'Salir' : 'Sign out' ?></a>
+  <?php if ($area === 'diver'): ?><a href="/my/lang.php?lang=<?= $lang === 'es' ? 'en' : 'es' ?>"><?= ui_icon('globe', 'st-icon') ?><?= $lang === 'es' ? 'English' : 'Español' ?></a><?php endif; ?>
+  <a href="<?= $base ?>/logout.php"><?= ui_icon('logout', 'st-icon') ?><?= $lang === 'es' ? 'Salir' : 'Sign out' ?></a>
 </footer>
 <?php endif; ?>
 <?php if ($user !== null && $area === 'admin'):

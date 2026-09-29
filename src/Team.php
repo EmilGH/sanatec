@@ -33,6 +33,7 @@ const TEAM_PERMISSIONS = [
     'can_manage_training'   => 'Training',
     'can_manage_catalog'    => 'Catalog & business info',
     'can_manage_team'       => 'Team',
+    'can_manage_affiliates' => 'Affiliates',
 ];
 
 const CREDENTIAL_AGENCIES = ['NAUI', 'PADI', 'TDI'];

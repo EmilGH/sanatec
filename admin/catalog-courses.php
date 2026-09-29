@@ -5,6 +5,7 @@ declare(strict_types=1);
 require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
 require_once __DIR__ . '/../src/Og.php';
+require __DIR__ . '/_photos.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
@@ -17,6 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'name_en'      => post('name_en'),
             'name_es'      => post('name_es'),
             'price_mxn'    => post('price_mxn'),
+            'floor_price_mxn' => post('floor_price_mxn'),
+            'intro_en'     => post('intro_en'),
+            'intro_es'     => post('intro_es'),
+            'body_en'      => post('body_en'),
+            'body_es'      => post('body_es'),
+            'prereq_en'    => post('prereq_en'),
+            'prereq_es'    => post('prereq_es'),
             'duration_en'  => post('duration_en'),
             'duration_es'  => post('duration_es'),
             'note_en'      => post('note_en'),
@@ -57,6 +65,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/admin/catalog-courses.php');
     }
 
+    if ($id > 0 && str_starts_with($action, 'photo_')) {
+        try {
+            photos_handle($action, 'course', $id);
+        } catch (Throwable $e) {
+            flash($e->getMessage(), 'warn');
+        }
+        og_invalidate('course', (string) (catalog_find('courses', $id)['slug'] ?? ''));
+        redirect('/admin/catalog-courses.php?edit=' . $id . '#photos');
+    }
+
     redirect('/admin/catalog-courses.php');
 }
 
@@ -78,7 +96,8 @@ echo shell_page('Dive training', 'Catalog', '<a class="btn btn-primary" href="/a
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php" <?= 'courses' === 'courses' ? 'aria-current="page"' : '' ?>>Courses</a>
   <a href="/admin/catalog-excursions.php" <?= 'courses' === 'excursions' ? 'aria-current="page"' : '' ?>>Cenote excursions</a>
-  <a href="/admin/catalog-sites.php">Dive sites</a>
+  <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive sites</a>
+  <?php if (can('can_manage_affiliates', $currentUser)): ?><a href="/admin/catalog-affiliates.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-affiliates.php' ? 'aria-current="page"' : '' ?>>Affiliates</a><?php endif; ?>
 </div>
 
 <?php if ($editing !== null): ?>
@@ -89,22 +108,27 @@ echo shell_page('Dive training', 'Catalog', '<a class="btn btn-primary" href="/a
     <h2 class="st-card__title mb-3"><?= isset($editing['id']) ? 'Edit' : 'New' ?> course</h2>
     <?php field_pair('name', 'Course name', $editing); ?>
     <div class="row g-3">
-      <div class="col-6 col-md-3"><?php field_price('price_mxn', 'Price (MXN)', $editing, 'Blank = ask us'); ?></div>
+      <div class="col-6 col-md-3"><?php field_price('price_mxn', 'Retail price (MXN)', $editing, 'Blank = ask us'); ?></div>
+      <div class="col-6 col-md-3"><?php field_price('floor_price_mxn', 'Floor price (MXN)', $editing, 'The least the shop takes'); ?></div>
       <div class="col-6 col-md-3"><label class="form-label" for="duration_en">Duration (English)</label><input class="form-control" id="duration_en" name="duration_en" value="<?= e((string) ($editing['duration_en'] ?? '')) ?>" placeholder="3 days"></div>
       <div class="col-6 col-md-3"><label class="form-label" for="duration_es">Duration (Español)</label><input class="form-control" id="duration_es" name="duration_es" value="<?= e((string) ($editing['duration_es'] ?? '')) ?>" placeholder="3 días"></div>
     </div>
     <div class="mt-3"><?php field_pair('note', 'Note (optional)', $editing, 'text', 'Shown under the course name.'); ?></div>
+    <?php field_pair('intro', 'One-line introduction', $editing, 'text', 'On the course page and in its preview card.'); ?>
+    <?php field_pair('body', 'Description', $editing, 'textarea', 'The course page. Blank lines make paragraphs.'); ?>
+    <?php field_pair('prereq', 'Prerequisites', $editing, 'text', 'e.g. Open Water, 18 years, 25 logged dives.'); ?>
     <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="is_published" name="is_published" value="1" <?= !empty($editing['is_published']) ? 'checked' : '' ?>><label class="form-check-label" for="is_published">Show this course on the public site</label></div>
     <div class="d-flex gap-2">
       <button class="btn btn-primary" type="submit">Save</button>
       <a class="btn btn-outline-secondary" href="/admin/catalog-courses.php">Cancel</a>
     </div>
   </form>
+  <?php if (isset($editing['id'])) { photos_card('course', (int) $editing['id'], '/admin/catalog-courses.php?edit=' . (int) $editing['id']); } ?>
 <?php endif; ?>
 
 <div class="st-card" style="padding:0 16px">
   <div class="st-tablewrap"><table class="st-table">
-    <thead><tr><th style="width:84px">Order</th><th>Course</th><th class="text-end">Price</th><th>Duration</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th style="width:84px">Order</th><th>Course</th><th class="text-end">Retail</th><th class="text-end">Floor</th><th>Duration</th><th>Status</th><th></th></tr></thead>
     <tbody>
     <?php $rows = catalog_all('courses'); foreach ($rows as $i => $row): ?>
       <tr>
@@ -114,7 +138,8 @@ echo shell_page('Dive training', 'Catalog', '<a class="btn btn-primary" href="/a
             <button class="btn btn-sm btn-outline-secondary" name="direction" value="1" title="Move down" <?= $i === count($rows) - 1 ? 'disabled' : '' ?>>↓</button></form>
         </td>
           <td data-label="Course" class="st-table__main"><strong><?= e($row['name_en']) ?></strong><?= trim((string) $row['name_es']) === '' ? ' <span class="st-pill st-pill--warn">no Spanish</span>' : '' ?></td>
-          <td data-label="Price" class="text-md-end st-num"><?= e(money($row['price_mxn']) ?? 'Ask us') ?></td>
+          <td data-label="Retail" class="text-md-end st-num"><?= e(money($row['price_mxn']) ?? 'Ask us') ?></td>
+          <td data-label="Floor" class="text-md-end st-num st-muted"><?= e(money($row['floor_price_mxn']) ?? '—') ?></td>
           <td data-label="Duration" class="st-muted"><?= e((string) $row['duration_en']) ?></td>
         <td data-label="Status">
           <form method="post" style="display:inline"><?= csrf_field() ?><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>">

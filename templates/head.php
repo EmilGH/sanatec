@@ -33,7 +33,12 @@ if ($share !== null) {
         : ($lang === 'es' ? 'Buceo en cenote' : 'Cenote dive') . ' · ' . (trim((string) ($r['cert_' . $lang] ?? '')) ?: $r['cert_en'])
             . ($r['price_2_dives'] !== null ? ' · ' . money($r['price_2_dives']) . ' MXN / 2' : '');
     $canonical = rtrim($baseUrl, '/') . ($lang === 'es' ? '/es' : '') . '/c/' . $r['slug'];
-    $ogImageUrl = $baseUrl . '/og/' . $share['type'] . '-' . $r['slug'] . '-' . $lang . '.png';
+    $ogImageUrl = !empty($share['photo'])
+        ? $baseUrl . '/photo/' . (int) $share['photo']['id'] . '.jpg'
+        : $baseUrl . '/og/' . $share['type'] . '-' . $r['slug'] . '-' . $lang . '.png';
+    if (trim((string) ($r['intro_' . $lang] ?? $r['intro_en'] ?? '')) !== '') {
+        $description = (trim((string) ($r['intro_' . $lang] ?? '')) ?: (string) $r['intro_en']) . ' · ' . $description;
+    }
 }
 
 // Structured data. Every field is omitted rather than guessed: an invented

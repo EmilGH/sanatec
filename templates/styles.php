@@ -15,6 +15,9 @@ require_once __DIR__ . '/ui/inline.php';
  */
 $extra = <<<'CSS'
 body{margin:0}
+.st-affil{display:flex;align-items:center;gap:14px;margin:8px 16px 0;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius-md);background:var(--panel)}
+.st-affil__logo{max-height:44px;max-width:120px;background:#fff;padding:4px 8px;border-radius:8px;flex:none}
+.st-affil div{display:grid;gap:2px;font-size:14px;line-height:1.4}.st-affil span{color:var(--muted)}
 /* Short pages (a team profile, a passport) must still fill the screen so the CTA bar sits at the bottom. */
 .st-root{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 .st-root>main{flex:1 0 auto}

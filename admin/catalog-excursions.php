@@ -6,6 +6,7 @@ require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
 require_once __DIR__ . '/../src/Og.php';
 require_once __DIR__ . '/../src/Passport.php';
+require __DIR__ . '/_photos.php';
 
 const PRICE_COLUMNS = ['price_1_dive' => '1 dive', 'price_2_dives' => '2 dives', 'price_3_dives' => '3 dives'];
 
@@ -22,6 +23,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'price_1_dive'     => post('price_1_dive'),
             'price_2_dives'    => post('price_2_dives'),
             'price_3_dives'    => post('price_3_dives'),
+            'floor_price_1_dive'  => post('floor_price_1_dive'),
+            'floor_price_2_dives' => post('floor_price_2_dives'),
+            'floor_price_3_dives' => post('floor_price_3_dives'),
+            'intro_en'         => post('intro_en'),
+            'intro_es'         => post('intro_es'),
+            'body_en'          => post('body_en'),
+            'body_es'          => post('body_es'),
             'cert_en'          => post('cert_en'),
             'cert_es'          => post('cert_es'),
             'is_special_price' => isset($_POST['is_special_price']),
@@ -66,6 +74,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/admin/catalog-excursions.php');
     }
 
+    if ($id > 0 && str_starts_with($action, 'photo_')) {
+        try {
+            photos_handle($action, 'excursion', $id);
+        } catch (Throwable $e) {
+            flash($e->getMessage(), 'warn');
+        }
+        og_invalidate('excursion', (string) (catalog_find('excursions', $id)['slug'] ?? ''));
+        redirect('/admin/catalog-excursions.php?edit=' . $id . '#photos');
+    }
+
     redirect('/admin/catalog-excursions.php');
 }
 
@@ -87,7 +105,8 @@ echo shell_page('Cenote excursions', 'Catalog', '<a class="btn btn-primary" href
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php" <?= 'excursions' === 'courses' ? 'aria-current="page"' : '' ?>>Courses</a>
   <a href="/admin/catalog-excursions.php" <?= 'excursions' === 'excursions' ? 'aria-current="page"' : '' ?>>Cenote excursions</a>
-  <a href="/admin/catalog-sites.php">Dive sites</a>
+  <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive sites</a>
+  <?php if (can('can_manage_affiliates', $currentUser)): ?><a href="/admin/catalog-affiliates.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-affiliates.php' ? 'aria-current="page"' : '' ?>>Affiliates</a><?php endif; ?>
 </div>
 
 <?php if ($editing !== null): ?>
@@ -97,9 +116,16 @@ echo shell_page('Cenote excursions', 'Catalog', '<a class="btn btn-primary" href
     <input type="hidden" name="id" value="<?= (int) ($editing['id'] ?? 0) ?>">
     <h2 class="st-card__title mb-3"><?= isset($editing['id']) ? 'Edit' : 'New' ?> excursion</h2>
     <?php field_pair('name', 'Cenote or route name', $editing, 'text', 'Join cenotes with +, e.g. Angelita + Carwash'); ?>
-    <div class="row g-3">
+    <p class="form-label mb-1">Retail — the published price</p>
+    <div class="row g-3 mb-2">
       <?php foreach (PRICE_COLUMNS as $column => $label): ?><div class="col-4 col-md-3"><?php field_price($column, 'Total for ' . $label, $editing); ?></div><?php endforeach; ?>
     </div>
+    <p class="form-label mb-1">Floor — the least the shop takes</p>
+    <div class="row g-3">
+      <?php foreach (PRICE_COLUMNS as $column => $label): ?><div class="col-4 col-md-3"><?php field_price('floor_' . $column, 'Floor for ' . $label, $editing); ?></div><?php endforeach; ?>
+    </div>
+    <div class="mt-3"><?php field_pair('intro', 'One-line introduction', $editing, 'text', 'On the route page and in its preview card.'); ?></div>
+    <?php field_pair('body', 'Description', $editing, 'textarea', 'The route page. The cenotes on the route add their own details below it.'); ?>
     <div class="mt-3"><?php field_pair('cert', 'Certification required', $editing, 'text', 'OW, AOW, or a fuller sentence'); ?></div>
     <?php $allSites = dive_sites(false); $chosen = isset($editing['id']) ? array_map('intval', array_column(excursion_sites((int) $editing['id']), 'id')) : []; ?>
     <div class="mb-3">
@@ -124,8 +150,10 @@ echo shell_page('Cenote excursions', 'Catalog', '<a class="btn btn-primary" href
       <a class="btn btn-outline-secondary" href="/admin/catalog-excursions.php">Cancel</a>
     </div>
   </form>
+  <?php if (isset($editing['id'])) { photos_card('excursion', (int) $editing['id'], '/admin/catalog-excursions.php?edit=' . (int) $editing['id']); } ?>
 <?php endif; ?>
 
+<p class="st-muted small mb-2">Each price cell shows retail, and the floor beneath it in grey.</p>
 <div class="st-card" style="padding:0 16px">
   <div class="st-tablewrap"><table class="st-table">
     <thead><tr><th style="width:84px">Order</th><th>Cenote / route</th><?php foreach (PRICE_COLUMNS as $label): ?><th class="text-end"><?= e($label) ?></th><?php endforeach; ?><th>Cert.</th><th>Status</th><th></th></tr></thead>
@@ -138,7 +166,7 @@ echo shell_page('Cenote excursions', 'Catalog', '<a class="btn btn-primary" href
             <button class="btn btn-sm btn-outline-secondary" name="direction" value="1" title="Move down" <?= $i === count($rows) - 1 ? 'disabled' : '' ?>>↓</button></form>
         </td>
           <td data-label="Route" class="st-table__main"><strong><?= e($row['name_en']) ?></strong><?= $row['is_special_price'] ? ' <span class="st-pill st-pill--warn">special</span>' : '' ?></td>
-          <?php foreach (array_keys(PRICE_COLUMNS) as $column): ?><td data-label="<?= e(PRICE_COLUMNS[$column]) ?>" class="text-md-end st-num"><?= e(money($row[$column]) ?? '—') ?></td><?php endforeach; ?>
+          <?php foreach (array_keys(PRICE_COLUMNS) as $column): ?><td data-label="<?= e(PRICE_COLUMNS[$column]) ?>" class="text-md-end st-num"><?= e(money($row[$column]) ?? '—') ?><?php if ($row['floor_' . $column] !== null): ?><br><small class="st-muted"><?= e(money($row['floor_' . $column])) ?></small><?php endif; ?></td><?php endforeach; ?>
           <td data-label="Cert." class="st-muted"><?= e((string) $row['cert_en']) ?></td>
         <td data-label="Status">
           <form method="post" style="display:inline"><?= csrf_field() ?><input type="hidden" name="action" value="toggle"><input type="hidden" name="id" value="<?= (int) $row['id'] ?>">

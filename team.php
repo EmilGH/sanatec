@@ -8,6 +8,7 @@ defined('SANATEC') || define('SANATEC', true);
 require_once __DIR__ . '/src/bootstrap.php';
 require_once __DIR__ . '/src/Team.php';
 require_once __DIR__ . '/templates/ui/public.php';
+require_once __DIR__ . '/src/Affiliates.php';
 
 $lang = normalize_lang($_GET['lang'] ?? 'en');
 $slug = preg_replace('/[^a-z0-9-]/', '', (string) ($_GET['slug'] ?? '')) ?? '';
@@ -65,6 +66,7 @@ $langNames = ['en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'fr' => 
 <?= ui_brand_defs('dark') ?>
 <div class="st-root" data-theme="dark">
 <?= ui_public_header($lang) ?>
+<?= ui_affiliate_strip(affiliate_capture(), $lang) ?>
 <main class="st-wrap st-team">
 <?php if ($slug !== '' && $one === null): ?>
   <section class="st-section"><h1 class="st-h1"><?= e(t('team_notfound', $lang)) ?></h1><p class="st-lede"><a class="st-link" href="<?= e($prefix) ?>/team/"><?= e(t('team_all', $lang)) ?></a></p></section>

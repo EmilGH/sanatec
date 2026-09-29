@@ -7,7 +7,7 @@ declare(strict_types=1);
 require __DIR__ . '/../_init.php';
 require_once __DIR__ . '/../../src/Uploads.php';
 
-$currentUser = require_permission('can_manage_customers');
+$currentUser = require_permission((string) ($_GET['kind'] ?? '') === 'affiliate_logo' ? 'can_manage_affiliates' : 'can_manage_customers');
 
 $kind = (string) ($_GET['kind'] ?? '');
 $id = (int) ($_GET['id'] ?? 0);
@@ -17,6 +17,7 @@ $relative = match ($kind) {
     'signature' => db()->query("SELECT signature_image_path FROM form_submissions WHERE id = {$id}")->fetchColumn(),
     'physician' => db()->query("SELECT physician_document_path FROM medical_evaluations WHERE submission_id = {$id}")->fetchColumn(),
     'pdf'       => db()->query("SELECT rendered_pdf_path FROM form_submissions WHERE id = {$id}")->fetchColumn(),
+    'affiliate_logo' => db()->query("SELECT logo_path FROM affiliates WHERE id = {$id}")->fetchColumn(),
     default     => false,
 };
 

@@ -131,3 +131,41 @@ test('documents per diver on an event count only what that kind needs', function
     is_same(0, $d['ok']);
     is_same(4, count($d['missing']));
 });
+
+test('a discount stops at the floor, and an affiliate earns its share of the room above it', function (): void {
+    require_once __DIR__ . '/../src/Affiliates.php';
+    $ex = excursion_id('Dos Ojos');
+    excursion_save(['name_en' => 'Dos Ojos', 'name_es' => 'Dos Ojos', 'price_2_dives' => '3500', 'floor_price_2_dives' => '2500', 'cert_en' => 'OW', 'cert_es' => 'OW', 'is_published' => true], $ex);
+    throws(static fn () => excursion_save(['name_en' => 'Dos Ojos', 'name_es' => 'Dos Ojos', 'price_2_dives' => '3500', 'floor_price_2_dives' => '3600', 'cert_en' => 'OW', 'cert_es' => 'OW', 'is_published' => true], $ex), 'floor above retail');
+    $id = event_create('excursion', ['catalog_id' => $ex, 'date' => '2031-03-01', 'dives_count' => 2]);
+    is_same('2500.00', event_find($id)['floor_mxn'], 'the floor is snapshotted with the event');
+
+    $full = customer_save(null, ['name' => 'Full Price']);
+    $tenOff = customer_save(null, ['name' => 'Ten Off', 'discount_pct' => '10']);
+    $fiftyOff = customer_save(null, ['name' => 'Fifty Off', 'discount_pct' => '50']);
+    event_participant_add($id, $full); event_participant_add($id, $tenOff); event_participant_add($id, $fiftyOff);
+    $prices = array_column(event_participants($id), 'price_mxn', 'name');
+    is_same('3500.00', $prices['Full Price']);
+    is_same('3150.00', $prices['Ten Off']);
+    is_same('2500.00', $prices['Fifty Off'], '50% would be 1750: clamped at the floor');
+
+    $hotel = affiliate_save(null, ['name' => 'Hotel Palma', 'pricing_mode' => 'commission', 'share_pct' => '50', 'contact_name' => 'Rosa']);
+    $operator = affiliate_save(null, ['name' => 'Tours Maya', 'pricing_mode' => 'net', 'share_pct' => '50']);
+    $viaHotel = customer_save(null, ['name' => 'Hotel Guest']);
+    $viaOperator = customer_save(null, ['name' => 'Tour Guest']);
+    affiliate_attach_customer($viaHotel, 'hotel-palma');
+    affiliate_attach_customer($viaOperator, 'tours-maya');
+    event_participant_add($id, $viaHotel);
+    event_participant_add($id, $viaOperator);
+    $rows = array_column(event_participants($id), null, 'name');
+    is_same('3500.00', $rows['Hotel Guest']['price_mxn'], 'commission: the guest pays retail');
+    is_same('500.00', $rows['Hotel Guest']['affiliate_amount_mxn'], 'the hotel earns half of 3500 - 2500');
+    is_same('3000.00', $rows['Tour Guest']['price_mxn'], 'net: the operator is invoiced retail less its share');
+    is_same('500.00', $rows['Tour Guest']['affiliate_amount_mxn']);
+
+    $st = affiliate_stats($hotel, '2031-03-01', '2031-03-31');
+    is_same(1, $st['bookings']);
+    is_same(500.0, $st['affiliate_amount']);
+    is_same(1, affiliate_stats($hotel)['signups'], 'sign-ups count by when the diver was referred, not by the dive date');
+    is_same('Hotel', affiliate_bookings($hotel)[0]['first_name'], 'first names only');
+});

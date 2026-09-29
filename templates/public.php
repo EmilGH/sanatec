@@ -35,6 +35,7 @@ $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_
 <a class="st-skip" href="#main"><?= e(t('skip_to_content', $lang)) ?></a>
 
 <?= ui_public_header($lang) ?>
+<?= ui_affiliate_strip($affiliate ?? null, $lang) ?>
 
 <main id="main">
   <section class="st-hero st-wrap" aria-labelledby="hero-title">
@@ -52,10 +53,6 @@ $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_
   </section>
 
   <?= ui_wave() ?>
-
-  <?php if ($share !== null): ?>
-  <p class="st-share st-wrap"><?= e(t('share_intro', $lang)) ?> <strong><?= e(ui_name($share['row'], $lang)) ?></strong></p>
-  <?php endif; ?>
 
   <div class="st-cols st-wrap">
     <input class="st-seg__in" type="radio" name="st-seg" id="seg-training" checked>

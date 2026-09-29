@@ -23,20 +23,13 @@ $baseUrl = rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/');
 $courses = catalog_published('courses');
 $excursions  = catalog_published('excursions');
 
-// /c/<slug> — a share link for one course or excursion: same page, that item
-// first, its own title, description and preview image.
+// Items have their own pages now (/c/<slug>, item.php); this page is the whole menu.
 $share = null;
-$shareSlug = strtolower(preg_replace('/[^a-z0-9-]/', '', (string) ($_GET['share'] ?? '')) ?? '');
-if ($shareSlug !== '') {
-    if (($row = catalog_find_by_slug('excursions', $shareSlug)) !== null) {
-        $share = ['type' => 'excursion', 'row' => $row];
-    } elseif (($row = catalog_find_by_slug('courses', $shareSlug)) !== null) {
-        $share = ['type' => 'course', 'row' => $row];
-    } else {
-        send_header('Location: ' . LANGUAGES[$lang]['path']);
-        exit;
-    }
-}
+$shareSlug = '';
+
+// A diver arriving through an affiliate's link: remember who sent them.
+require_once __DIR__ . '/src/Affiliates.php';
+$affiliate = affiliate_capture();
 
 // Cheap validators so repeat visits and crawlers are not re-rendered needlessly.
 $lastModified = catalog_last_modified();
