@@ -405,7 +405,7 @@ function form_document_path(array $template, bool $physician = false): ?string
     if ($rel === null) {
         return null;
     }
-    $base = (string) cfg('private_dir', '/var/www/private/sanatecdiving');
+    $base = private_dir();
     $path = $base . '/' . ltrim((string) $rel, '/');
 
     return is_file($path) ? $path : null;

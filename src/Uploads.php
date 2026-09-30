@@ -20,7 +20,7 @@ const UPLOAD_TYPES = ['application/pdf' => 'pdf', 'image/jpeg' => 'jpg', 'image/
 
 function uploads_dir(): string
 {
-    return rtrim((string) cfg('uploads_dir', cfg('private_dir', '/var/www/private/sanatecdiving') . '/uploads'), '/');
+    return rtrim((string) cfg('uploads_dir', private_dir() . '/uploads'), '/');
 }
 
 /** Absolute path for a stored relative path, refusing anything that escapes the directory. */

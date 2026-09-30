@@ -6,6 +6,18 @@ be working it out from first principles.
 Nothing in this file names a bucket, an account number or a credential. Where
 one is needed it says where to find it.
 
+## The private directory
+
+Everything the site keeps outside the document root lives in one place:
+`/srv/sanatecdiving.com` — `config.php`, `forms/` (the source PDFs the online
+forms were transcribed from) and `uploads/` (signatures, completed PDFs,
+medical letters, scans, photos, logos, cached preview cards). The path is the
+project-wide constant `SANATEC_PRIVATE_DIR` in `src/bootstrap.php`; set the
+`SANATEC_PRIVATE_DIR` environment variable to move it, or set `private_dir`
+(and optionally `uploads_dir`) in `config.php`. It moved there from
+`/var/www/private/sanatecdiving` on 2026-09-30; the old path is still tried
+for the config file so an unmoved install keeps working.
+
 ## Tests
 
 ```sh
@@ -75,7 +87,7 @@ having to remember to add it. MySQL binary logging is on, so point-in-time
 recovery between nightly dumps is possible.
 
 **Uploaded files are not in the nightly dump.** Signatures, medical PDFs, dive
-photos and team photos live under `/var/www/private/sanatecdiving/uploads` and
+photos and team photos live under `/srv/sanatecdiving.com/uploads` and
 the database only holds their paths. Until that directory is synced to S3 as
 well, a restore brings back the records but not the files. Open item.
 

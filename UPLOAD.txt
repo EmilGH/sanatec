@@ -19,7 +19,8 @@ FIRST-TIME SETUP
 1. Create a database and a user for it.
 
 2. Create a config file OUTSIDE the public folder, at
-   /var/www/private/sanatecdiving/config.php, returning:
+   /srv/sanatecdiving.com/config.php (the project-wide private directory,
+   SANATEC_PRIVATE_DIR in src/bootstrap.php), returning:
 
        <?php
        return [

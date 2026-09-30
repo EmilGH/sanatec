@@ -1,5 +1,5 @@
 # Local development configuration. The real one lives outside the document root
-# at /var/www/private/sanatecdiving/config.php and is never committed.
+# at /srv/sanatecdiving.com/config.php (SANATEC_PRIVATE_DIR) and is never committed.
 config.local.php
 
 # Editor and OS noise

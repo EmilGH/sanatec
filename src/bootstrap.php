@@ -22,6 +22,14 @@ mb_internal_encoding('UTF-8');
 defined('SANATEC_ROOT') || define('SANATEC_ROOT', __DIR__ . '/..');
 
 /**
+ * The private directory: everything the site keeps outside the document
+ * root — config.php, the source form PDFs, and every upload. One place,
+ * set here or by the SANATEC_PRIVATE_DIR environment variable; the config
+ * file may still override 'private_dir' and 'uploads_dir' individually.
+ */
+defined('SANATEC_PRIVATE_DIR') || define('SANATEC_PRIVATE_DIR', rtrim((string) (getenv('SANATEC_PRIVATE_DIR') ?: '/srv/sanatecdiving.com'), '/'));
+
+/**
  * Load configuration from outside the document root.
  *
  * The site is served directly from a git checkout, so credentials must not live
@@ -32,7 +40,8 @@ function cfg_load(): array
 {
     $candidates = array_filter([
         getenv('SANATEC_CONFIG') ?: null,
-        '/var/www/private/sanatecdiving/config.php',
+        SANATEC_PRIVATE_DIR . '/config.php',
+        '/var/www/private/sanatecdiving/config.php',   // where it lived until 2026-09-30
         SANATEC_ROOT . '/../.sanatec-config.php',
         SANATEC_ROOT . '/config.local.php',
     ]);
@@ -74,6 +83,12 @@ function cfg(?string $key = null, mixed $default = null): mixed
     $config = cfg_all();
 
     return $key === null ? $config : ($config[$key] ?? $default);
+}
+
+/** The private directory in force: the config's 'private_dir' if set, else the project-wide default. */
+function private_dir(): string
+{
+    return rtrim((string) cfg('private_dir', SANATEC_PRIVATE_DIR), '/');
 }
 
 /** Shared PDO handle. Exceptions on error, real prepared statements, utf8mb4. */
