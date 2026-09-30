@@ -239,6 +239,13 @@ test('a referral link renders the home page with the affiliate strip and sets th
     has('Beach hotel in Tulum.', $html);
     is_same('astrid-hotel', $_COOKIE[AFFILIATE_COOKIE] ?? null, 'the cookie is set for the rest of the visit');
     is_same(1, affiliate_stats($id)['visits'], 'the visit is logged');
+
+    $_GET = ['lang' => 'en', 'ref' => 'none'];
+    ob_start();
+    require SANATEC_ROOT . '/index.php';
+    $html = (string) ob_get_clean();
+    has_not('Welcome, guests of', $html, '?ref=none forgets the affiliate');
+    is_true(!isset($_COOKIE[AFFILIATE_COOKIE]));
     $_GET = [];
     $_COOKIE = [];
 });

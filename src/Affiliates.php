@@ -210,6 +210,15 @@ function affiliate_link(array $a, string $lang = 'en'): string
 function affiliate_capture(): ?array
 {
     $ref = (string) ($_GET['ref'] ?? '');
+    // ?ref=none (or /a/none) forgets the affiliate — for testing, or a visitor who wants out.
+    if (in_array(strtolower($ref), ['none', 'off', 'clear'], true)) {
+        if (!headers_sent()) {
+            setcookie(AFFILIATE_COOKIE, '', ['expires' => time() - 3600, 'path' => '/', 'secure' => is_https(), 'httponly' => true, 'samesite' => 'Lax']);
+        }
+        unset($_COOKIE[AFFILIATE_COOKIE]);
+
+        return null;
+    }
     if ($ref !== '') {
         $a = affiliate_find_by_code($ref);
         if ($a !== null) {
