@@ -142,11 +142,11 @@ test('the shop roles save, and business info is its own permission', function ()
     db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
     $admin = make_admin('Root Admin');
     $m = team_save(null, [
-        'name' => 'Tank Tech', 'is_cavern_guide' => 1, 'is_shop_help' => 1, 'is_equipment_tech' => 1, 'is_gas_tech' => 1,
+        'name' => 'Tank Tech', 'is_cavern_guide' => 1, 'is_shop_help' => 1, 'is_equipment_tech' => 1, 'is_excursion_assistant' => 1, 'is_gas_tech' => 1,
         'can_manage_business' => 1, 'started_on' => '15/03/2024', 'ended_on' => '',
     ], actor_for($admin));
     $t = team_find($m);
-    foreach (['is_cavern_guide', 'is_shop_help', 'is_equipment_tech', 'is_gas_tech', 'can_manage_business'] as $flag) {
+    foreach (['is_cavern_guide', 'is_shop_help', 'is_equipment_tech', 'is_excursion_assistant', 'is_gas_tech', 'can_manage_business'] as $flag) {
         is_same(1, (int) $t[$flag], $flag);
     }
     is_same(0, (int) $t['can_manage_catalog'], 'business info no longer implies the catalogue');

@@ -115,7 +115,7 @@ function team_roles_card(array $row, bool $actorIsAdmin, bool $isSelf): void
               <label class="form-check-label" for="<?= $flag ?>"><?= e($label) ?></label></div>
           <?php endforeach; ?>
           <div class="form-check mt-3"><input class="form-check-input" type="checkbox" id="is_system_admin" name="is_system_admin" value="1" <?= !empty($row['is_system_admin']) ? 'checked' : '' ?> <?= $actorIsAdmin && !$isSelf ? '' : 'disabled' ?>>
-            <label class="form-check-label" for="is_system_admin">System Administrator <span class="text-secondary small d-block">Everything, always. Only an administrator can grant this.</span></label></div>
+            <label class="form-check-label" for="is_system_admin">System Administrator</label></div>
           <?php if (!empty($row['is_system_admin']) && !($actorIsAdmin && !$isSelf)): ?><input type="hidden" name="is_system_admin" value="1"><?php endif; ?>
         </div>
       </div>
@@ -131,14 +131,15 @@ function team_profile_card(array $row): void
     <div class="card mb-3"><div class="card-body">
       <h2 class="h6 text-aqua text-uppercase mb-1">Public profile</h2>
       <p class="text-secondary small mb-3">Shown on the website only while switched on. Off by default.</p>
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" role="switch" id="profile_public" name="profile_public" value="1" <?= !empty($row['profile_public']) ? 'checked' : '' ?>>
-        <label class="form-check-label" for="profile_public">Show my profile on the site</label>
-      </div>
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" role="switch" id="show_whatsapp_public" name="show_whatsapp_public" value="1" <?= !empty($row['show_whatsapp_public']) ? 'checked' : '' ?>>
-        <label class="form-check-label" for="show_whatsapp_public">Show my WhatsApp number on my public profile</label>
-        <div class="form-text">Uses the mobile marked WhatsApp-capable under contact channels. Divers can message directly.</div>
+      <div class="d-flex flex-wrap gap-4 mb-3">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="profile_public" name="profile_public" value="1" <?= !empty($row['profile_public']) ? 'checked' : '' ?>>
+          <label class="form-check-label" for="profile_public">Show Profile on Team Page</label>
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" role="switch" id="show_whatsapp_public" name="show_whatsapp_public" value="1" <?= !empty($row['show_whatsapp_public']) ? 'checked' : '' ?>>
+          <label class="form-check-label" for="show_whatsapp_public">Show WhatsApp on Team Page</label>
+        </div>
       </div>
       <div class="row g-3">
         <div class="col-12 col-md-6"><label class="form-label" for="title_en">Title <span class="text-aqua small">EN</span></label>

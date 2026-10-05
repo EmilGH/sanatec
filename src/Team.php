@@ -27,6 +27,7 @@ const TEAM_ROLES = [
     'is_divemaster'     => 'Divemaster',
     'is_driver'         => 'Driver',
     'is_equipment_tech' => 'Equipment Technician',
+    'is_excursion_assistant' => 'Excursion Assistant',
     'is_gas_tech'       => 'Gas Prep & Tank Tech',
     'is_instructor'     => 'Instructor',
     'is_shop_help'      => 'Shop Help',
