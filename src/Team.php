@@ -418,6 +418,9 @@ function team_credential_save(int $teamId, ?int $credId, array $in, ?int $verifi
     if (!empty($in['verified']) && $verifiedByTeamId !== null) {
         $fields['verified_by'] = $verifiedByTeamId;
         $fields['verified_at'] = date('Y-m-d H:i:s');
+    } elseif ($credId !== null && empty($in['verified'])) {
+        $fields['verified_by'] = null;                     // an edit that unticks "seen" withdraws it
+        $fields['verified_at'] = null;
     }
 
     if ($credId === null) {

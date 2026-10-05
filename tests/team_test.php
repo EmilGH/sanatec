@@ -184,3 +184,18 @@ test('tip handles are cleaned, stored and shown as links on the public profile',
     team_save_self(actor_for($m), ['name' => 'Tipped Guide', 'profile_public' => 1, 'tip_mercadopago' => 'tippedguide']);
     is_same('https://link.mercadopago.com.mx/tippedguide', team_public_list('tipped-guide')[0]['tips']['mercadopago'][2]);
 });
+
+test('a credential can be edited in place, and unticking "seen" withdraws the verification', function (): void {
+    db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
+    $admin = make_admin('Root Admin');
+    $id = team_credential_save($admin, null, ['kind' => 'technical', 'agency' => 'TDI', 'title' => 'Full Cave', 'number' => '1', 'expires_on' => '2030-01-01', 'verified' => 1], $admin);
+    team_credential_save($admin, $id, ['kind' => 'professional', 'agency' => 'PADI', 'title' => 'Cave Instructor', 'number' => '2', 'expires_on' => '31/12/2031'], $admin);
+    $c = team_credentials($admin)[0];
+    is_same([$id, 'professional', 'PADI', 'Cave Instructor', '2', '2031-12-31'], [(int) $c['id'], $c['kind'], $c['agency'], $c['title'], $c['number'], $c['expires_on']]);
+    is_same(null, $c['verified_at'], 'the edit did not tick seen, so it is no longer verified');
+    is_same(1, count(team_credentials($admin)), 'edited, not duplicated');
+    // Another member's credential cannot be edited through this member.
+    $other = make_admin('Other Admin');
+    team_credential_save($other, $id, ['kind' => 'technical', 'agency' => 'GUE', 'title' => 'Hijack', 'expires_on' => '2030-01-01'], $other);
+    is_same('Cave Instructor', team_credentials($admin)[0]['title']);
+});
