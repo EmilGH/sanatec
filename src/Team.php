@@ -395,7 +395,13 @@ function team_credential_save(int $teamId, ?int $credId, array $in, ?int $verifi
     if ($agency === null) {
         throw new InvalidArgumentException('Pick an agency from the list.');
     }
-    $title = trim((string) ($in['title'] ?? ''));
+    // The title comes from the certification list; "other" (or no level at
+    // all, for callers that still pass a bare title) means the typed text.
+    $level = (string) ($in['level'] ?? '');
+    if ($level !== '' && !isset(certification_levels()[$level])) {
+        throw new InvalidArgumentException('Pick a certification from the list.');
+    }
+    $title = $level !== '' && $level !== 'other' ? certification_name($level) : trim((string) ($in['title'] ?? ''));
     if ($title === '') {
         throw new InvalidArgumentException('Give the credential a title — what the card says.');
     }
@@ -408,6 +414,7 @@ function team_credential_save(int $teamId, ?int $credId, array $in, ?int $verifi
 
     $fields = [
         'kind'          => $kind,
+        'level'         => $level !== '' ? $level : null,
         'agency'        => $agency,
         'title'         => $title,
         'number'        => trim((string) ($in['number'] ?? '')) ?: null,

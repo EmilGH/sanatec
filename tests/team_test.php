@@ -189,11 +189,14 @@ test('a credential can be edited in place, and unticking "seen" withdraws the ve
     db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
     $admin = make_admin('Root Admin');
     $id = team_credential_save($admin, null, ['kind' => 'technical', 'agency' => 'TDI', 'title' => 'Full Cave', 'number' => '1', 'expires_on' => '2030-01-01', 'verified' => 1], $admin);
-    team_credential_save($admin, $id, ['kind' => 'professional', 'agency' => 'PADI', 'title' => 'Cave Instructor', 'number' => '2', 'expires_on' => '31/12/2031'], $admin);
+    team_credential_save($admin, $id, ['kind' => 'professional', 'agency' => 'PADI', 'level' => 'cave_instructor', 'title' => 'ignored', 'number' => '2', 'expires_on' => '31/12/2031'], $admin);
     $c = team_credentials($admin)[0];
-    is_same([$id, 'professional', 'PADI', 'Cave Instructor', '2', '2031-12-31'], [(int) $c['id'], $c['kind'], $c['agency'], $c['title'], $c['number'], $c['expires_on']]);
+    is_same([$id, 'professional', 'PADI', 'cave_instructor', 'Cave Instructor', '2', '2031-12-31'], [(int) $c['id'], $c['kind'], $c['agency'], $c['level'], $c['title'], $c['number'], $c['expires_on']]);
+    throws(static fn () => team_credential_save($admin, $id, ['kind' => 'professional', 'agency' => 'PADI', 'level' => 'astronaut', 'expires_on' => '2031-12-31'], $admin), 'a level off the list');
+    $o = team_credential_save($admin, null, ['kind' => 'recreational', 'agency' => 'PADI', 'level' => 'other', 'title' => 'Peak Performance Buoyancy'], $admin);
+    is_same(['other', 'Peak Performance Buoyancy'], [team_credentials($admin)[1]['level'], team_credentials($admin)[1]['title']], '"other" keeps the typed title');
     is_same(null, $c['verified_at'], 'the edit did not tick seen, so it is no longer verified');
-    is_same(1, count(team_credentials($admin)), 'edited, not duplicated');
+    is_same(2, count(team_credentials($admin)), 'the edit did not duplicate; only the "other" card was added');
     // Another member's credential cannot be edited through this member.
     $other = make_admin('Other Admin');
     team_credential_save($other, $id, ['kind' => 'technical', 'agency' => 'GUE', 'title' => 'Hijack', 'expires_on' => '2030-01-01'], $other);

@@ -251,7 +251,7 @@ function team_credentials_card(int $teamId): void
             <td class="text-nowrap"><?= $c['expires_on'] ? e($c['expires_on']) . ' <span class="small text-secondary">(' . ((int) $days < 0 ? abs((int) $days) . 'd ago' : (int) $days . 'd') . ')</span>' : '<span class="text-secondary">does not expire</span>' ?></td>
             <td class="text-end text-nowrap">
               <button class="btn btn-sm btn-outline-secondary" type="button" title="Edit" data-cred-edit
-                data-id="<?= (int) $c['id'] ?>" data-agency="<?= e($c['agency']) ?>" data-kind="<?= e($c['kind']) ?>" data-title="<?= e($c['title']) ?>" data-number="<?= e((string) $c['number']) ?>"
+                data-id="<?= (int) $c['id'] ?>" data-agency="<?= e($c['agency']) ?>" data-kind="<?= e($c['kind']) ?>" data-level="<?= e((string) ($c['level'] ?: 'other')) ?>" data-title="<?= e($c['title']) ?>" data-number="<?= e((string) $c['number']) ?>"
                 data-expires="<?= $c['expires_on'] ? e(date('d/m/Y', strtotime($c['expires_on']))) : '' ?>" data-verified="<?= $c['verified_at'] ? '1' : '' ?>"><i class="fa-solid fa-pen"></i></button>
               <form method="post" class="d-inline" onsubmit="return confirm('Delete this credential?')"><?= csrf_field() ?><input type="hidden" name="action" value="cred_delete"><input type="hidden" name="cred_id" value="<?= (int) $c['id'] ?>">
                 <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="fa-solid fa-xmark"></i></button></form>
@@ -262,36 +262,47 @@ function team_credentials_card(int $teamId): void
       <?php endif; ?>
       <form method="post" class="row g-2 align-items-end" id="cred-form">
         <?= csrf_field() ?><input type="hidden" name="action" value="cred_save"><input type="hidden" name="cred_id" id="cred-id" value="">
-        <div class="col-6 col-md-2"><label class="form-label small">Agency</label>
+        <div class="col-6 col-md-2"><label class="form-label small" for="cred-agency">Agency</label>
           <?php ui_agency_select('agency', null, ['empty' => '', 'id' => 'cred-agency']); ?></div>
-        <div class="col-6 col-md-2"><label class="form-label small">Type</label>
+        <div class="col-6 col-md-2"><label class="form-label small" for="cred-kind">Type</label>
           <select class="form-select form-control" name="kind" id="cred-kind"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
-        <div class="col-12 col-md-3"><label class="form-label small">Title</label><input class="form-control" name="title" id="cred-title" placeholder="Open Water Scuba Instructor" required></div>
-        <div class="col-6 col-md-2"><label class="form-label small">Number</label><input class="form-control" name="number" id="cred-number"></div>
-        <div class="col-6 col-md-2" id="cred-expiry"><?php ui_date_field('expires_on', null, 'Expiration', false, '', ['id' => 'cred-expires', 'label_class' => 'small']); ?></div>
-        <div class="col-12 col-md-auto d-flex gap-2 align-items-center ms-md-auto">
-          <div class="form-check"><input class="form-check-input" type="checkbox" id="cr_verified" name="verified" value="1"><label class="form-check-label small" for="cr_verified">Seen</label></div>
+        <div class="col-12 col-md-4"><label class="form-label small" for="cred-level">Certification</label>
+          <?php ui_certification_select('level', null, ['empty' => 'Choose…', 'id' => 'cred-level', 'required' => true]); ?></div>
+        <div class="col-12 col-md-4" id="cred-title-box"><label class="form-label small" for="cred-title">Title</label><input class="form-control" name="title" id="cred-title" placeholder="As the card says"></div>
+        <div class="col-6 col-md-3"><label class="form-label small" for="cred-number">Number</label><input class="form-control" name="number" id="cred-number"></div>
+        <div class="col-6 col-md-3" id="cred-expiry"><?php ui_date_field('expires_on', null, 'Expiration', false, '', ['id' => 'cred-expires', 'label_class' => 'small']); ?></div>
+        <div class="col-12 col-md-6 d-flex gap-3 align-items-center justify-content-md-end" style="min-height:48px">
+          <div class="form-check mb-0"><input class="form-check-input" type="checkbox" id="cr_verified" name="verified" value="1"><label class="form-check-label small" for="cr_verified">Seen</label></div>
           <a href="#" class="small text-secondary d-none" id="cred-cancel">Cancel</a>
-          <button class="btn btn-sm btn-aqua ms-auto" type="submit" id="cred-submit">Add</button>
+          <button class="btn btn-sm btn-aqua ms-auto ms-md-0" type="submit" id="cred-submit">Add</button>
         </div>
       </form>
       <script>
       // Recreational cards do not expire: hide the date and clear it. The
       // server enforces the same rule; this just keeps the form honest.
+      // Picking a certification suggests the type; "Other" opens a title box.
       // Edit loads a row into this same form; Cancel puts it back to "Add".
       (function () {
         var form = document.getElementById('cred-form'), kind = document.getElementById('cred-kind'), box = document.getElementById('cred-expiry');
         var $ = function (id) { return document.getElementById(id); };
-        function sync() { var rec = kind.value === 'recreational'; box.style.display = rec ? 'none' : ''; box.querySelector('input').required = !rec; if (rec) box.querySelector('input').value = ''; }
+        var kinds = <?= json_encode(array_map(static fn (array $c): string => $c[3], certification_levels())) ?>;
+        var typeFor = { technical: 'technical', professional: 'professional', safety: 'technical' };
+        function sync() {
+          var rec = kind.value === 'recreational'; box.style.display = rec ? 'none' : ''; box.querySelector('input').required = !rec; if (rec) box.querySelector('input').value = '';
+          var other = $('cred-level').value === 'other' || $('cred-level').value === '';
+          $('cred-title-box').style.display = other ? '' : 'none'; $('cred-title').required = $('cred-level').value === 'other';
+        }
         function reset() { form.reset(); $('cred-id').value = ''; $('cred-submit').textContent = 'Add'; $('cred-cancel').classList.add('d-none'); sync(); }
-        kind.addEventListener('change', sync); sync();
+        kind.addEventListener('change', sync);
+        $('cred-level').addEventListener('change', function () { var k = kinds[this.value]; if (k) { kind.value = typeFor[k] || 'recreational'; } sync(); });
+        sync();
         document.querySelectorAll('[data-cred-edit]').forEach(function (b) {
           b.addEventListener('click', function () {
             var d = b.dataset;
-            $('cred-id').value = d.id; $('cred-agency').value = d.agency; kind.value = d.kind; $('cred-title').value = d.title;
+            $('cred-id').value = d.id; $('cred-agency').value = d.agency; kind.value = d.kind; $('cred-level').value = d.level; $('cred-title').value = d.level === 'other' ? d.title : '';
             $('cred-number').value = d.number; $('cred-expires').value = d.expires; $('cr_verified').checked = d.verified === '1';
             $('cred-submit').textContent = 'Save changes'; $('cred-cancel').classList.remove('d-none'); sync();
-            form.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('cred-title').focus();
+            form.scrollIntoView({ behavior: 'smooth', block: 'center' }); $('cred-level').focus();
           });
         });
         $('cred-cancel').addEventListener('click', function (e) { e.preventDefault(); reset(); });
