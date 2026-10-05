@@ -85,6 +85,15 @@ $langNames = ['en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'fr' => 
         <?php if ($m['whatsapp']): ?>
         <div class="st-actions"><a class="st-btn st-btn--primary" href="https://wa.me/<?= e(ltrim($m['whatsapp'], '+')) ?>?text=<?= rawurlencode(t('team_wa_prefill', $lang)) ?>" rel="noopener"><?= ui_icon('whatsapp') ?><?= e(strtr(t('team_message', $lang), ['{name}' => explode(' ', trim($m['name']))[0]])) ?></a></div>
         <?php endif; ?>
+        <?php if ($m['tips'] !== []): ?>
+        <p class="st-note" style="margin:24px 0 0"><?= e(strtr(t('team_tip', $lang), ['{name}' => explode(' ', trim($m['name']))[0]])) ?></p>
+        <div class="st-actions" style="margin-top:8px">
+          <?php foreach ($m['tips'] as [$label, $handle, $url]): ?>
+            <?php if ($url !== null): ?><a class="st-btn st-btn--secondary st-btn--sm" href="<?= e($url) ?>" rel="noopener" target="_blank"><?= ui_icon('tip') ?><?= e($label) ?></a>
+            <?php else: ?><span class="st-btn st-btn--secondary st-btn--sm"><?= ui_icon('tip') ?><?= e($label) ?> · <?= e($handle) ?></span><?php endif; ?>
+          <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
   </section>

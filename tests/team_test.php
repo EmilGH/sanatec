@@ -159,3 +159,28 @@ test('the shop roles save, and business info is its own permission', function ()
     team_credential_save($m, null, ['kind' => 'technical', 'agency' => 'TDI', 'title' => 'Full Cave', 'expires_on' => '31/12/2027'], $admin);
     is_same('2027-12-31', team_credentials($m)[0]['expires_on']);
 });
+
+test('tip handles are cleaned, stored and shown as links on the public profile', function (): void {
+    db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
+    $admin = make_admin('Root Admin');
+    $m = team_save(null, [
+        'name' => 'Tipped Guide', 'profile_public' => 1,
+        'tip_paypal' => 'https://paypal.me/TippedGuide/', 'tip_venmo' => '@tipped guide', 'tip_zelle' => ' guide@example.com ',
+        'tip_wise' => '', 'tip_bitcoin' => 'nope',
+    ], actor_for($admin));
+    $tips = team_tip_links(team_find($m)['tip_handles']);
+    is_same(['zelle', 'paypal', 'venmo'], array_keys($tips), 'only listed services with a handle, in list order');
+    is_same('https://paypal.me/TippedGuide', $tips['paypal'][2], 'a pasted link is reduced to the name');
+    is_same('https://venmo.com/u/tippedguide', $tips['venmo'][2], 'the @ and spaces go');
+    is_same(null, $tips['zelle'][2], 'Zelle has no public page');
+    is_same('guide@example.com', $tips['zelle'][1]);
+
+    // A save that does not mention tips keeps them; a save that clears them clears them.
+    team_save($m, ['name' => 'Tipped Guide', 'profile_public' => 1], actor_for($admin));
+    is_same(3, count(team_tip_links(team_find($m)['tip_handles'])));
+    team_save_self(actor_for($m), ['name' => 'Tipped Guide', 'tip_paypal' => '', 'tip_venmo' => '', 'tip_zelle' => '']);
+    is_same(null, team_find($m)['tip_handles']);
+
+    team_save_self(actor_for($m), ['name' => 'Tipped Guide', 'profile_public' => 1, 'tip_mercadopago' => 'tippedguide']);
+    is_same('https://link.mercadopago.com.mx/tippedguide', team_public_list('tipped-guide')[0]['tips']['mercadopago'][2]);
+});

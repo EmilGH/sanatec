@@ -20,27 +20,90 @@ require_once __DIR__ . '/People.php';
  *   - the last active system administrator cannot be deactivated or demoted
  */
 
+/** Operating roles, in the order the form lists them (alphabetical). */
 const TEAM_ROLES = [
-    'is_instructor'     => 'Instructor',
-    'is_divemaster'     => 'Divemaster',
     'is_cave_guide'     => 'Cave Guide',
     'is_cavern_guide'   => 'Cavern Guide',
+    'is_divemaster'     => 'Divemaster',
     'is_driver'         => 'Driver',
-    'is_shop_help'      => 'Shop Help',
-    'is_equipment_tech' => 'Equipment Tech.',
+    'is_equipment_tech' => 'Equipment Technician',
     'is_gas_tech'       => 'Gas Prep & Tank Tech',
+    'is_instructor'     => 'Instructor',
+    'is_shop_help'      => 'Shop Help',
 ];
 
-/** What someone may open in the admin. Business info is the settings page. */
+/** What someone may open in the admin (alphabetical). Business info is the settings page. */
 const TEAM_PERMISSIONS = [
+    'can_manage_affiliates' => 'Affiliates',
+    'can_manage_business'   => 'Business Info',
+    'can_manage_catalog'    => 'Catalog',
     'can_manage_customers'  => 'Customers',
     'can_manage_excursions' => 'Excursions',
-    'can_manage_training'   => 'Training',
-    'can_manage_catalog'    => 'Catalog',
-    'can_manage_business'   => 'Business Info',
     'can_manage_team'       => 'Team',
-    'can_manage_affiliates' => 'Affiliates',
+    'can_manage_training'   => 'Training',
 ];
+
+/**
+ * Services a guide can take tips through: label, link pattern (null when the
+ * service has no public page and the handle itself is shown), and a hint.
+ */
+const TIP_SERVICES = [
+    'zelle'       => ['Zelle',        null,                                   'Email or US mobile registered with Zelle'],
+    'paypal'      => ['PayPal',       'https://paypal.me/%s',                 'Your PayPal.Me name'],
+    'venmo'       => ['Venmo',        'https://venmo.com/u/%s',               'Venmo username, without the @'],
+    'revolut'     => ['Revolut',      'https://revolut.me/%s',                'Your Revolut.Me name'],
+    'wise'        => ['Wise',         'https://wise.com/pay/me/%s',           'Your Wise pay link name'],
+    'mercadopago' => ['Mercado Pago', 'https://link.mercadopago.com.mx/%s',   'Your Mercado Pago link name'],
+];
+
+/** Clean a handle as typed: drop a pasted link, a leading @, and spaces. */
+function tip_handle_clean(string $service, string $raw): ?string
+{
+    $h = trim($raw);
+    if ($h === '') {
+        return null;
+    }
+    if ($service !== 'zelle') {
+        $h = rtrim($h, '/');
+        if (str_contains($h, '/')) {
+            $h = (string) substr($h, strrpos($h, '/') + 1);
+        }
+        $h = ltrim($h, '@');
+        $h = preg_replace('/\s+/', '', $h) ?? '';
+    }
+
+    return $h !== '' && mb_strlen($h) <= 120 ? $h : null;
+}
+
+/** Tips from a form: only the services on the list, only what cleans up to something. */
+function tip_handles_from_input(array $in): array
+{
+    $out = [];
+    foreach (TIP_SERVICES as $code => $meta) {
+        $h = tip_handle_clean($code, (string) ($in['tip_' . $code] ?? ''));
+        if ($h !== null) {
+            $out[$code] = $h;
+        }
+    }
+
+    return $out;
+}
+
+/** [code => [label, handle, url|null]] for display, from the stored JSON. */
+function team_tip_links(?string $json): array
+{
+    $stored = is_string($json) ? (json_decode($json, true) ?: []) : [];
+    $out = [];
+    foreach (TIP_SERVICES as $code => [$label, $pattern]) {
+        $h = $stored[$code] ?? null;
+        if (!is_string($h) || $h === '') {
+            continue;
+        }
+        $out[$code] = [$label, $h, $pattern !== null ? sprintf($pattern, rawurlencode($h)) : null];
+    }
+
+    return $out;
+}
 
 // Agencies: see src/Lists.php (agencies()); CREDENTIAL_AGENCIES is defined there.
 
@@ -185,6 +248,10 @@ function team_save(?int $teamId, array $in, array $actor): int
         $languages = isset($in['languages'])
             ? json_encode(team_parse_languages((string) $in['languages']))
             : ($existing['languages'] ?? null);
+        $tipsGiven = array_intersect_key($in, array_flip(array_map(static fn (string $c): string => 'tip_' . $c, array_keys(TIP_SERVICES)))) !== [];
+        $tips = $tipsGiven
+            ? (($t = tip_handles_from_input($in)) !== [] ? json_encode($t) : null)
+            : ($existing['tip_handles'] ?? null);
 
         $fields = $flags + [
             'is_system_admin' => $admin,
@@ -201,6 +268,7 @@ function team_save(?int $teamId, array $in, array $actor): int
             'bio_en'          => trim((string) ($in['bio_en'] ?? '')) ?: null,
             'bio_es'          => trim((string) ($in['bio_es'] ?? '')) ?: null,
             'languages'       => $languages,
+            'tip_handles'     => $tips,
             'sort_order'      => (int) ($in['sort_order'] ?? ($existing['sort_order'] ?? 0)),
         ];
 
@@ -239,6 +307,7 @@ function team_save_self(array $actor, array $in): void
     $safe = array_intersect_key($in, array_flip([
         'name', 'date_of_birth', 'nationality', 'preferred_language', 'timezone', 'dan_number', 'dan_expires_on',
         'profile_public', 'show_whatsapp_public', 'public_slug', 'title_en', 'title_es', 'bio_en', 'bio_es', 'languages',
+        'tip_zelle', 'tip_paypal', 'tip_venmo', 'tip_revolut', 'tip_wise', 'tip_mercadopago',
     ]));
     // Carry everything else through unchanged.
     foreach (array_merge(array_keys(TEAM_ROLES), array_keys(TEAM_PERMISSIONS), ['is_system_admin', 'is_active', 'job_title', 'started_on', 'ended_on', 'internal_notes', 'sort_order']) as $k) {
@@ -276,7 +345,7 @@ function team_photo_set(int $teamId, ?array $file): void
  */
 function team_public_list(?string $slug = null): array
 {
-    $sql = 'SELECT t.id, t.public_slug, t.title_en, t.title_es, t.bio_en, t.bio_es, t.languages, t.photo_path,
+    $sql = 'SELECT t.id, t.public_slug, t.title_en, t.title_es, t.bio_en, t.bio_es, t.languages, t.tip_handles, t.photo_path,
                    t.is_instructor, t.is_divemaster, t.is_cave_guide, t.is_cavern_guide, t.show_whatsapp_public, p.name,
                    (SELECT cc.value FROM contact_channels cc WHERE cc.person_id = p.id AND cc.kind = "mobile" AND cc.whatsapp_capable = 1
                      ORDER BY cc.is_primary DESC, cc.id LIMIT 1) AS whatsapp
@@ -292,6 +361,7 @@ function team_public_list(?string $slug = null): array
             $r['whatsapp'] = null;
         }
         $r['languages'] = is_string($r['languages']) ? (json_decode($r['languages'], true) ?: []) : [];
+        $r['tips'] = team_tip_links($r['tip_handles']);
         $creds->execute([':t' => $r['id']]);
         $r['credentials'] = array_values(array_unique(array_map(static fn (array $c): string => trim($c['agency'] . ' ' . $c['title']), $creds->fetchAll())));
     }

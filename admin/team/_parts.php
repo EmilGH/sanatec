@@ -61,10 +61,9 @@ function team_identity_card(array $row, bool $self, bool $isSelf = false): void
           <div class="col-6 col-md-4">
             <?php ui_date_field('started_on', $row['started_on'] ?? null, 'Date Started'); ?>
           </div>
-          <div class="col-6 col-md-4 order-md-last">
-            <?php ui_date_field('ended_on', $row['ended_on'] ?? null, 'Date Left'); ?>
-          </div>
-          <div class="col-12 col-md-4 d-flex align-items-end">
+          <?php /* ended_on stays in the database; leaving is not modelled yet, the Active switch covers it. */ ?>
+          <input type="hidden" name="ended_on" value="<?= e((string) ($row['ended_on'] ?? '')) ?>">
+          <div class="col-6 col-md-4 d-flex align-items-end">
             <div class="form-check form-switch mb-2">
               <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" <?= ($row['is_active'] ?? 1) ? 'checked' : '' ?> <?= $isSelf ? 'disabled' : '' ?>>
               <label class="form-check-label" for="is_active">Active — can sign in</label>
@@ -99,24 +98,21 @@ function team_roles_card(array $row, bool $actorIsAdmin, bool $isSelf): void
     <div class="card mb-3"><div class="card-body">
       <h2 class="h6 text-aqua text-uppercase mb-3">Roles and access</h2>
       <div class="row g-4">
-        <div class="col-12 col-md-4">
-          <div class="text-secondary small mb-2">What They Do</div>
+        <div class="col-12 col-md-6">
+          <div class="text-secondary small mb-2">Operating Roles</div>
           <?php foreach (TEAM_ROLES as $flag => $label): ?>
             <div class="form-check"><input class="form-check-input" type="checkbox" id="<?= $flag ?>" name="<?= $flag ?>" value="1" <?= !empty($row[$flag]) ? 'checked' : '' ?>>
               <label class="form-check-label" for="<?= $flag ?>"><?= e($label) ?></label></div>
           <?php endforeach; ?>
         </div>
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-6">
           <div class="text-secondary small mb-2">System Access</div>
           <?php foreach (TEAM_PERMISSIONS as $flag => $label): ?>
             <div class="form-check"><input class="form-check-input" type="checkbox" id="<?= $flag ?>" name="<?= $flag ?>" value="1" <?= !empty($row[$flag]) ? 'checked' : '' ?>>
               <label class="form-check-label" for="<?= $flag ?>"><?= e($label) ?></label></div>
           <?php endforeach; ?>
-        </div>
-        <div class="col-12 col-md-4">
-          <div class="text-secondary small mb-2">Account</div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" id="is_system_admin" name="is_system_admin" value="1" <?= !empty($row['is_system_admin']) ? 'checked' : '' ?> <?= $actorIsAdmin && !$isSelf ? '' : 'disabled' ?>>
-            <label class="form-check-label" for="is_system_admin">System administrator <span class="text-secondary small d-block">Everything, always. Only an administrator can grant this.</span></label></div>
+          <div class="form-check mt-3"><input class="form-check-input" type="checkbox" id="is_system_admin" name="is_system_admin" value="1" <?= !empty($row['is_system_admin']) ? 'checked' : '' ?> <?= $actorIsAdmin && !$isSelf ? '' : 'disabled' ?>>
+            <label class="form-check-label" for="is_system_admin">System Administrator <span class="text-secondary small d-block">Everything, always. Only an administrator can grant this.</span></label></div>
           <?php if (!empty($row['is_system_admin']) && !($actorIsAdmin && !$isSelf)): ?><input type="hidden" name="is_system_admin" value="1"><?php endif; ?>
         </div>
       </div>
@@ -127,6 +123,7 @@ function team_roles_card(array $row, bool $actorIsAdmin, bool $isSelf): void
 function team_profile_card(array $row): void
 {
     $langs = is_string($row['languages'] ?? null) ? implode(', ', json_decode($row['languages'], true) ?: []) : '';
+    $tips = is_string($row['tip_handles'] ?? null) ? (json_decode($row['tip_handles'], true) ?: []) : [];
     ?>
     <div class="card mb-3"><div class="card-body">
       <h2 class="h6 text-aqua text-uppercase mb-1">Public profile</h2>
@@ -155,6 +152,20 @@ function team_profile_card(array $row): void
         <div class="col-12 col-md-6"><label class="form-label" for="public_slug">Profile address</label>
           <div class="input-group"><span class="input-group-text">/team/</span>
             <input class="form-control" id="public_slug" name="public_slug" value="<?= e((string) ($row['public_slug'] ?? '')) ?>" placeholder="made from the name if blank"></div></div>
+      </div>
+      <h3 class="h6 text-aqua text-uppercase mt-4 mb-1">Tips</h3>
+      <p class="text-secondary small mb-3">Where divers can send a tip. Each one you fill in becomes a button on your public profile; leave the rest blank.</p>
+      <div class="row g-3">
+        <?php foreach (TIP_SERVICES as $code => [$label, $pattern, $hint]): ?>
+        <div class="col-6 col-md-4"><label class="form-label" for="tip_<?= e($code) ?>"><?= e($label) ?></label>
+          <?php if ($pattern !== null): ?>
+          <div class="input-group"><span class="input-group-text small"><?= e(preg_replace('#^https://(www\.)?#', '', str_replace('%s', '', $pattern)) ?? '') ?></span>
+            <input class="form-control" id="tip_<?= e($code) ?>" name="tip_<?= e($code) ?>" value="<?= e((string) ($tips[$code] ?? '')) ?>" autocomplete="off" autocapitalize="off"></div>
+          <?php else: ?>
+          <input class="form-control" id="tip_<?= e($code) ?>" name="tip_<?= e($code) ?>" value="<?= e((string) ($tips[$code] ?? '')) ?>" autocomplete="off" placeholder="email or +1 mobile">
+          <?php endif; ?>
+          <div class="form-text"><?= e($hint) ?></div></div>
+        <?php endforeach; ?>
       </div>
     </div></div>
     <?php
