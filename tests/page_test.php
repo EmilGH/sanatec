@@ -249,3 +249,25 @@ test('a referral link renders the home page with the affiliate strip and sets th
     $_GET = [];
     $_COOKIE = [];
 });
+
+test('the diver sign-in page renders through the shared shell to the closing tag', function (): void {
+    // The shell footer is the last thing a page prints; a fatal there still
+    // leaves a 200 with the top of the page, so probing status codes misses it.
+    require_once SANATEC_ROOT . '/src/Auth.php';
+    require_once SANATEC_ROOT . '/src/Csrf.php';
+    require_once SANATEC_ROOT . '/admin/_layout.php';
+    require_once SANATEC_ROOT . '/src/LoginPage.php';
+    $_GET = [];
+    $_POST = [];
+    $_COOKIE = [];
+    $_SERVER['REQUEST_URI'] = '/my/';
+    $_SERVER['REQUEST_METHOD'] = 'GET';
+    $_SESSION = [];                     // whoever an earlier test signed in
+    current_user(true);
+    ob_start();
+    login_page('diver');
+    $html = (string) ob_get_clean();
+    has('Diver Access', $html);
+    has('datefield.js', $html, 'the date picker script is loaded by the shell');
+    is_true(str_ends_with(rtrim($html), '</html>'), 'the page must reach its closing tag');
+});
