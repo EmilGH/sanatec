@@ -89,9 +89,9 @@ function person_create(string $name, array $extra = []): int
     ])), static fn ($v): bool => $v !== '' && $v !== null);
 
     if (isset($fields['nationality'])) {
-        $fields['nationality'] = strtoupper((string) $fields['nationality']);
-        if (!preg_match('/^[A-Z]{2}$/', $fields['nationality'])) {
-            throw new InvalidArgumentException('Nationality is a two-letter country code.');
+        $fields['nationality'] = nationality_code((string) $fields['nationality']);
+        if ($fields['nationality'] === null) {
+            throw new InvalidArgumentException('Nationality must be a country from the list.');
         }
     }
     foreach (['date_of_birth', 'dan_expires_on'] as $d) {
@@ -227,9 +227,9 @@ function person_update(int $id, array $in): void
         }
     }
     if (isset($fields['nationality'])) {
-        $fields['nationality'] = strtoupper((string) $fields['nationality']);
-        if (!preg_match('/^[A-Z]{2}$/', $fields['nationality'])) {
-            throw new InvalidArgumentException('Nationality is a two-letter country code.');
+        $fields['nationality'] = nationality_code((string) $fields['nationality']);
+        if ($fields['nationality'] === null) {
+            throw new InvalidArgumentException('Nationality must be a country from the list.');
         }
     }
     if (isset($fields['timezone']) && !in_array($fields['timezone'], DateTimeZone::listIdentifiers(), true)) {

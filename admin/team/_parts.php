@@ -39,7 +39,7 @@ function team_identity_card(array $row, bool $self): void
         </div>
         <div class="col-6 col-md-3">
           <label class="form-label" for="nationality">Nationality</label>
-          <input class="form-control" id="nationality" name="nationality" value="<?= e((string) ($row['nationality'] ?? '')) ?>" maxlength="2" pattern="[A-Za-z]{2}" placeholder="MX, US, DE" style="text-transform:uppercase">
+          <?php ui_nationality_select('nationality', $row['nationality'] ?? null); ?>
         </div>
         <div class="col-6 col-md-3">
           <label class="form-label" for="dan_number">DAN number</label>
@@ -241,7 +241,7 @@ function team_credentials_card(int $teamId): void
       <form method="post" class="row g-2 align-items-end" id="cred-form">
         <?= csrf_field() ?><input type="hidden" name="action" value="cred_save">
         <div class="col-6 col-md-2"><label class="form-label small">Agency</label>
-          <select class="form-select form-control" name="agency"><?php foreach (CREDENTIAL_AGENCIES as $a): ?><option value="<?= e($a) ?>"><?= e($a) ?></option><?php endforeach; ?></select></div>
+          <?php ui_agency_select('agency', null, ['empty' => '', 'id' => 'cred-agency']); ?></div>
         <div class="col-6 col-md-2"><label class="form-label small">Type</label>
           <select class="form-select form-control" name="kind" id="cred-kind"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
         <div class="col-12 col-md-3"><label class="form-label small">Title</label><input class="form-control" name="title" placeholder="Open Water Scuba Instructor" required></div>

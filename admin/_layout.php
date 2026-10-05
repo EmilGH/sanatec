@@ -257,3 +257,59 @@ function ui_date_field(string $name, ?string $value, string $label, bool $requir
     <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
     <?php
 }
+
+/**
+ * The three reference-list selects, rendered the same way everywhere.
+ * $opts: 'empty' => label of the empty choice ('' for none), 'required', 'class', 'id'.
+ */
+function ui_agency_select(string $name, ?string $value, array $opts = []): void
+{
+    $id = $opts['id'] ?? $name;
+    echo '<select class="form-select form-control ', e($opts['class'] ?? ''), '" id="', e($id), '" name="', e($name), '"', !empty($opts['required']) ? ' required' : '', '>';
+    if (($opts['empty'] ?? '—') !== '') {
+        echo '<option value="">', e($opts['empty'] ?? '—'), '</option>';
+    }
+    foreach (agencies() as $code => $full) {
+        echo '<option value="', e($code), '" title="', e($full), '"', strtoupper((string) $value) === $code ? ' selected' : '', '>', e($code === 'OTHER' ? $full : $code), '</option>';
+    }
+    echo '</select>';
+}
+
+function ui_certification_select(string $name, ?string $value, array $opts = []): void
+{
+    $lang = $opts['lang'] ?? 'en';
+    $id = $opts['id'] ?? $name;
+    echo '<select class="form-select form-control ', e($opts['class'] ?? ''), '" id="', e($id), '" name="', e($name), '"', !empty($opts['required']) ? ' required' : '', '>';
+    if (($opts['empty'] ?? '—') !== '') {
+        echo '<option value="">', e($opts['empty'] ?? '—'), '</option>';
+    }
+    foreach (CERTIFICATION_KINDS as $kind => $kindNames) {
+        $group = array_filter(certification_levels(), static fn (array $c): bool => $c[3] === $kind);
+        if ($group === []) {
+            continue;
+        }
+        echo '<optgroup label="', e($kindNames[$lang === 'es' ? 1 : 0]), '">';
+        foreach ($group as $code => $c) {
+            echo '<option value="', e($code), '"', (string) $value === $code ? ' selected' : '', '>', e($c[$lang === 'es' ? 1 : 0]), '</option>';
+        }
+        echo '</optgroup>';
+    }
+    echo '</select>';
+}
+
+function ui_nationality_select(string $name, ?string $value, array $opts = []): void
+{
+    $lang = $opts['lang'] ?? 'en';
+    $id = $opts['id'] ?? $name;
+    [$first, $rest] = nationalities_ordered($lang);
+    echo '<select class="form-select form-control ', e($opts['class'] ?? ''), '" id="', e($id), '" name="', e($name), '"', !empty($opts['required']) ? ' required' : '', '>';
+    echo '<option value="">', e($opts['empty'] ?? '—'), '</option>';
+    foreach ($first as [$code, $label]) {
+        echo '<option value="', e($code), '"', strtoupper((string) $value) === $code ? ' selected' : '', '>', e($label), '</option>';
+    }
+    echo '<option disabled>──────────</option>';
+    foreach ($rest as [$code, $label]) {
+        echo '<option value="', e($code), '"', strtoupper((string) $value) === $code ? ' selected' : '', '>', e($label), '</option>';
+    }
+    echo '</select>';
+}

@@ -6,7 +6,6 @@ declare(strict_types=1);
 
 require __DIR__ . '/_init.php';
 require_once __DIR__ . '/../src/Customers.php';
-require_once __DIR__ . '/../src/Countries.php';
 
 if (!privacy_consent_current((int) $currentUser['id'])) {
     redirect('/my/consent.php');
@@ -95,11 +94,7 @@ shell_start(tr('Diver Info', 'Mis datos'), $currentUser, 'diver', $showTabs ? ['
       <div class="col-12 col-md-6"><label class="form-label" for="name"><?= e(tr('Full name', 'Nombre completo')) ?></label><input class="form-control" id="name" name="name" value="<?= e($row['name']) ?>" required autocomplete="name"></div>
       <div class="col-7 col-md-3"><?php ui_date_field('date_of_birth', $row['date_of_birth'], tr('Date of birth', 'Fecha de nacimiento'), true); ?></div>
       <div class="col-5 col-md-3"><label class="form-label" for="nationality"><?= e(tr('Nationality', 'Nacionalidad')) ?></label>
-        <select class="form-select form-control" id="nationality" name="nationality"><option value="">—</option>
-          <?php [$first, $rest] = countries_ordered($lang); foreach ($first as [$code, $name]): ?><option value="<?= e($code) ?>" <?= ($row['nationality'] ?? '') === $code ? 'selected' : '' ?>><?= e($name) ?></option><?php endforeach; ?>
-          <option disabled>──────────</option>
-          <?php foreach ($rest as [$code, $name]): ?><option value="<?= e($code) ?>" <?= ($row['nationality'] ?? '') === $code ? 'selected' : '' ?>><?= e($name) ?></option><?php endforeach; ?>
-        </select></div>
+        <?php ui_nationality_select('nationality', $row['nationality'], ['lang' => $lang]); ?></div>
       <div class="col-12 col-md-6"><label class="form-label" for="mobile"><?= e(tr('Mobile (with country code)', 'Móvil (con código de país)')) ?></label><input class="form-control" id="mobile" name="mobile" value="<?= e($primary('mobile')) ?>" placeholder="+52 984 …" autocomplete="tel"></div>
       <div class="col-12 col-md-6"><label class="form-label" for="email"><?= e(tr('Email', 'Correo')) ?></label><input class="form-control" id="email" name="email" value="<?= e($primary('email')) ?>" autocomplete="email"></div>
       <div class="col-12"><label class="form-label" for="local_address"><?= e(tr('Hotel / address in Mexico', 'Hotel / dirección en México')) ?></label><input class="form-control" id="local_address" name="local_address" value="<?= e((string) $row['local_address']) ?>"></div>
@@ -124,9 +119,9 @@ shell_start(tr('Diver Info', 'Mis datos'), $currentUser, 'diver', $showTabs ? ['
     <h2 class="st-card__title mb-3"><?= e(tr('Highest Certification', 'Certificación más alta')) ?></h2>
     <div class="row g-3">
       <div class="col-6 col-md-3"><label class="form-label" for="cert_agency"><?= e(tr('Agency', 'Agencia')) ?></label>
-        <select class="form-select form-control" id="cert_agency" name="cert_agency"><option value=""><?= e(tr('— not certified yet', '— aún sin certificar')) ?></option><?php foreach (CERT_AGENCIES as $a): ?><option <?= ($cert['agency'] ?? '') === $a ? 'selected' : '' ?>><?= e($a) ?></option><?php endforeach; ?></select></div>
+        <?php ui_agency_select('cert_agency', $cert['agency'] ?? null, ['empty' => tr('— not certified yet', '— aún sin certificar')]); ?></div>
       <div class="col-6 col-md-3"><label class="form-label" for="cert_level_code"><?= e(tr('Highest level', 'Nivel más alto')) ?></label>
-        <select class="form-select form-control" id="cert_level_code" name="cert_level_code"><option value="">—</option><?php foreach (CERT_LEVELS as $k => [$l]): ?><option value="<?= $k ?>" <?= ($cert['level_code'] ?? '') === $k ? 'selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></div>
+        <?php ui_certification_select('cert_level_code', $cert['level_code'] ?? null, ['lang' => $lang]); ?></div>
       <div class="col-12 col-md-6"><label class="form-label" for="cert_number"><?= e(tr('Certification number', 'Número de certificación')) ?></label><input class="form-control" id="cert_number" name="cert_number" value="<?= e((string) ($cert['number'] ?? '')) ?>"></div>
       <div class="col-4 col-md-3"><label class="form-label" for="total_dives"><?= e(tr('Total dives', 'Buceos en total')) ?></label><input class="form-control" type="number" min="0" id="total_dives" name="total_dives" value="<?= e((string) $row['total_dives']) ?>"></div>
       <div class="col-4 col-md-3"><label class="form-label" for="dives_last_year"><?= e(tr('Last year', 'Último año')) ?></label><input class="form-control" type="number" min="0" id="dives_last_year" name="dives_last_year" value="<?= e((string) $row['dives_last_year']) ?>"></div>

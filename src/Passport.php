@@ -43,7 +43,7 @@ function dive_site_save(?int $id, array $in): int
         'description_en' => trim((string) ($in['description_en'] ?? '')) ?: null,
         'description_es' => trim((string) ($in['description_es'] ?? '')) ?: null,
         'max_depth_m'    => ($in['max_depth_m'] ?? '') === '' ? null : max(0, (int) $in['max_depth_m']),
-        'cert_required'  => isset(CERT_LEVELS[$in['cert_required'] ?? '']) ? $in['cert_required'] : null,
+        'cert_required'  => isset(certification_levels()[$in['cert_required'] ?? '']) ? $in['cert_required'] : null,
         'latitude'       => ($in['latitude'] ?? '') === '' ? null : (float) $in['latitude'],
         'longitude'      => ($in['longitude'] ?? '') === '' ? null : (float) $in['longitude'],
         'is_published'   => !empty($in['is_published']) ? 1 : 0,

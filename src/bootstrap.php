@@ -256,3 +256,4 @@ function start_session(): void
 require_once __DIR__ . '/Settings.php';
 require_once __DIR__ . '/Catalog.php';
 require_once __DIR__ . '/I18n.php';
+require_once __DIR__ . '/Lists.php';

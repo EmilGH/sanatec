@@ -36,7 +36,7 @@ const TEAM_PERMISSIONS = [
     'can_manage_affiliates' => 'Affiliates',
 ];
 
-const CREDENTIAL_AGENCIES = ['NAUI', 'PADI', 'TDI'];
+// Agencies: see src/Lists.php (agencies()); CREDENTIAL_AGENCIES is defined there.
 
 /** Technical and professional ratings renew; recreational cards do not. */
 const CREDENTIAL_TYPES = [
@@ -314,9 +314,9 @@ function team_credential_save(int $teamId, ?int $credId, array $in, ?int $verifi
     if (!isset(CREDENTIAL_TYPES[$kind])) {
         throw new InvalidArgumentException('Pick a credential type.');
     }
-    $agency = strtoupper(trim((string) ($in['agency'] ?? '')));
-    if (!in_array($agency, CREDENTIAL_AGENCIES, true)) {
-        throw new InvalidArgumentException('Pick an agency.');
+    $agency = agency_code($in['agency'] ?? null);
+    if ($agency === null) {
+        throw new InvalidArgumentException('Pick an agency from the list.');
     }
     $title = trim((string) ($in['title'] ?? ''));
     if ($title === '') {

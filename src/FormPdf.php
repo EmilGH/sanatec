@@ -338,7 +338,7 @@ function customer_info_pdf(int $customerId): string
 
     $rows = [
         [239, $c['name']], [266, $fmt($c['date_of_birth'])], [293, $pick('mobile')], [320, $pick('email')],
-        [347, (string) ($c['nationality'] ?? '')], [374, (string) ($c['local_address'] ?? '')],
+        [347, nationality_name($c['nationality'] ?? null)], [374, (string) ($c['local_address'] ?? '')],
         [433, (string) ($top['agency'] ?? '')], [465, (string) ($top['level'] ?? '')], [497, (string) ($top['number'] ?? '')],
         [529, $c['total_dives'] !== null ? (string) $c['total_dives'] : ''], [561, $c['dives_last_year'] !== null ? (string) $c['dives_last_year'] : ''],
         [593, $fmt($c['last_dive_on'] ?? null)],

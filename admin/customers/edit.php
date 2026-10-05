@@ -247,7 +247,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
       <thead><tr><th>Agency</th><th>Level</th><th>Number</th><th>Issued</th><th></th></tr></thead><tbody>
       <?php foreach ($certs as $c): ?>
         <tr><td><?= e($c['agency']) ?></td>
-          <td><?= e($c['level']) ?> <span class="text-secondary small">(<?= e(CERT_LEVELS[$c['level_code']][0] ?? $c['level_code']) ?>)</span><?= $c['verified_at'] ? ' <i class="fa-solid fa-circle-check text-success" title="Card seen"></i>' : '' ?></td>
+          <td><?= e($c['level']) ?> <span class="text-secondary small">(<?= e(certification_name($c['level_code'])) ?>)</span><?= $c['verified_at'] ? ' <i class="fa-solid fa-circle-check text-success" title="Card seen"></i>' : '' ?></td>
           <td class="text-secondary"><?= e((string) $c['number']) ?></td><td class="text-secondary"><?= e((string) $c['issued_on']) ?></td>
           <td class="text-end"><form method="post" class="d-inline" onsubmit="return confirm('Remove this certification?')"><?= csrf_field() ?><input type="hidden" name="action" value="cert_delete"><input type="hidden" name="cert_id" value="<?= (int) $c['id'] ?>"><button class="btn btn-sm btn-outline-danger"><i class="fa-solid fa-xmark"></i></button></form></td></tr>
       <?php endforeach; ?>
@@ -255,8 +255,8 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
     <?php endif; ?>
     <form method="post" class="row g-2 align-items-end">
       <?= csrf_field() ?><input type="hidden" name="action" value="cert_save">
-      <div class="col-6 col-md-2"><label class="form-label small">Agency</label><select class="form-select form-control" name="agency"><?php foreach (CERT_AGENCIES as $a): ?><option><?= e($a) ?></option><?php endforeach; ?></select></div>
-      <div class="col-6 col-md-2"><label class="form-label small">Level</label><select class="form-select form-control" name="level_code"><?php foreach (CERT_LEVELS as $k => [$l]): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
+      <div class="col-6 col-md-2"><label class="form-label small">Agency</label><?php ui_agency_select('agency', null, ['empty' => '', 'class' => 'form-control-sm']); ?></div>
+      <div class="col-6 col-md-2"><label class="form-label small">Level</label><?php ui_certification_select('level_code', null, ['empty' => '', 'class' => 'form-control-sm']); ?></div>
       <div class="col-12 col-md-3"><label class="form-label small">As the card says</label><input class="form-control" name="level" placeholder="optional — e.g. Advanced Open Water Diver"></div>
       <div class="col-6 col-md-2"><label class="form-label small">Number</label><input class="form-control" name="number"></div>
       <div class="col-6 col-md-2"><label class="form-label small">Issued</label><input class="form-control" type="date" name="issued_on"></div>

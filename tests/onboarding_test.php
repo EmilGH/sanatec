@@ -197,7 +197,6 @@ test('dates may be typed day-first or ISO, and nonsense is refused', function ()
 });
 
 test('the nationality list leads with the usual visitors, then everyone by name', function (): void {
-    require_once __DIR__ . '/../src/Countries.php';
     [$first, $rest] = countries_ordered('en');
     is_same(['MX', 'CA', 'GB', 'US'], array_column($first, 0));
     is_true(count($rest) > 180);

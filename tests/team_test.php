@@ -109,7 +109,7 @@ test('credentials record expiry and who checked them', function (): void {
     is_same(30, (int) $c['days_left']);
     is_same($admin, (int) $c['verified_by']);
     throws(static fn () => team_credential_save($admin, null, ['kind' => 'nonsense', 'agency' => 'PADI', 'title' => 'x'], $admin));
-    throws(static fn () => team_credential_save($admin, null, ['kind' => 'technical', 'agency' => 'SSI', 'title' => 'x', 'expires_on' => '2030-01-01'], $admin), 'unknown agency');
+    throws(static fn () => team_credential_save($admin, null, ['kind' => 'technical', 'agency' => 'ACME', 'title' => 'x', 'expires_on' => '2030-01-01'], $admin), 'an agency off the list');
 });
 
 test('technical and professional credentials must expire; recreational must not', function (): void {

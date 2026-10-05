@@ -19,20 +19,7 @@ require_once __DIR__ . '/People.php';
  */
 
 /** Certification levels a route can require, lowest first. */
-const CERT_LEVELS = [
-    'ow'         => ['Open Water',            1],
-    'aow'        => ['Advanced Open Water',   2],
-    'rescue'     => ['Rescue Diver',          3],
-    'dm'         => ['Divemaster',            4],
-    'instructor' => ['Instructor',            5],
-    'sidemount'  => ['Sidemount',             2],
-    'cavern'     => ['Cavern',                3],
-    'intro_cave' => ['Intro to Cave',         4],
-    'full_cave'  => ['Full Cave',             5],
-    'other'      => ['Other',                 0],
-];
-
-const CERT_AGENCIES = ['PADI', 'TDI', 'NAUI', 'SSI', 'SDI', 'CMAS', 'GUE', 'IANTD', 'NSS-CDS', 'Other'];
+// Certification levels and agencies: see src/Lists.php (certification_levels(), agencies()).
 
 const ADULT_AGE = 18;
 
@@ -293,17 +280,17 @@ function certifications(int $customerId): array
 function certification_save(int $customerId, ?int $certId, array $in, ?int $verifiedByTeamId = null): int
 {
     $code = (string) ($in['level_code'] ?? '');
-    if (!isset(CERT_LEVELS[$code])) {
+    if (!isset(certification_levels()[$code])) {
         throw new InvalidArgumentException('Pick a certification level.');
     }
-    $agency = trim((string) ($in['agency'] ?? ''));
-    if ($agency === '') {
-        throw new InvalidArgumentException('Which agency issued it?');
+    $agency = agency_code($in['agency'] ?? null);
+    if ($agency === null) {
+        throw new InvalidArgumentException('Which agency issued it? Pick one from the list.');
     }
     $fields = [
-        'agency'     => mb_substr($agency, 0, 40),
+        'agency'     => $agency,
         'level_code' => $code,
-        'level'      => trim((string) ($in['level'] ?? '')) ?: CERT_LEVELS[$code][0],
+        'level'      => trim((string) ($in['level'] ?? '')) ?: certification_name($code),
         'number'     => trim((string) ($in['number'] ?? '')) ?: null,
         'issued_on'  => parse_date_input(isset($in['issued_on']) ? (string) $in['issued_on'] : null),
         'notes'      => trim((string) ($in['notes'] ?? '')) ?: null,
@@ -335,12 +322,12 @@ function certification_delete(int $customerId, int $certId): void
     db()->prepare('DELETE FROM certifications WHERE id = :id AND customer_id = :c')->execute([':id' => $certId, ':c' => $customerId]);
 }
 
-/** Does this customer hold at least the given level? Uses the rank in CERT_LEVELS. */
+/** Does this customer hold at least the given level? Uses the rank in certification_levels(). */
 function customer_holds_level(int $customerId, string $requiredCode): bool
 {
-    $need = CERT_LEVELS[$requiredCode][1] ?? 0;
+    $need = certification_rank($requiredCode);
     foreach (certifications($customerId) as $c) {
-        if ((CERT_LEVELS[$c['level_code']][1] ?? 0) >= $need && $need > 0) {
+        if (certification_rank($c['level_code']) >= $need && $need > 0) {
             return true;
         }
     }
