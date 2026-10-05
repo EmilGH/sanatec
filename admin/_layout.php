@@ -190,7 +190,7 @@ function shell_end(?array $user = null, string $area = 'admin'): void
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/locales/es.js"></script>
-<script src="/assets/js/datefield.js?v=<?= $v('js/datefield.js') ?>"></script>
+<script src="/assets/js/datefield.js?v=<?= (string) @filemtime(SANATEC_ROOT . '/assets/js/datefield.js') ?>"></script>
 </body>
 </html>
 <?php
