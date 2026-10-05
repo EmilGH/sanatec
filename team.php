@@ -29,6 +29,7 @@ $roleLine = static function (array $m) use ($lang): string {
     if ($m['is_instructor']) { $roles[] = t('role_instructor', $lang); }
     if ($m['is_divemaster']) { $roles[] = t('role_divemaster', $lang); }
     if ($m['is_cave_guide']) { $roles[] = t('role_cave_guide', $lang); }
+    if ($m['is_cavern_guide'] && !$m['is_cave_guide']) { $roles[] = t('role_cavern_guide', $lang); }
     $title = trim((string) ($m['title_' . $lang] ?: $m['title_en']));
 
     return $title !== '' ? $title : implode(' · ', $roles);

@@ -6,6 +6,7 @@ require __DIR__ . '/_init.php';
 require __DIR__ . '/_layout.php';
 require_once __DIR__ . '/../src/Og.php';
 
+$currentUser = require_permission('can_manage_business');
 $schema = settings_schema();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

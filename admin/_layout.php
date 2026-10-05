@@ -33,7 +33,7 @@ function admin_sections(): array
         ['Customers',     '/admin/customers/',             'users',    'can_manage_customers',  true],
         ['Team',          '/admin/team/',                  'badge',    'can_manage_team',       false],
         ['Catalog',       '/admin/catalog-courses.php',    'tag',      'can_manage_catalog',    false],
-        ['Business info', '/admin/settings.php',           'store',    'can_manage_catalog',    false],
+        ['Business info', '/admin/settings.php',           'store',    'can_manage_business',   false],
     ];
 }
 
@@ -91,6 +91,7 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
 </script>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/css/datepicker-bs5.min.css" rel="stylesheet">
 <link rel="stylesheet" href="/assets/css/tokens.css?v=<?= $v('css/tokens.css') ?>">
 <link rel="stylesheet" href="/assets/css/bootstrap-theme.css?v=<?= $v('css/bootstrap-theme.css') ?>">
 <link rel="stylesheet" href="/assets/css/components.css?v=<?= $v('css/components.css') ?>">
@@ -187,6 +188,9 @@ function shell_end(?array $user = null, string $area = 'admin'): void
 <?php endif; ?>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/datepicker-full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.3.4/dist/js/locales/es.js"></script>
+<script src="/assets/js/datefield.js?v=<?= $v('js/datefield.js') ?>"></script>
 </body>
 </html>
 <?php
@@ -240,19 +244,20 @@ function field_price(string $name, string $label, array $row, string $help = '')
  * calendar. The text box is what is submitted; the calendar button opens a
  * native picker and copies the choice into it.
  */
-function ui_date_field(string $name, ?string $value, string $label, bool $required = false, string $help = ''): void
+function ui_date_field(string $name, ?string $value, string $label, bool $required = false, string $help = '', array $opts = []): void
 {
+    // $opts: 'id', 'min', 'max' (ISO), 'small' (compact control), 'label_class'.
+    $id = $opts['id'] ?? $name;
     $shown = $value ? date('d/m/Y', strtotime($value)) : '';
+    $small = !empty($opts['small']);
     ?>
-    <label class="form-label" for="<?= e($name) ?>"><?= e($label) ?></label>
+    <label class="form-label <?= e($opts['label_class'] ?? '') ?>" for="<?= e($id) ?>"><?= e($label) ?></label>
     <div class="input-group st-datefield">
-      <input class="form-control" id="<?= e($name) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" placeholder="DD/MM/YYYY" inputmode="numeric" autocomplete="off" maxlength="10"
+      <input class="form-control<?= $small ? ' form-control-sm' : '' ?>" id="<?= e($id) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" placeholder="DD/MM/YYYY" inputmode="numeric" autocomplete="off" maxlength="10"
         pattern="\d{1,2}[/.\-]\d{1,2}[/.\-](\d{4}|\d{2})|\d{4}-\d{1,2}-\d{1,2}|\d{6}|\d{8}" <?= $required ? 'required' : '' ?>
+        <?= isset($opts['min']) ? 'data-min="' . e((string) $opts['min']) . '"' : '' ?> <?= isset($opts['max']) ? 'data-max="' . e((string) $opts['max']) . '"' : '' ?>
         oninput="var d=this.value.replace(/\D/g,'').slice(0,8);if(this.value.length>=this.selectionStart){this.value=d.length>4?d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4):d.length>2?d.slice(0,2)+'/'+d.slice(2):d;}">
-      <input type="date" class="visually-hidden" tabindex="-1" aria-hidden="true" value="<?= e((string) $value) ?>"
-        onchange="if(this.value){var p=this.value.split('-');this.previousElementSibling.value=p[2]+'/'+p[1]+'/'+p[0];}">
-      <button class="btn btn-outline-secondary" type="button" aria-label="<?= e($label) ?>" title="<?= e($label) ?>"
-        onclick="var d=this.previousElementSibling;try{d.showPicker()}catch(e){d.click()}"><?= ui_icon('calendar', 'st-icon') ?></button>
+      <button class="btn btn-outline-secondary<?= $small ? ' btn-sm' : '' ?>" type="button" data-datepick aria-label="<?= e($label) ?>" title="<?= e($label) ?>"><?= ui_icon('calendar', 'st-icon') ?></button>
     </div>
     <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
     <?php

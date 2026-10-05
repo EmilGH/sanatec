@@ -13,43 +13,41 @@ if (!defined('SANATEC')) {
  * or employment fields, and no "get sign-in link".
  */
 
-function team_identity_card(array $row, bool $self): void
+function team_identity_card(array $row, bool $self, bool $isSelf = false): void
 {
     $tzs = DateTimeZone::listIdentifiers();
     ?>
     <div class="card mb-3"><div class="card-body">
       <h2 class="h6 text-aqua text-uppercase mb-3">Identity</h2>
       <div class="row g-3">
-        <div class="col-12 col-md-6">
+        <div class="col-12 <?= $self ? 'col-md-8' : 'col-md-5' ?>">
           <label class="form-label" for="name">Name</label>
           <input class="form-control" id="name" name="name" value="<?= e((string) ($row['name'] ?? '')) ?>" required autocomplete="name">
           <div class="form-text">One field — written however the person writes it.</div>
         </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label" for="date_of_birth">Date of birth</label>
-          <input class="form-control" type="date" id="date_of_birth" name="date_of_birth" value="<?= e((string) ($row['date_of_birth'] ?? '')) ?>">
+        <?php if (!$self): ?>
+        <div class="col-8 col-md-4">
+          <label class="form-label" for="job_title">Job Title</label>
+          <input class="form-control" id="job_title" name="job_title" value="<?= e((string) ($row['job_title'] ?? '')) ?>" placeholder="Instructor, Cave guide, Office">
         </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label" for="preferred_language">Language</label>
+        <?php endif; ?>
+        <div class="col-<?= $self ? '6' : '4' ?> col-md-<?= $self ? '4' : '3' ?>">
+          <?php ui_date_field('date_of_birth', $row['date_of_birth'] ?? null, 'Date of Birth'); ?>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <label class="form-label" for="nationality">Nationality</label>
+          <?php ui_nationality_select('nationality', $row['nationality'] ?? null); ?>
+        </div>
+        <div class="col-6 col-md-4">
+          <label class="form-label" for="preferred_language">Primary Language</label>
           <select class="form-select form-control" id="preferred_language" name="preferred_language">
             <?php foreach (LANGUAGES as $code => $l): ?>
               <option value="<?= e($code) ?>" <?= ($row['preferred_language'] ?? 'en') === $code ? 'selected' : '' ?>><?= e($l['label']) ?></option>
             <?php endforeach; ?>
           </select>
         </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label" for="nationality">Nationality</label>
-          <?php ui_nationality_select('nationality', $row['nationality'] ?? null); ?>
-        </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label" for="dan_number">DAN number</label>
-          <input class="form-control" id="dan_number" name="dan_number" value="<?= e((string) ($row['dan_number'] ?? '')) ?>">
-        </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label" for="dan_expires_on">DAN expires</label>
-          <input class="form-control" type="date" id="dan_expires_on" name="dan_expires_on" value="<?= e((string) ($row['dan_expires_on'] ?? '')) ?>">
-        </div>
-        <div class="col-12 col-md-6">
+        <div class="col-12 col-md-4">
           <label class="form-label" for="timezone">Timezone</label>
           <select class="form-select form-control" id="timezone" name="timezone">
             <?php foreach ($tzs as $tz): ?>
@@ -57,21 +55,34 @@ function team_identity_card(array $row, bool $self): void
             <?php endforeach; ?>
           </select>
         </div>
+
         <?php if (!$self): ?>
-        <div class="col-12 col-md-6">
-          <label class="form-label" for="job_title">Job title</label>
-          <input class="form-control" id="job_title" name="job_title" value="<?= e((string) ($row['job_title'] ?? '')) ?>" placeholder="Instructor, Cave guide, Office">
+        <div class="col-6 col-md-4">
+          <?php ui_date_field('started_on', $row['started_on'] ?? null, 'Date Started'); ?>
         </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label" for="started_on">Started</label>
-          <input class="form-control" type="date" id="started_on" name="started_on" value="<?= e((string) ($row['started_on'] ?? '')) ?>">
+        <div class="col-12 col-md-4 d-flex align-items-end order-last order-md-0">
+          <div class="form-check form-switch mb-2">
+            <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" <?= ($row['is_active'] ?? 1) ? 'checked' : '' ?> <?= $isSelf ? 'disabled' : '' ?>>
+            <label class="form-check-label" for="is_active">Active — can sign in</label>
+          </div>
+          <?php if ($isSelf): ?><input type="hidden" name="is_active" value="1"><?php endif; ?>
         </div>
-        <div class="col-6 col-md-3">
-          <label class="form-label" for="ended_on">Ended</label>
-          <input class="form-control" type="date" id="ended_on" name="ended_on" value="<?= e((string) ($row['ended_on'] ?? '')) ?>">
+        <div class="col-6 col-md-4">
+          <?php ui_date_field('ended_on', $row['ended_on'] ?? null, 'Date Left'); ?>
         </div>
+        <?php endif; ?>
+
+        <div class="col-6">
+          <label class="form-label" for="dan_number">DAN Number</label>
+          <input class="form-control" id="dan_number" name="dan_number" value="<?= e((string) ($row['dan_number'] ?? '')) ?>">
+        </div>
+        <div class="col-6">
+          <?php ui_date_field('dan_expires_on', $row['dan_expires_on'] ?? null, 'DAN Expiration'); ?>
+        </div>
+
+        <?php if (!$self): ?>
         <div class="col-12">
-          <label class="form-label" for="internal_notes">Internal notes <span class="text-secondary fw-normal">— never shown publicly</span></label>
+          <label class="form-label" for="internal_notes">Internal Notes <span class="text-secondary fw-normal">— never shown publicly</span></label>
           <textarea class="form-control" id="internal_notes" name="internal_notes" rows="2"><?= e((string) ($row['internal_notes'] ?? '')) ?></textarea>
         </div>
         <?php endif; ?>
@@ -87,14 +98,14 @@ function team_roles_card(array $row, bool $actorIsAdmin, bool $isSelf): void
       <h2 class="h6 text-aqua text-uppercase mb-3">Roles and access</h2>
       <div class="row g-4">
         <div class="col-12 col-md-4">
-          <div class="text-secondary small mb-2">What they are</div>
+          <div class="text-secondary small mb-2">What They Do</div>
           <?php foreach (TEAM_ROLES as $flag => $label): ?>
             <div class="form-check"><input class="form-check-input" type="checkbox" id="<?= $flag ?>" name="<?= $flag ?>" value="1" <?= !empty($row[$flag]) ? 'checked' : '' ?>>
               <label class="form-check-label" for="<?= $flag ?>"><?= e($label) ?></label></div>
           <?php endforeach; ?>
         </div>
         <div class="col-12 col-md-4">
-          <div class="text-secondary small mb-2">What they may manage</div>
+          <div class="text-secondary small mb-2">System Access</div>
           <?php foreach (TEAM_PERMISSIONS as $flag => $label): ?>
             <div class="form-check"><input class="form-check-input" type="checkbox" id="<?= $flag ?>" name="<?= $flag ?>" value="1" <?= !empty($row[$flag]) ? 'checked' : '' ?>>
               <label class="form-check-label" for="<?= $flag ?>"><?= e($label) ?></label></div>
@@ -102,10 +113,7 @@ function team_roles_card(array $row, bool $actorIsAdmin, bool $isSelf): void
         </div>
         <div class="col-12 col-md-4">
           <div class="text-secondary small mb-2">Account</div>
-          <div class="form-check"><input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" <?= ($row['is_active'] ?? 1) ? 'checked' : '' ?> <?= $isSelf ? 'disabled' : '' ?>>
-            <label class="form-check-label" for="is_active">Active — can sign in</label></div>
-          <?php if ($isSelf): ?><input type="hidden" name="is_active" value="1"><?php endif; ?>
-          <div class="form-check mt-2"><input class="form-check-input" type="checkbox" id="is_system_admin" name="is_system_admin" value="1" <?= !empty($row['is_system_admin']) ? 'checked' : '' ?> <?= $actorIsAdmin && !$isSelf ? '' : 'disabled' ?>>
+          <div class="form-check"><input class="form-check-input" type="checkbox" id="is_system_admin" name="is_system_admin" value="1" <?= !empty($row['is_system_admin']) ? 'checked' : '' ?> <?= $actorIsAdmin && !$isSelf ? '' : 'disabled' ?>>
             <label class="form-check-label" for="is_system_admin">System administrator <span class="text-secondary small d-block">Everything, always. Only an administrator can grant this.</span></label></div>
           <?php if (!empty($row['is_system_admin']) && !($actorIsAdmin && !$isSelf)): ?><input type="hidden" name="is_system_admin" value="1"><?php endif; ?>
         </div>
@@ -246,7 +254,7 @@ function team_credentials_card(int $teamId): void
           <select class="form-select form-control" name="kind" id="cred-kind"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
         <div class="col-12 col-md-3"><label class="form-label small">Title</label><input class="form-control" name="title" placeholder="Open Water Scuba Instructor" required></div>
         <div class="col-6 col-md-2"><label class="form-label small">Number</label><input class="form-control" name="number"></div>
-        <div class="col-6 col-md-2" id="cred-expiry"><label class="form-label small">Expiration</label><input class="form-control" type="date" name="expires_on"></div>
+        <div class="col-6 col-md-2" id="cred-expiry"><?php ui_date_field('expires_on', null, 'Expiration', false, '', ['id' => 'cred-expires', 'label_class' => 'small']); ?></div>
         <div class="col-12 col-md-auto d-flex gap-2 align-items-center ms-md-auto">
           <div class="form-check"><input class="form-check-input" type="checkbox" id="cr_verified" name="verified" value="1"><label class="form-check-label small" for="cr_verified">Seen</label></div>
           <button class="btn btn-sm btn-aqua ms-auto" type="submit">Add</button>

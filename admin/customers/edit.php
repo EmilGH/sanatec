@@ -146,7 +146,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
     <div class="row g-3">
       <div class="col-4 col-md-2"><label class="form-label" for="total_dives">Total dives</label><input class="form-control" type="number" min="0" id="total_dives" name="total_dives" value="<?= e((string) ($row['total_dives'] ?? '')) ?>"></div>
       <div class="col-4 col-md-2"><label class="form-label" for="dives_last_year">Last year</label><input class="form-control" type="number" min="0" id="dives_last_year" name="dives_last_year" value="<?= e((string) ($row['dives_last_year'] ?? '')) ?>"></div>
-      <div class="col-4 col-md-3"><label class="form-label" for="last_dive_on">Last dive</label><input class="form-control" type="date" id="last_dive_on" name="last_dive_on" value="<?= e((string) ($row['last_dive_on'] ?? '')) ?>"></div>
+      <div class="col-4 col-md-3"><?php ui_date_field('last_dive_on', $row['last_dive_on'] ?? null, 'Last dive'); ?></div>
       <div class="col-6 col-md-2"><label class="form-label" for="discount_pct">Discount %</label><input class="form-control" type="number" min="0" max="100" step="0.5" id="discount_pct" name="discount_pct" value="<?= e((string) ($row['discount_pct'] ?? '')) ?>"></div>
       <div class="col-6 col-md-3"><label class="form-label" for="source">How they found us</label><input class="form-control" id="source" name="source" value="<?= e((string) ($row['source'] ?? '')) ?>" placeholder="Instagram, hotel, referral"></div>
       <div class="col-12"><label class="form-label" for="local_address">Hotel / address in Mexico <span class="text-secondary fw-normal">— this trip</span></label><input class="form-control" id="local_address" name="local_address" value="<?= e((string) ($row['local_address'] ?? '')) ?>"></div>
@@ -204,7 +204,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
         <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end py-2">
           <?= csrf_field() ?><input type="hidden" name="action" value="physician_clear"><input type="hidden" name="submission_id" value="<?= (int) $s['id'] ?>">
           <div class="col-12 col-md-3"><label class="form-label small">Physician's name</label><input class="form-control form-control-sm" name="physician_name"></div>
-          <div class="col-6 col-md-2"><label class="form-label small">Signed on</label><input class="form-control form-control-sm" type="date" name="physician_cleared_on" max="<?= date('Y-m-d') ?>" required></div>
+          <div class="col-6 col-md-2"><?php ui_date_field('physician_cleared_on', null, 'Signed on', true, '', ['id' => 'phys-on-' . (int) $s['id'], 'small' => true, 'label_class' => 'small', 'max' => date('Y-m-d')]); ?></div>
           <div class="col-6 col-md-3"><label class="form-label small">Signed evaluation (PDF/photo)</label><input class="form-control form-control-sm" type="file" name="letter" accept=".pdf,image/*"></div>
           <div class="col-12 col-md-3"><label class="form-label small">Notes</label><input class="form-control form-control-sm" name="notes"></div>
           <div class="col-12 col-md-1"><button class="btn btn-sm btn-aqua w-100" type="submit">Clear</button></div>
@@ -214,7 +214,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
       <tr class="collapse" id="paper-<?= e($t['code']) ?>"><td colspan="4" class="bg-transparent">
         <form method="post" enctype="multipart/form-data" class="row g-2 align-items-end py-2">
           <?= csrf_field() ?><input type="hidden" name="action" value="paper_record"><input type="hidden" name="template_code" value="<?= e($t['code']) ?>">
-          <div class="col-6 col-md-2"><label class="form-label small">Signed on</label><input class="form-control form-control-sm" type="date" name="signed_on" max="<?= date('Y-m-d') ?>" required></div>
+          <div class="col-6 col-md-2"><?php ui_date_field('signed_on', null, 'Signed on', true, '', ['id' => 'signed-on-' . e($t['code']), 'small' => true, 'label_class' => 'small', 'max' => date('Y-m-d')]); ?></div>
           <div class="col-6 col-md-2"><label class="form-label small">Signed by</label><select class="form-select form-control form-control-sm" name="signer_role"><option value="participant">Diver</option><option value="guardian">Guardian</option></select></div>
           <?php if ($isMed): ?>
           <div class="col-6 col-md-2"><label class="form-label small">Outcome</label><select class="form-select form-control form-control-sm" name="outcome"><option value="cleared">Cleared</option><option value="physician_required">Physician required</option><option value="physician_cleared">Physician cleared</option></select></div>
@@ -259,7 +259,7 @@ shell_start($row ? $row['name'] : 'New customer', $currentUser);
       <div class="col-6 col-md-2"><label class="form-label small">Level</label><?php ui_certification_select('level_code', null, ['empty' => '', 'class' => 'form-control-sm']); ?></div>
       <div class="col-12 col-md-3"><label class="form-label small">As the card says</label><input class="form-control" name="level" placeholder="optional — e.g. Advanced Open Water Diver"></div>
       <div class="col-6 col-md-2"><label class="form-label small">Number</label><input class="form-control" name="number"></div>
-      <div class="col-6 col-md-2"><label class="form-label small">Issued</label><input class="form-control" type="date" name="issued_on"></div>
+      <div class="col-6 col-md-2"><?php ui_date_field('issued_on', null, 'Issued', false, '', ['label_class' => 'small']); ?></div>
       <div class="col-12 col-md-auto d-flex gap-2 align-items-center ms-md-auto">
         <div class="form-check"><input class="form-check-input" type="checkbox" id="cert_verified" name="verified" value="1"><label class="form-check-label small" for="cert_verified">Seen</label></div>
         <button class="btn btn-sm btn-aqua ms-auto" type="submit">Add</button>

@@ -84,8 +84,8 @@ function course_days(array $course): int
  */
 function event_create(string $kind, array $in, ?int $createdByTeamId = null): int
 {
-    $date = (string) ($in['date'] ?? '');
-    if ($date === '' || strtotime($date) === false) {
+    $date = (string) (parse_date_input(isset($in['date']) ? (string) $in['date'] : null) ?? '');
+    if ($date === '') {
         throw new InvalidArgumentException('Pick a date.');
     }
     $meet = preg_match('/^\d{2}:\d{2}$/', (string) ($in['meet_time'] ?? '')) ? $in['meet_time'] : '07:30';

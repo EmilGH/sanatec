@@ -80,4 +80,14 @@ a.st-doc:hover .st-doc__t { color: var(--aqua); }
 .st-diverfoot { display: flex; justify-content: center; gap: 24px; padding: 28px 16px 40px; border-top: 1px solid var(--line); margin-top: 24px; }
 .st-diverfoot a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--muted); font: 600 14px/1 var(--font-sans); text-decoration: none; }
 .st-diverfoot a:hover { color: var(--ink); }
-.st-datefield .visually-hidden { position: absolute; }
+.st-datefield input.form-control.form-control-sm { padding-left: 8px; }
+/* The calendar (vanillajs-datepicker, Bootstrap theme) in Tide Line colours, both themes. */
+.datepicker { z-index: 1060; }
+.datepicker-picker { background: var(--panel-raised); color: var(--ink); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); box-shadow: 0 12px 32px rgba(0,0,0,.18); font-family: var(--font-sans); }
+.datepicker-picker .datepicker-cell, .datepicker-picker .datepicker-header .datepicker-controls .btn { color: var(--ink); background: transparent; border: 0; }
+.datepicker-picker .datepicker-header .datepicker-controls .btn:hover, .datepicker-picker .datepicker-cell:not(.disabled):hover { background: var(--panel); color: var(--ink); }
+.datepicker-picker .datepicker-cell.selected, .datepicker-picker .datepicker-cell.selected:hover { background: var(--aqua); color: #04263a; font-weight: 700; }
+.datepicker-picker .datepicker-cell.today:not(.selected) { background: transparent; box-shadow: inset 0 0 0 1px var(--aqua); }
+.datepicker-picker .datepicker-cell.prev, .datepicker-picker .datepicker-cell.next, .datepicker-picker .datepicker-cell.disabled { color: var(--muted); }
+.datepicker-picker .datepicker-view .dow { color: var(--muted); font-weight: 600; }
+.datepicker-picker .datepicker-footer .datepicker-controls .btn { color: var(--aqua); background: transparent; border: 0; }

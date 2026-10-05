@@ -7,6 +7,8 @@ require __DIR__ . '/_layout.php';
 require_once __DIR__ . '/../src/Og.php';
 require __DIR__ . '/_photos.php';
 
+$currentUser = require_permission('can_manage_catalog');
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 

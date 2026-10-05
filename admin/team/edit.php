@@ -74,7 +74,7 @@ shell_start($row ? $row['name'] : 'New team member', $currentUser);
 
 <form method="post">
   <?= csrf_field() ?><input type="hidden" name="action" value="save">
-  <?php team_identity_card($row ?? [], false); ?>
+  <?php team_identity_card($row ?? [], false, $isSelf); ?>
   <?php team_roles_card($row ?? ['is_active' => 1], $actorIsAdmin, $isSelf); ?>
   <?php team_profile_card($row ?? []); ?>
   <div class="d-flex gap-2 mb-4">

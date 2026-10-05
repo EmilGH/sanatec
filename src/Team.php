@@ -21,17 +21,23 @@ require_once __DIR__ . '/People.php';
  */
 
 const TEAM_ROLES = [
-    'is_instructor' => 'Instructor',
-    'is_divemaster' => 'Divemaster',
-    'is_cave_guide' => 'Cave guide',
-    'is_driver'     => 'Driver',
+    'is_instructor'     => 'Instructor',
+    'is_divemaster'     => 'Divemaster',
+    'is_cave_guide'     => 'Cave Guide',
+    'is_cavern_guide'   => 'Cavern Guide',
+    'is_driver'         => 'Driver',
+    'is_shop_help'      => 'Shop Help',
+    'is_equipment_tech' => 'Equipment Tech.',
+    'is_gas_tech'       => 'Gas Prep & Tank Tech',
 ];
 
+/** What someone may open in the admin. Business info is the settings page. */
 const TEAM_PERMISSIONS = [
     'can_manage_customers'  => 'Customers',
     'can_manage_excursions' => 'Excursions',
     'can_manage_training'   => 'Training',
-    'can_manage_catalog'    => 'Catalog & business info',
+    'can_manage_catalog'    => 'Catalog',
+    'can_manage_business'   => 'Business Info',
     'can_manage_team'       => 'Team',
     'can_manage_affiliates' => 'Affiliates',
 ];
@@ -184,8 +190,8 @@ function team_save(?int $teamId, array $in, array $actor): int
             'is_system_admin' => $admin,
             'is_active'       => $active,
             'job_title'       => trim((string) ($in['job_title'] ?? '')) ?: null,
-            'started_on'      => ($in['started_on'] ?? '') !== '' ? $in['started_on'] : null,
-            'ended_on'        => ($in['ended_on'] ?? '') !== '' ? $in['ended_on'] : null,
+            'started_on'      => parse_date_input(isset($in['started_on']) ? (string) $in['started_on'] : null),
+            'ended_on'        => parse_date_input(isset($in['ended_on']) ? (string) $in['ended_on'] : null),
             'internal_notes'  => trim((string) ($in['internal_notes'] ?? '')) ?: null,
             'profile_public'  => $profilePublic,
             'show_whatsapp_public' => !empty($in['show_whatsapp_public']) ? 1 : 0,
@@ -271,7 +277,7 @@ function team_photo_set(int $teamId, ?array $file): void
 function team_public_list(?string $slug = null): array
 {
     $sql = 'SELECT t.id, t.public_slug, t.title_en, t.title_es, t.bio_en, t.bio_es, t.languages, t.photo_path,
-                   t.is_instructor, t.is_divemaster, t.is_cave_guide, t.show_whatsapp_public, p.name,
+                   t.is_instructor, t.is_divemaster, t.is_cave_guide, t.is_cavern_guide, t.show_whatsapp_public, p.name,
                    (SELECT cc.value FROM contact_channels cc WHERE cc.person_id = p.id AND cc.kind = "mobile" AND cc.whatsapp_capable = 1
                      ORDER BY cc.is_primary DESC, cc.id LIMIT 1) AS whatsapp
             FROM team_members t JOIN people p ON p.id = t.person_id
@@ -322,7 +328,7 @@ function team_credential_save(int $teamId, ?int $credId, array $in, ?int $verifi
     if ($title === '') {
         throw new InvalidArgumentException('Give the credential a title — what the card says.');
     }
-    $expires = ($in['expires_on'] ?? '') !== '' ? (string) $in['expires_on'] : null;
+    $expires = parse_date_input(isset($in['expires_on']) ? (string) $in['expires_on'] : null);
     if ($kind === 'recreational') {
         $expires = null;                                   // recreational cards do not expire
     } elseif ($expires === null) {

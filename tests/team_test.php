@@ -137,3 +137,25 @@ test('DAN details save and read back on both the team page and the self profile'
     team_save_self(actor_for($m), ['name' => 'Staff', 'dan_number' => '', 'dan_expires_on' => '']);
     is_same(null, team_find($m)['dan_number'], 'clearing the field clears the value');
 });
+
+test('the shop roles save, and business info is its own permission', function (): void {
+    db()->exec('DELETE FROM team_members'); db()->exec("DELETE FROM people");
+    $admin = make_admin('Root Admin');
+    $m = team_save(null, [
+        'name' => 'Tank Tech', 'is_cavern_guide' => 1, 'is_shop_help' => 1, 'is_equipment_tech' => 1, 'is_gas_tech' => 1,
+        'can_manage_business' => 1, 'started_on' => '15/03/2024', 'ended_on' => '',
+    ], actor_for($admin));
+    $t = team_find($m);
+    foreach (['is_cavern_guide', 'is_shop_help', 'is_equipment_tech', 'is_gas_tech', 'can_manage_business'] as $flag) {
+        is_same(1, (int) $t[$flag], $flag);
+    }
+    is_same(0, (int) $t['can_manage_catalog'], 'business info no longer implies the catalogue');
+    is_same('2024-03-15', $t['started_on'], 'a typed day/month/year date is stored as ISO');
+    is_same(null, $t['ended_on']);
+    is_same(true, can('can_manage_business', actor_for($m)));
+    is_same(false, can('can_manage_catalog', actor_for($m)));
+
+    // A credential expiry typed the same way.
+    team_credential_save($m, null, ['kind' => 'technical', 'agency' => 'TDI', 'title' => 'Full Cave', 'expires_on' => '31/12/2027'], $admin);
+    is_same('2027-12-31', team_credentials($m)[0]['expires_on']);
+});

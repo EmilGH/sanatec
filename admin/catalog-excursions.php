@@ -8,6 +8,8 @@ require_once __DIR__ . '/../src/Og.php';
 require_once __DIR__ . '/../src/Passport.php';
 require __DIR__ . '/_photos.php';
 
+$currentUser = require_permission('can_manage_catalog');
+
 const PRICE_COLUMNS = ['price_1_dive' => '1 dive', 'price_2_dives' => '2 dives', 'price_3_dives' => '3 dives'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

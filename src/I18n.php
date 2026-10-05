@@ -111,6 +111,7 @@ function ui_strings(): array
         'role_instructor'  => ['en' => 'Instructor',                 'es' => 'Instructor'],
         'role_divemaster'  => ['en' => 'Divemaster',                 'es' => 'Divemaster'],
         'role_cave_guide'  => ['en' => 'Cave guide',                 'es' => 'Guía de cueva'],
+        'role_cavern_guide' => ['en' => 'Cavern guide',              'es' => 'Guía de caverna'],
 
         'hero_image_alt'   => ['en' => 'SanaTec Diving — sunlight streaming into a blue cenote cavern',
                                'es' => 'SanaTec Diving — luz del sol entrando en una caverna azul de cenote'],

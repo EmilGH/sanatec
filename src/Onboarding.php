@@ -292,8 +292,8 @@ function form_supersede(array $customer, array $template, int $keepId): void
  */
 function form_record_paper(array $customer, array $template, array $in, ?array $scan, int $recordedByTeamId): int
 {
-    $signedOn = (string) ($in['signed_on'] ?? '');
-    if ($signedOn === '' || strtotime($signedOn) === false || strtotime($signedOn) > time()) {
+    $signedOn = (string) (parse_date_input(isset($in['signed_on']) ? (string) $in['signed_on'] : null) ?? '');
+    if ($signedOn === '' || strtotime($signedOn) > time()) {
         throw new InvalidArgumentException('When was it signed? A date today or earlier.');
     }
     $role = in_array($in['signer_role'] ?? '', ['participant', 'guardian'], true) ? $in['signer_role'] : 'participant';
@@ -336,7 +336,7 @@ function form_record_paper(array $customer, array $template, array $in, ?array $
                 ->execute([
                     ':s' => $id, ':c' => $customer['id'], ':o' => $outcome,
                     ':pn' => $outcome === 'physician_cleared' ? (trim((string) ($in['physician_name'] ?? '')) ?: null) : null,
-                    ':pd' => $outcome === 'physician_cleared' ? ($in['physician_cleared_on'] ?: $signedOn) : null,
+                    ':pd' => $outcome === 'physician_cleared' ? (parse_date_input((string) ($in['physician_cleared_on'] ?? '')) ?: $signedOn) : null,
                     ':by' => $recordedByTeamId,
                 ]);
         }
@@ -366,8 +366,8 @@ function medical_record_clearance(int $submissionId, array $in, ?array $letter, 
     if (!$ev) {
         throw new RuntimeException('No medical evaluation to clear.');
     }
-    $on = (string) ($in['physician_cleared_on'] ?? '');
-    if ($on === '' || strtotime($on) === false || strtotime($on) > time()) {
+    $on = (string) (parse_date_input(isset($in['physician_cleared_on']) ? (string) $in['physician_cleared_on'] : null) ?? '');
+    if ($on === '' || strtotime($on) > time()) {
         throw new InvalidArgumentException('When did the physician sign? A date today or earlier.');
     }
     $path = null;
