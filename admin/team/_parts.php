@@ -158,13 +158,8 @@ function team_profile_card(array $row): void
       <div class="row g-3">
         <?php foreach (TIP_SERVICES as $code => [$label, $pattern, $hint]): ?>
         <div class="col-6 col-md-4"><label class="form-label" for="tip_<?= e($code) ?>"><?= e($label) ?></label>
-          <?php if ($pattern !== null): ?>
-          <div class="input-group"><span class="input-group-text small"><?= e(preg_replace('#^https://(www\.)?#', '', str_replace('%s', '', $pattern)) ?? '') ?></span>
-            <input class="form-control" id="tip_<?= e($code) ?>" name="tip_<?= e($code) ?>" value="<?= e((string) ($tips[$code] ?? '')) ?>" autocomplete="off" autocapitalize="off"></div>
-          <?php else: ?>
-          <input class="form-control" id="tip_<?= e($code) ?>" name="tip_<?= e($code) ?>" value="<?= e((string) ($tips[$code] ?? '')) ?>" autocomplete="off" placeholder="email or +1 mobile">
-          <?php endif; ?>
-          <div class="form-text"><?= e($hint) ?></div></div>
+          <input class="form-control" id="tip_<?= e($code) ?>" name="tip_<?= e($code) ?>" value="<?= e((string) ($tips[$code] ?? '')) ?>" autocomplete="off" autocapitalize="off" placeholder="<?= $pattern === null ? 'email or +1 mobile' : 'name' ?>">
+          <div class="form-text"><?= $pattern !== null ? e(preg_replace('#^https://(www\.)?#', '', str_replace('%s', 'name', $pattern)) ?? '') : e($hint) ?></div></div>
         <?php endforeach; ?>
       </div>
     </div></div>
