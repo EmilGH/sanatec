@@ -20,20 +20,21 @@ function team_identity_card(array $row, bool $self, bool $isSelf = false): void
     <div class="card mb-3"><div class="card-body">
       <h2 class="h6 text-aqua text-uppercase mb-3">Identity</h2>
       <div class="row g-3">
-        <div class="col-12 <?= $self ? 'col-md-8' : 'col-md-5' ?>">
+        <div class="col-12 <?= $self ? 'col-md-8' : 'col-md-7' ?>">
           <label class="form-label" for="name">Name</label>
           <input class="form-control" id="name" name="name" value="<?= e((string) ($row['name'] ?? '')) ?>" required autocomplete="name">
           <div class="form-text">One field — written however the person writes it.</div>
         </div>
         <?php if (!$self): ?>
-        <div class="col-12 col-md-4">
+        <div class="col-12 col-md-5">
           <label class="form-label" for="job_title">Job Title</label>
           <input class="form-control" id="job_title" name="job_title" value="<?= e((string) ($row['job_title'] ?? '')) ?>" placeholder="Instructor, Cave guide, Office">
         </div>
-        <?php endif; ?>
-        <div class="col-6 col-md-<?= $self ? '4' : '3' ?>">
+        <?php else: ?>
+        <div class="col-6 col-md-4">
           <?php ui_date_field('date_of_birth', $row['date_of_birth'] ?? null, 'Date of Birth'); ?>
         </div>
+        <?php endif; ?>
 
         <div class="col-6 col-md-4">
           <label class="form-label" for="nationality">Nationality</label>
@@ -57,20 +58,22 @@ function team_identity_card(array $row, bool $self, bool $isSelf = false): void
         </div>
 
         <?php if (!$self): ?>
-        <div class="col-12"><div class="row g-3">
-          <div class="col-6 col-md-4">
-            <?php ui_date_field('started_on', $row['started_on'] ?? null, 'Date Started'); ?>
+        <div class="col-6 col-md-4">
+          <?php ui_date_field('date_of_birth', $row['date_of_birth'] ?? null, 'Date of Birth'); ?>
+        </div>
+        <div class="col-6 col-md-4">
+          <?php ui_date_field('started_on', $row['started_on'] ?? null, 'Date Started'); ?>
+        </div>
+        <?php /* ended_on stays in the database; leaving is not modelled yet, the Active switch covers it. */ ?>
+        <input type="hidden" name="ended_on" value="<?= e((string) ($row['ended_on'] ?? '')) ?>">
+        <div class="col-12 col-md-4">
+          <label class="form-label d-none d-md-block" aria-hidden="true">&nbsp;</label>
+          <div class="form-check form-switch st-switchrow">
+            <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" <?= ($row['is_active'] ?? 1) ? 'checked' : '' ?> <?= $isSelf ? 'disabled' : '' ?>>
+            <label class="form-check-label" for="is_active">Active Team Member</label>
           </div>
-          <?php /* ended_on stays in the database; leaving is not modelled yet, the Active switch covers it. */ ?>
-          <input type="hidden" name="ended_on" value="<?= e((string) ($row['ended_on'] ?? '')) ?>">
-          <div class="col-6 col-md-4 d-flex align-items-end">
-            <div class="form-check form-switch mb-2">
-              <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" <?= ($row['is_active'] ?? 1) ? 'checked' : '' ?> <?= $isSelf ? 'disabled' : '' ?>>
-              <label class="form-check-label" for="is_active">Active — can sign in</label>
-            </div>
-            <?php if ($isSelf): ?><input type="hidden" name="is_active" value="1"><?php endif; ?>
-          </div>
-        </div></div>
+          <?php if ($isSelf): ?><input type="hidden" name="is_active" value="1"><?php endif; ?>
+        </div>
         <?php endif; ?>
 
         <div class="col-6">

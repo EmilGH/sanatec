@@ -81,6 +81,9 @@ a.st-doc:hover .st-doc__t { color: var(--aqua); }
 .st-diverfoot a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--muted); font: 600 14px/1 var(--font-sans); text-decoration: none; }
 .st-diverfoot a:hover { color: var(--ink); }
 .st-datefield input.form-control.form-control-sm { padding-left: 8px; }
+/* A switch standing in for a field: same height as a control, label and knob centred on it. */
+.st-switchrow { display: flex; align-items: center; min-height: 48px; padding-left: 0; margin: 0; }
+.st-switchrow .form-check-input { margin: 0 12px 0 0; flex: none; }
 /* The calendar (vanillajs-datepicker, Bootstrap theme) in Tide Line colours, both themes. */
 .datepicker { z-index: 1060; }
 .datepicker-picker { background: var(--panel-raised); color: var(--ink); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); box-shadow: 0 12px 32px rgba(0,0,0,.18); font-family: var(--font-sans); }
