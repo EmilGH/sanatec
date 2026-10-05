@@ -23,7 +23,6 @@ function team_identity_card(array $row, bool $self, bool $isSelf = false): void
         <div class="col-12 <?= $self ? 'col-md-8' : 'col-md-7' ?>">
           <label class="form-label" for="name">Name</label>
           <input class="form-control" id="name" name="name" value="<?= e((string) ($row['name'] ?? '')) ?>" required autocomplete="name">
-          <div class="form-text">One field — written however the person writes it.</div>
         </div>
         <?php if (!$self): ?>
         <div class="col-12 col-md-5">
@@ -152,7 +151,7 @@ function team_profile_card(array $row): void
           <textarea class="form-control" id="bio_es" name="bio_es" rows="4"><?= e((string) ($row['bio_es'] ?? '')) ?></textarea></div>
         <div class="col-12 col-md-6"><label class="form-label" for="languages">Languages spoken</label>
           <input class="form-control" id="languages" name="languages" value="<?= e($langs) ?>" placeholder="es, en, de">
-          <div class="form-text">Two-letter codes, comma separated. Divers can look for a guide who speaks theirs.</div></div>
+          <div class="form-text">Two-letter codes, comma separated.</div></div>
         <div class="col-12 col-md-6"><label class="form-label" for="public_slug">Profile address</label>
           <div class="input-group"><span class="input-group-text">/team/</span>
             <input class="form-control" id="public_slug" name="public_slug" value="<?= e((string) ($row['public_slug'] ?? '')) ?>" placeholder="made from the name if blank"></div></div>
