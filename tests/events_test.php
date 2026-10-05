@@ -169,3 +169,16 @@ test('a discount stops at the floor, and an affiliate earns its share of the roo
     is_same(1, affiliate_stats($hotel)['signups'], 'sign-ups count by when the diver was referred, not by the dive date');
     is_same('Hotel', affiliate_bookings($hotel)[0]['first_name'], 'first names only');
 });
+
+test('an excursion assistant can be put on a cenote day in their own role', function (): void {
+    require_once SANATEC_ROOT . '/src/Team.php';
+    $id = event_create('excursion', ['catalog_id' => excursion_id('Dos Ojos'), 'date' => '2030-12-01', 'dives_count' => 2]);
+    $pid = person_create('Helper Hand');
+    db()->prepare('INSERT INTO team_members (person_id, is_active, is_excursion_assistant) VALUES (:p, 1, 1)')->execute([':p' => $pid]);
+    $tid = (int) db()->lastInsertId();
+    event_team_add($id, $tid, 'assistant');
+    $row = array_values(array_filter(event_team($id), static fn (array $m): bool => (int) $m['team_member_id'] === $tid))[0] ?? null;
+    is_same('assistant', $row['role'] ?? null);
+    is_same('Assistant', EVENT_ROLES[$row['role']]);
+    throws(static fn () => event_team_add($id, $tid, 'mascot'), 'a role off the list is refused');
+});

@@ -209,8 +209,9 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
     <div class="st-card mb-3">
       <div class="st-card__head"><h2 class="st-card__title">Team</h2><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#add-team"><?= ui_icon('plus', 'st-icon') ?>Add</button></div>
       <form method="post" class="collapse mb-3" id="add-team"><div class="d-flex gap-2"><?= csrf_field() ?><input type="hidden" name="action" value="team_add">
-        <select class="form-select form-select-sm" name="team_member_id" required><option value="">Who</option><?php foreach ($allTeam as $m): if (in_array($m['id'], $onTeam)) continue; ?><option value="<?= (int) $m['id'] ?>"><?= e($m['name']) ?></option><?php endforeach; ?></select>
-        <select class="form-select form-select-sm" name="role"><?php foreach (EVENT_ROLES as $k => $l): ?><option value="<?= $k ?>" <?= ($kind === 'training' ? $k === 'instructor' : $k === 'guide') ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select>
+        <select class="form-select form-select-sm" name="team_member_id" id="add-team-who" required><option value="">Who</option><?php foreach ($allTeam as $m): if (in_array($m['id'], $onTeam)) continue; ?><option value="<?= (int) $m['id'] ?>" data-role="<?= $kind === 'training' ? ($m['is_instructor'] ? 'instructor' : 'support') : ($m['is_cave_guide'] || $m['is_cavern_guide'] ? 'guide' : ($m['is_excursion_assistant'] ? 'assistant' : ($m['is_driver'] ? 'driver' : 'support'))) ?>"><?= e($m['name']) ?></option><?php endforeach; ?></select>
+        <select class="form-select form-select-sm" name="role" id="add-team-role"><?php foreach (EVENT_ROLES as $k => $l): ?><option value="<?= $k ?>" <?= ($kind === 'training' ? $k === 'instructor' : $k === 'guide') ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select>
+        <script>document.getElementById('add-team-who').addEventListener('change',function(){var r=this.selectedOptions[0]&&this.selectedOptions[0].dataset.role;if(r){document.getElementById('add-team-role').value=r;}});</script>
         <button class="btn btn-sm btn-primary" type="submit">Add</button></div></form>
       <?php if ($team === []): ?><p class="st-muted mb-0">Nobody assigned.</p><?php else: ?>
       <ul class="st-rows">

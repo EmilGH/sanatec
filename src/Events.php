@@ -19,7 +19,7 @@ require_once __DIR__ . '/Affiliates.php';
  * which liability release the diver must have signed.
  */
 
-const EVENT_ROLES = ['lead' => 'Lead', 'instructor' => 'Instructor', 'guide' => 'Guide', 'driver' => 'Driver', 'support' => 'Support'];
+const EVENT_ROLES = ['lead' => 'Lead', 'instructor' => 'Instructor', 'guide' => 'Guide', 'assistant' => 'Assistant', 'driver' => 'Driver', 'support' => 'Support'];
 const PARTICIPANT_STATUSES = ['invited' => 'Invited', 'confirmed' => 'Confirmed', 'attended' => 'Attended', 'no_show' => 'No-show', 'cancelled' => 'Cancelled'];
 const PAYMENT_METHODS = ['cash' => 'Cash', 'transfer' => 'Transfer', 'card' => 'Card', 'other' => 'Other'];
 
