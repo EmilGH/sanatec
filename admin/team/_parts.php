@@ -26,12 +26,12 @@ function team_identity_card(array $row, bool $self, bool $isSelf = false): void
           <div class="form-text">One field — written however the person writes it.</div>
         </div>
         <?php if (!$self): ?>
-        <div class="col-8 col-md-4">
+        <div class="col-12 col-md-4">
           <label class="form-label" for="job_title">Job Title</label>
           <input class="form-control" id="job_title" name="job_title" value="<?= e((string) ($row['job_title'] ?? '')) ?>" placeholder="Instructor, Cave guide, Office">
         </div>
         <?php endif; ?>
-        <div class="col-<?= $self ? '6' : '4' ?> col-md-<?= $self ? '4' : '3' ?>">
+        <div class="col-6 col-md-<?= $self ? '4' : '3' ?>">
           <?php ui_date_field('date_of_birth', $row['date_of_birth'] ?? null, 'Date of Birth'); ?>
         </div>
 
@@ -57,19 +57,21 @@ function team_identity_card(array $row, bool $self, bool $isSelf = false): void
         </div>
 
         <?php if (!$self): ?>
-        <div class="col-6 col-md-4">
-          <?php ui_date_field('started_on', $row['started_on'] ?? null, 'Date Started'); ?>
-        </div>
-        <div class="col-12 col-md-4 d-flex align-items-end order-last order-md-0">
-          <div class="form-check form-switch mb-2">
-            <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" <?= ($row['is_active'] ?? 1) ? 'checked' : '' ?> <?= $isSelf ? 'disabled' : '' ?>>
-            <label class="form-check-label" for="is_active">Active — can sign in</label>
+        <div class="col-12"><div class="row g-3">
+          <div class="col-6 col-md-4">
+            <?php ui_date_field('started_on', $row['started_on'] ?? null, 'Date Started'); ?>
           </div>
-          <?php if ($isSelf): ?><input type="hidden" name="is_active" value="1"><?php endif; ?>
-        </div>
-        <div class="col-6 col-md-4">
-          <?php ui_date_field('ended_on', $row['ended_on'] ?? null, 'Date Left'); ?>
-        </div>
+          <div class="col-6 col-md-4 order-md-last">
+            <?php ui_date_field('ended_on', $row['ended_on'] ?? null, 'Date Left'); ?>
+          </div>
+          <div class="col-12 col-md-4 d-flex align-items-end">
+            <div class="form-check form-switch mb-2">
+              <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" <?= ($row['is_active'] ?? 1) ? 'checked' : '' ?> <?= $isSelf ? 'disabled' : '' ?>>
+              <label class="form-check-label" for="is_active">Active — can sign in</label>
+            </div>
+            <?php if ($isSelf): ?><input type="hidden" name="is_active" value="1"><?php endif; ?>
+          </div>
+        </div></div>
         <?php endif; ?>
 
         <div class="col-6">
