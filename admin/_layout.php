@@ -151,7 +151,7 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
     <a class="st-side__brand" href="/admin/"><img class="st-roundel" src="/assets/brand/roundel-512.png" width="36" height="36" alt=""><?= $wordmark() ?></a>
     <?php foreach ($sections as $s): [$label, $href, $icon] = $s; ?>
       <?php if (isset($s[5])): ?>
-      <details class="st-side__group" <?= shell_group_current($s, $current) ? 'open' : '' ?>>
+      <details class="st-side__group">
         <summary <?= shell_group_current($s, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($icon) ?><?= e($label) ?><?= ui_icon('chevron', 'st-side__chev') ?></summary>
         <div class="st-side__pop">
           <?php foreach ($s[5] as [$cl, $ch, $ci]): ?><a href="<?= e($ch) ?>" <?= shell_is_current($ch, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($ci) ?><?= e($cl) ?></a><?php endforeach; ?>
