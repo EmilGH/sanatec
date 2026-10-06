@@ -28,7 +28,7 @@ function admin_sections(): array
 {
     return [
         ['Overview',      '/admin/',                       'home',     null,                    true],
-        ['Catalog',       '/admin/catalog-courses.php',    'tag',      'can_manage_catalog',    false],
+        ['Catalog',       '/admin/catalog-courses.php',    'tag',      'can_manage_catalog',    true],
         ['Customers',     '/admin/customers/',             'users',    'can_manage_customers',  true],
         ['Excursions',    '/admin/excursions/',            'wave',     'can_manage_excursions', true],
         ['Training',      '/admin/training/',              'cap',      'can_manage_training',   true],
