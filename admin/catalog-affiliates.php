@@ -76,7 +76,7 @@ echo shell_page('Affiliates', 'Catalog', '<a class="btn btn-primary" href="/admi
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php">Courses</a>
   <a href="/admin/catalog-excursions.php">Excursions</a>
-  <a href="/admin/catalog-sites.php">Dive sites</a>
+  <a href="/admin/catalog-sites.php">Dive Sites</a>
   <a href="/admin/catalog-affiliates.php" aria-current="page">Affiliates</a>
 </div>
 

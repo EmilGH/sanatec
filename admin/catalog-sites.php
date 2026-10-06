@@ -73,14 +73,14 @@ if (isset($_GET['new'])) {
 $rows = dive_sites(false);
 $usage = db()->query('SELECT dive_site_id, COUNT(*) AS n FROM dives GROUP BY dive_site_id')->fetchAll(PDO::FETCH_KEY_PAIR);
 
-shell_start('Dive sites', $currentUser);
-echo shell_page('Dive sites', 'Catalog', '<a class="btn btn-primary" href="/admin/catalog-sites.php?new=1">' . ui_icon('plus') . 'Add</a>');
+shell_start('Dive Sites', $currentUser);
+echo shell_page('Dive Sites', 'Catalog', '<a class="btn btn-primary" href="/admin/catalog-sites.php?new=1">' . ui_icon('plus') . 'Add</a>');
 ?>
 <p class="st-lede mb-3">Each cenote is a site. A route on the excursion list visits one or more of them in order, and a diver marked attended gets a stamp for each one.</p>
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php">Courses</a>
   <a href="/admin/catalog-excursions.php">Excursions</a>
-  <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive sites</a>
+  <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive Sites</a>
   <?php if (can('can_manage_affiliates', $currentUser)): ?><a href="/admin/catalog-affiliates.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-affiliates.php' ? 'aria-current="page"' : '' ?>>Affiliates</a><?php endif; ?>
 </div>
 
