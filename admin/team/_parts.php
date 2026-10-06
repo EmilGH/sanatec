@@ -244,14 +244,13 @@ function team_credentials_card(int $teamId): void
       <?php /* One form, outside the table: every control in the editing row points at it with form="cred-form". */ ?>
       <form method="post" id="cred-form"><?= csrf_field() ?><input type="hidden" name="action" value="cred_save"><input type="hidden" name="cred_id" id="cred-id" value=""></form>
       <div class="table-responsive"><table class="table table-sm align-middle mb-0 st-credtable">
-        <thead><tr><th>Agency</th><th>Type</th><th>Certification</th><th>Number</th><th>Expiration</th><th class="text-center">Seen</th><th></th></tr></thead><tbody>
+        <thead><tr><th>Agency</th><th>Certification</th><th>Number</th><th>Expiration</th><th class="text-center">Seen</th><th></th></tr></thead><tbody>
         <?php foreach ($creds as $c): $days = $c['days_left']; ?>
           <tr class="<?= $days !== null && (int) $days < 0 ? 'table-danger' : ($days !== null && (int) $days <= 60 ? 'table-warning' : '') ?>" data-cred-row
             data-id="<?= (int) $c['id'] ?>" data-agency="<?= e($c['agency']) ?>" data-kind="<?= e($c['kind']) ?>" data-level="<?= e((string) ($c['level'] ?: 'other')) ?>" data-title="<?= e($c['title']) ?>" data-number="<?= e((string) $c['number']) ?>"
             data-expires="<?= $c['expires_on'] ? e(date('d/m/Y', strtotime($c['expires_on']))) : '' ?>" data-verified="<?= $c['verified_at'] ? '1' : '' ?>">
             <td><?= e($c['agency']) ?></td>
-            <td><?= $typeBadge($c['kind']) ?></td>
-            <td><?= e($c['title']) ?></td>
+            <td><?= e($c['title']) ?> <?= $typeBadge($c['kind']) ?></td>
             <td class="text-secondary"><?= e((string) $c['number']) ?></td>
             <td class="text-nowrap"><?= $c['expires_on'] ? e(date('d/m/Y', strtotime($c['expires_on']))) . ' <span class="small text-secondary">(' . ((int) $days < 0 ? abs((int) $days) . 'd ago' : (int) $days . 'd') . ')</span>' : '<span class="text-secondary">n/a</span>' ?></td>
             <td class="text-center"><?= $c['verified_at'] ? '<i class="fa-solid fa-circle-check text-success" title="Checked against the original"></i>' : '<span class="text-secondary">—</span>' ?></td>
@@ -265,11 +264,11 @@ function team_credentials_card(int $teamId): void
           <tr id="cred-editor" class="st-credtable__editor">
             <td><?php ui_agency_select('agency', null, ['empty' => '', 'id' => 'cred-agency', 'class' => 'form-select-sm', 'form' => 'cred-form']); ?></td>
             <td>
-              <span id="cred-kind-badge"><?= $typeBadge('recreational') ?></span>
-              <select class="form-select form-select-sm d-none" name="kind" id="cred-kind" form="cred-form" aria-label="Type"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select>
-            </td>
-            <td>
-              <?php ui_certification_select('level', null, ['empty' => 'Choose…', 'id' => 'cred-level', 'class' => 'form-select-sm', 'form' => 'cred-form', 'required' => true]); ?>
+              <div class="d-flex align-items-center gap-2">
+                <?php ui_certification_select('level', null, ['empty' => 'Choose…', 'id' => 'cred-level', 'class' => 'form-select-sm', 'form' => 'cred-form', 'required' => true]); ?>
+                <span id="cred-kind-badge" class="text-nowrap"><?= $typeBadge('recreational') ?></span>
+                <select class="form-select form-select-sm d-none" name="kind" id="cred-kind" form="cred-form" aria-label="Type" style="width:auto"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select>
+              </div>
               <input class="form-control form-control-sm mt-1 d-none" name="title" id="cred-title" form="cred-form" placeholder="As the card says" aria-label="Title">
             </td>
             <td><input class="form-control form-control-sm" name="number" id="cred-number" form="cred-form" aria-label="Number" placeholder="Number"></td>

@@ -100,8 +100,9 @@ a.st-doc:hover .st-doc__t { color: var(--aqua); }
 .st-credtable td { vertical-align: middle; }
 .st-credtable__editor td { background: var(--panel); padding-top: 10px; padding-bottom: 10px; }
 .st-credtable__editor .form-select-sm, .st-credtable__editor .form-control-sm { min-height: 36px; font-size: 14px; }
-.st-credtable__editor #cred-agency { min-width: 96px; }
-.st-credtable__editor #cred-level { min-width: 220px; }
-.st-credtable__editor #cred-number { min-width: 120px; }
-.st-credtable__editor #cred-expiry .st-datefield { min-width: 150px; }
+.st-credtable__editor #cred-agency { min-width: 88px; }
+.st-credtable__editor #cred-level { min-width: 170px; }
+.st-credtable__editor #cred-number { min-width: 104px; max-width: 130px; }
+.st-credtable__editor #cred-expiry .st-datefield { min-width: 140px; }
+.st-credtable .badge { font-size: 11px; vertical-align: middle; }
 .st-credtable__editor .form-check-input { margin: 0; }
