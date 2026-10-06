@@ -106,3 +106,23 @@ a.st-doc:hover .st-doc__t { color: var(--aqua); }
 .st-credtable__editor #cred-expiry .st-datefield { min-width: 140px; }
 .st-credtable .badge { font-size: 11px; vertical-align: middle; }
 .st-credtable__editor .form-check-input { margin: 0; }
+/* Nav groups (Scheduling): a summary styled like a link, with the children in a popup. */
+.st-side__group { position: relative; }
+.st-side__group summary { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 12px; border-radius: var(--radius-pill); color: var(--muted); font: 600 15px/1 var(--font-sans); cursor: pointer; list-style: none; }
+.st-side__group summary::-webkit-details-marker { display: none; }
+.st-side__group summary svg { width: 20px; height: 20px; }
+.st-side__group summary .st-side__chev { width: 14px; height: 14px; margin-left: auto; opacity: .6; transition: transform .15s; }
+.st-side__group[open] summary .st-side__chev { transform: rotate(90deg); }
+.st-side__group summary[aria-current="page"] { background: var(--panel); color: var(--ink); }
+.st-side__group summary[aria-current="page"] svg:first-child { color: var(--aqua); }
+.st-side__pop { position: absolute; left: calc(100% - 6px); top: 0; z-index: 30; min-width: 184px; padding: 6px; background: var(--panel-raised); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); box-shadow: 0 12px 32px rgba(0,0,0,.18); }
+.st-side__pop a { min-height: 40px; }
+.st-tabbar__group { position: relative; }
+.st-tabbar__group summary { min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 600 11px/14px var(--font-sans); color: var(--muted); cursor: pointer; list-style: none; }
+.st-tabbar__group summary::-webkit-details-marker { display: none; }
+.st-tabbar__group summary[aria-current="page"] { color: var(--aqua); }
+.st-tabbar__group summary svg { width: 22px; height: 22px; }
+.st-tabbar__pop { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); min-width: 168px; padding: 6px; background: var(--panel-raised); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); box-shadow: 0 12px 32px rgba(0,0,0,.25); }
+.st-tabbar__pop a { flex-direction: row; justify-content: flex-start; gap: 12px; min-height: 44px; padding: 0 12px; font-size: 15px; border-radius: var(--radius-pill); }
+.st-tabbar__pop a[aria-current="page"] { background: var(--panel); color: var(--ink); }
+.st-tabbar__pop a svg { width: 20px; height: 20px; }

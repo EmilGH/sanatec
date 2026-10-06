@@ -182,7 +182,7 @@ test('an item has its own page with its card, prices, cenotes and a prefilled Wh
     has('<link rel="canonical" href="https://sanatecdiving.com/c/pit-dos-ojos">', $html);
     has('/og/excursion-pit-dos-ojos-en.png', $html, 'no photo yet: the generated card');
     has('Two of the most famous cenotes in one day.', $html);
-    has('The cenotes on this route', $html);
+    has('The sites on this excursion', $html);
     has('The Pit', $html);
     has('4,300', $html);
     has('Ask about this on WhatsApp', $html);

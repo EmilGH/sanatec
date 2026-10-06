@@ -23,18 +23,55 @@ require_once __DIR__ . '/../templates/ui/brand.php';
  * $opts: 'back' => url (phone app bar), 'actions' => html (app bar right side).
  */
 
-/** Admin sections in nav order: label, href, icon, permission (null = everyone), on the phone tab bar. */
+/**
+ * Admin sections in nav order: label, href, icon, permission (null = everyone), on the
+ * phone tab bar, and optionally children (label, href, icon, permission) shown in a popup.
+ */
 function admin_sections(): array
 {
     return [
         ['Overview',      '/admin/',                       'home',     null,                    true],
         ['Catalog',       '/admin/catalog-courses.php',    'tag',      'can_manage_catalog',    true],
         ['Customers',     '/admin/customers/',             'users',    'can_manage_customers',  true],
-        ['Excursions',    '/admin/excursions/',            'wave',     'can_manage_excursions', true],
-        ['Training',      '/admin/training/',              'cap',      'can_manage_training',   true],
+        ['Scheduling',    '/admin/excursions/',            'calendar', null,                    true, [
+            ['Excursions', '/admin/excursions/', 'wave', 'can_manage_excursions'],
+            ['Training',   '/admin/training/',  'cap',  'can_manage_training'],
+        ]],
         ['Business Info', '/admin/settings.php',           'store',    'can_manage_business',   false],
         ['Team',          '/admin/team/',                  'badge',    'can_manage_team',       false],
     ];
+}
+
+/** The sections this user may see, children filtered too; a group with no visible child is dropped. */
+function admin_sections_for(array $user): array
+{
+    $out = [];
+    foreach (admin_sections() as $s) {
+        if (isset($s[5])) {
+            $s[5] = array_values(array_filter($s[5], static fn (array $c): bool => $c[3] === null || can($c[3], $user)));
+            if ($s[5] === []) {
+                continue;
+            }
+            $s[1] = $s[5][0][1];
+        } elseif ($s[3] !== null && !can($s[3], $user)) {
+            continue;
+        }
+        $out[] = $s;
+    }
+
+    return $out;
+}
+
+/** A group is current when one of its children is. */
+function shell_group_current(array $section, string $current): bool
+{
+    foreach ($section[5] ?? [] as $c) {
+        if (shell_is_current($c[1], $current)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function shell_is_current(string $href, string $current): bool
@@ -107,14 +144,22 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
     $themeBtn = '<button type="button" class="st-iconbtn" onclick="stToggleTheme()" title="Light / dark">' . ui_icon('sun', 'st-icon') . '</button>';
 
     if ($user !== null && !$isDiver):
-        $sections = array_values(array_filter(admin_sections(), static fn (array $s): bool => $s[3] === null || can($s[3], $user)));
-        $tabs = array_slice(array_filter($sections, static fn (array $s): bool => $s[4]), 0, 4);
+        $sections = admin_sections_for($user);
 ?>
 <div class="st-shell">
   <aside class="st-side">
     <a class="st-side__brand" href="/admin/"><img class="st-roundel" src="/assets/brand/roundel-512.png" width="36" height="36" alt=""><?= $wordmark() ?></a>
-    <?php foreach ($sections as [$label, $href, $icon, , ]): ?>
+    <?php foreach ($sections as $s): [$label, $href, $icon] = $s; ?>
+      <?php if (isset($s[5])): ?>
+      <details class="st-side__group" <?= shell_group_current($s, $current) ? 'open' : '' ?>>
+        <summary <?= shell_group_current($s, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($icon) ?><?= e($label) ?><?= ui_icon('chevron', 'st-side__chev') ?></summary>
+        <div class="st-side__pop">
+          <?php foreach ($s[5] as [$cl, $ch, $ci]): ?><a href="<?= e($ch) ?>" <?= shell_is_current($ch, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($ci) ?><?= e($cl) ?></a><?php endforeach; ?>
+        </div>
+      </details>
+      <?php else: ?>
       <a href="<?= e($href) ?>" <?= shell_is_current($href, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($icon) ?><?= e($label) ?></a>
+      <?php endif; ?>
     <?php endforeach; ?>
     <div class="st-side__foot">
       <a href="#" onclick="stToggleTheme();return false"><?= ui_icon('sun') ?>Daylight</a>
@@ -132,7 +177,10 @@ window.stToggleTheme=function(){var n=r.getAttribute('data-theme')==='light'?'da
     </header>
     <div id="st-sheet" class="st-sheet" hidden>
       <button type="button" onclick="document.getElementById('st-sheet').hidden=true"><?= ui_icon('x') ?>Close</button>
-      <?php foreach ($sections as [$label, $href, $icon, , ]): ?><a href="<?= e($href) ?>"><?= ui_icon($icon) ?><?= e($label) ?></a><?php endforeach; ?>
+      <?php foreach ($sections as $s): ?>
+        <?php if (isset($s[5])): foreach ($s[5] as [$cl, $ch, $ci]): ?><a href="<?= e($ch) ?>"><?= ui_icon($ci) ?><?= e($cl) ?></a><?php endforeach; ?>
+        <?php else: ?><a href="<?= e($s[1]) ?>"><?= ui_icon($s[2]) ?><?= e($s[0]) ?></a><?php endif; ?>
+      <?php endforeach; ?>
       <a href="/admin/profile.php"><?= ui_icon('user') ?><?= e($user['name']) ?></a>
       <a href="/" target="_blank" rel="noopener"><?= ui_icon('external') ?>View the site</a>
       <a href="/admin/logout.php"><?= ui_icon('logout') ?>Sign out</a>
@@ -178,13 +226,28 @@ function shell_end(?array $user = null, string $area = 'admin'): void
 </footer>
 <?php endif; ?>
 <?php if ($user !== null && $area === 'admin'):
-    $tabs = array_slice(array_values(array_filter(admin_sections(), static fn (array $s): bool => $s[4] && ($s[3] === null || can($s[3], $user)))), 0, 4); ?>
+    $tabs = array_slice(array_values(array_filter(admin_sections_for($user), static fn (array $s): bool => $s[4])), 0, 4); ?>
 <nav class="st-tabbar" aria-label="Sections">
-  <?php foreach ($tabs as [$label, $href, $icon, , ]): ?>
+  <?php foreach ($tabs as $s): [$label, $href, $icon] = $s; ?>
+    <?php if (isset($s[5])): ?>
+    <details class="st-tabbar__group">
+      <summary <?= shell_group_current($s, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($icon) ?><?= e($label) ?></summary>
+      <div class="st-tabbar__pop">
+        <?php foreach ($s[5] as [$cl, $ch, $ci]): ?><a href="<?= e($ch) ?>" <?= shell_is_current($ch, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($ci) ?><?= e($cl) ?></a><?php endforeach; ?>
+      </div>
+    </details>
+    <?php else: ?>
     <a href="<?= e($href) ?>" <?= shell_is_current($href, $current) ? 'aria-current="page"' : '' ?>><?= ui_icon($icon) ?><?= e($label) ?></a>
+    <?php endif; ?>
   <?php endforeach; ?>
   <a href="#" onclick="document.getElementById('st-sheet').hidden=false;return false"><?= ui_icon('more') ?>More</a>
 </nav>
+<script>
+/* Popup groups (Scheduling): one open at a time, and a click elsewhere closes them. */
+document.addEventListener('click', function (e) {
+  document.querySelectorAll('details.st-side__group[open], details.st-tabbar__group[open]').forEach(function (d) { if (!d.contains(e.target)) { d.removeAttribute('open'); } });
+});
+</script>
 <?php endif; ?>
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
