@@ -56,6 +56,7 @@ $baseUrl = rtrim((string) cfg('base_url'), '/');
   <?php endif; ?>
   <section class="st-section"><p class="st-lede"><?= $lang === 'es' ? 'Explorado con' : 'Explored with' ?> <a class="st-link" href="<?= $lang === 'es' ? '/es/' : '/' ?>"><?= e(setting('business_name')) ?></a>, Tulum.</p></section>
 <?php endif; ?>
+<?= ui_contact_section($lang) ?>
 </main>
 <?= ui_public_footer($lang) ?>
 </div>

@@ -117,6 +117,7 @@ $langNames = ['en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'fr' => 
     </div>
   </section>
 <?php endif; ?>
+<?= ui_contact_section($lang) ?>
 </main>
 <?= ui_public_footer($lang) ?>
 <?= ui_ctabar($lang) ?>

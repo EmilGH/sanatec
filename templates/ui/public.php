@@ -59,6 +59,15 @@ function ui_affiliate_strip(?array $affiliate, string $lang): string
         . ($desc !== '' ? '<span>' . e(mb_substr($desc, 0, 160)) . '</span>' : '') . '</div></div>';
 }
 
+/** The contact band at the end of every public page: heading, line of text, the contact list. */
+function ui_contact_section(string $lang): string
+{
+    return '<section class="st-section st-wrap" id="contact" aria-labelledby="contact-title">'
+        . '<div class="st-section__head"><h2 class="st-h1" id="contact-title">' . e(setting('contact_title', $lang)) . '</h2>'
+        . '<p class="st-lede">' . e(setting('contact_text', $lang)) . '</p></div>'
+        . ui_contact_list($lang) . '</section>';
+}
+
 function ui_public_footer(string $lang): string
 {
     $privacy = $lang === 'es' ? '/es/privacy' : '/privacy';
@@ -93,6 +102,10 @@ function ui_contact_list(string $lang): string
         $line = trim(setting('addr_street') . ' ' . setting('addr_postal') . ' ' . setting('addr_locality') . ', ' . setting('addr_region'));
         $href = has_setting('maps_url') ? setting('maps_url') : 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($line);
         $rows[] = ['pin', $href, $line, has_setting('opening_hours') ? setting('opening_hours') : t('open_in_maps', $lang), 'external', 'st-location'];
+    }
+    $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_public = 1 AND is_active = 1 AND public_slug IS NOT NULL')->fetchColumn();
+    if ($teamCount > 0) {
+        $rows[] = ['users', ($lang === 'es' ? '/es' : '') . '/team/', t('team_link', $lang), t('team_intro', $lang), 'chevron'];
     }
 
     $html = '<div class="st-contact">';

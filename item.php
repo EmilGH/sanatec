@@ -125,6 +125,7 @@ send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsa
       </div>
     </div>
   </section>
+<?= ui_contact_section($lang) ?>
 </main>
 <?= ui_public_footer($lang) ?>
 <?= ui_ctabar($lang) ?>

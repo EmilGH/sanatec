@@ -28,7 +28,6 @@ if ($share !== null) {
 $showIncluded = setting('included_publish') === '1'
     && (setting_lines('included_items', $lang) !== [] || setting_lines('excluded_items', $lang) !== []);
 $hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bool) $r['is_special_price']);
-$teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_public = 1 AND is_active = 1 AND public_slug IS NOT NULL')->fetchColumn();
 ?>
 <?= ui_brand_defs('dark') ?>
 <div class="st-root" data-theme="dark">
@@ -86,10 +85,6 @@ $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_
     </section>
   </div>
 
-  <?php if ($teamCount > 0): ?>
-  <p class="st-share st-wrap"><a class="st-link" href="<?= $lang === 'es' ? '/es/team/' : '/team/' ?>"><?= e(t('team_link', $lang)) ?> →</a></p>
-  <?php endif; ?>
-
   <?php if ($showIncluded): ?>
   <section class="st-section st-wrap" id="included" aria-label="<?= e(setting('included_title', $lang)) ?>">
     <div class="st-cols">
@@ -102,13 +97,7 @@ $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_
   </section>
   <?php endif; ?>
 
-  <section class="st-section st-wrap" id="contact" aria-labelledby="contact-title">
-    <div class="st-section__head">
-      <h2 class="st-h1" id="contact-title"><?= e(setting('contact_title', $lang)) ?></h2>
-      <p class="st-lede"><?= e(setting('contact_text', $lang)) ?></p>
-    </div>
-    <?= ui_contact_list($lang) ?>
-  </section>
+  <?= ui_contact_section($lang) ?>
 </main>
 <script src="/assets/js/public.js" defer></script>
 
