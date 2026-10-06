@@ -341,8 +341,8 @@ function team_photo_set(int $teamId, ?array $file): void
 
 /**
  * Team members shown on the public site: active, opted in. Carries the
- * public WhatsApp number only when the member allowed it, and the
- * professional credentials (agency + title, never numbers).
+ * public WhatsApp number only when the member allowed it, and every
+ * current credential (agency + title, never numbers), professional first.
  */
 function team_public_list(?string $slug = null): array
 {
@@ -356,7 +356,7 @@ function team_public_list(?string $slug = null): array
     $stmt = db()->prepare($sql);
     $stmt->execute($slug !== null ? [':slug' => $slug] : []);
     $rows = $stmt->fetchAll();
-    $creds = db()->prepare('SELECT agency, title FROM team_credentials WHERE team_member_id = :t AND kind IN ("professional", "technical") AND (expires_on IS NULL OR expires_on >= CURDATE()) ORDER BY FIELD(kind, "professional", "technical"), id');
+    $creds = db()->prepare('SELECT agency, title FROM team_credentials WHERE team_member_id = :t AND (expires_on IS NULL OR expires_on >= CURDATE()) ORDER BY FIELD(kind, "professional", "technical", "recreational"), id');
     foreach ($rows as &$r) {
         if (!(int) $r['show_whatsapp_public']) {
             $r['whatsapp'] = null;
