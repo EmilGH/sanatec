@@ -146,7 +146,7 @@ test('the public team page lists only active members who opted in, and hides num
     is_same(['Public Guide'], array_column($list, 'name'));
     is_same('public-guide', $list[0]['public_slug']);
     is_same(['es', 'en'], $list[0]['languages']);
-    is_same(['TDI Full Cave Instructor'], $list[0]['credentials'], 'professional only, no numbers');
+    is_same(['TDI Full Cave Instructor', 'PADI Open Water'], $list[0]['credentials'], 'every current card, professional first, no numbers');
     is_same(null, $list[0]['whatsapp'], 'number hidden by default');
 
     team_save($tid, ['name' => 'Public Guide', 'is_cave_guide' => 1, 'profile_public' => 1, 'show_whatsapp_public' => 1], $actor);
