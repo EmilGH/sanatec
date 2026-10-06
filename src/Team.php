@@ -402,6 +402,9 @@ function team_credential_save(int $teamId, ?int $credId, array $in, ?int $verifi
         throw new InvalidArgumentException('Pick a certification from the list.');
     }
     $title = $level !== '' && $level !== 'other' ? certification_name($level) : trim((string) ($in['title'] ?? ''));
+    if ($title === '' && $level === 'other') {
+        $title = certification_name('other');
+    }
     if ($title === '') {
         throw new InvalidArgumentException('Give the credential a title — what the card says.');
     }

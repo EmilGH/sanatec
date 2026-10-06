@@ -241,14 +241,14 @@ function team_credentials_card(int $teamId): void
       <p class="text-secondary small mb-3">The paperwork behind the roles. Anything with an expiry shows on the overview 60 days out.</p>
       <?php $creds = team_credentials($teamId); if ($creds !== []): ?>
       <div class="table-responsive"><table class="table table-sm align-middle mb-3">
-        <thead><tr><th>Agency</th><th>Type</th><th>Title</th><th>Number</th><th>Expiration</th><th></th></tr></thead><tbody>
+        <thead><tr><th>Agency</th><th>Type</th><th>Certification</th><th>Number</th><th>Expiration</th><th></th></tr></thead><tbody>
         <?php foreach ($creds as $c): $days = $c['days_left']; ?>
           <tr class="<?= $days !== null && (int) $days < 0 ? 'table-danger' : ($days !== null && (int) $days <= 60 ? 'table-warning' : '') ?>">
             <td><?= e($c['agency']) ?></td>
             <td><?= e(CREDENTIAL_TYPES[$c['kind']] ?? $c['kind']) ?></td>
             <td><?= e($c['title']) ?><?= $c['verified_at'] ? ' <i class="fa-solid fa-circle-check text-success" title="Verified against the original"></i>' : '' ?></td>
             <td class="text-secondary"><?= e((string) $c['number']) ?></td>
-            <td class="text-nowrap"><?= $c['expires_on'] ? e($c['expires_on']) . ' <span class="small text-secondary">(' . ((int) $days < 0 ? abs((int) $days) . 'd ago' : (int) $days . 'd') . ')</span>' : '<span class="text-secondary">does not expire</span>' ?></td>
+            <td class="text-nowrap"><?= $c['expires_on'] ? e($c['expires_on']) . ' <span class="small text-secondary">(' . ((int) $days < 0 ? abs((int) $days) . 'd ago' : (int) $days . 'd') . ')</span>' : '<span class="text-secondary">n/a</span>' ?></td>
             <td class="text-end text-nowrap">
               <button class="btn btn-sm btn-outline-secondary" type="button" title="Edit" data-cred-edit
                 data-id="<?= (int) $c['id'] ?>" data-agency="<?= e($c['agency']) ?>" data-kind="<?= e($c['kind']) ?>" data-level="<?= e((string) ($c['level'] ?: 'other')) ?>" data-title="<?= e($c['title']) ?>" data-number="<?= e((string) $c['number']) ?>"
@@ -268,7 +268,8 @@ function team_credentials_card(int $teamId): void
           <select class="form-select form-control" name="kind" id="cred-kind"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
         <div class="col-12 col-md-4"><label class="form-label small" for="cred-level">Certification</label>
           <?php ui_certification_select('level', null, ['empty' => 'Choose…', 'id' => 'cred-level', 'required' => true]); ?></div>
-        <div class="col-12 col-md-4" id="cred-title-box"><label class="form-label small" for="cred-title">Title</label><input class="form-control" name="title" id="cred-title" placeholder="As the card says"></div>
+        <?php /* The typed title stays in the table for old rows; the form no longer asks for it. */ ?>
+        <input type="hidden" name="title" id="cred-title" value="">
         <div class="w-100 m-0"></div>
         <div class="col-6 col-md-3"><label class="form-label small" for="cred-number">Number</label><input class="form-control" name="number" id="cred-number"></div>
         <div class="col-6 col-md-3" id="cred-expiry"><?php ui_date_field('expires_on', null, 'Expiration', false, '', ['id' => 'cred-expires', 'label_class' => 'small']); ?></div>
@@ -290,8 +291,6 @@ function team_credentials_card(int $teamId): void
         var typeFor = { technical: 'technical', professional: 'professional', safety: 'technical' };
         function sync() {
           var rec = kind.value === 'recreational'; box.style.display = rec ? 'none' : ''; box.querySelector('input').required = !rec; if (rec) box.querySelector('input').value = '';
-          var other = $('cred-level').value === 'other' || $('cred-level').value === '';
-          $('cred-title-box').style.display = other ? '' : 'none'; $('cred-title').required = $('cred-level').value === 'other';
         }
         function reset() { form.reset(); $('cred-id').value = ''; $('cred-submit').textContent = 'Add'; $('cred-cancel').classList.add('d-none'); sync(); }
         kind.addEventListener('change', sync);
