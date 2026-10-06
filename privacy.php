@@ -6,9 +6,14 @@ declare(strict_types=1);
 
 defined('SANATEC') || define('SANATEC', true);
 require_once __DIR__ . '/src/bootstrap.php';
+require_once __DIR__ . '/src/Auth.php';
 require_once __DIR__ . '/admin/_layout.php';
 
 $lang = normalize_lang($_GET['lang'] ?? 'en');
+// Staff who may edit these texts get a link straight to the editor.
+start_session();
+$staff = current_user();
+$canEdit = $staff !== null && can('can_manage_business', $staff);
 $version = setting('privacy_notice_version');
 $termsVersion = setting('terms_version');
 $es = $lang === 'es';
@@ -23,7 +28,7 @@ shell_start($es ? 'Privacidad, términos y políticas de cancelación' : 'Privac
 <div class="row justify-content-center"><div class="col-12">
   <div class="d-flex justify-content-between align-items-center mb-3">
     <a class="text-secondary small text-decoration-none" href="<?= $lang === 'es' ? '/es/' : '/' ?>"><i class="fa-solid fa-arrow-left me-1"></i><?= e($business) ?></a>
-    <span class="small"><a href="/privacy" class="<?= $lang === 'en' ? 'fw-bold' : 'text-secondary' ?>">EN</a> · <a href="/es/privacy" class="<?= $lang === 'es' ? 'fw-bold' : 'text-secondary' ?>">ES</a></span>
+    <span class="small"><?php if ($canEdit): ?><a class="text-secondary text-decoration-none me-3" href="/admin/settings.php?tab=policies"><i class="fa-solid fa-pen me-1"></i>Edit in Business info</a><?php endif; ?><a href="/privacy" class="<?= $lang === 'en' ? 'fw-bold' : 'text-secondary' ?>">EN</a> · <a href="/es/privacy" class="<?= $lang === 'es' ? 'fw-bold' : 'text-secondary' ?>">ES</a></span>
   </div>
   <h1 class="h3 mb-1"><?= $es ? 'Privacidad, términos y políticas de cancelación' : 'Privacy, Terms & Cancellation Policies' ?></h1>
   <p class="text-secondary small mb-4"><a class="st-link" href="#privacy"><?= $es ? 'Aviso de privacidad' : 'Privacy notice' ?></a> · <a class="st-link" href="#terms"><?= $es ? 'Términos, condiciones y cancelaciones' : 'Terms, conditions and cancellations' ?></a></p>
