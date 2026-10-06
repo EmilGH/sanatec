@@ -14,7 +14,10 @@ $tab = (string) ($_POST['tab'] ?? $_GET['tab'] ?? 'business');
 if (!isset(SETTINGS_TABS[$tab])) {
     $tab = 'business';
 }
-$sections = array_intersect_key($schema, array_flip(SETTINGS_TABS[$tab][1]));
+$sections = [];
+foreach (SETTINGS_TABS[$tab][1] as $sectionKey) {     // in the tab's order, which is page order
+    $sections[$sectionKey] = $schema[$sectionKey];
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
