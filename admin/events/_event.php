@@ -118,7 +118,7 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
 <form method="post" class="st-card mb-3 collapse" id="settings">
   <?= csrf_field() ?><input type="hidden" name="action" value="update">
   <div class="row g-3">
-    <div class="col-6 col-md-3"><label class="form-label">Places</label><input class="form-control" type="number" min="1" max="60" name="capacity" value="<?= (int) $event['capacity'] ?>"></div>
+    <div class="col-6 col-md-3"><label class="form-label">Max Divers</label><input class="form-control" type="number" min="1" max="60" name="capacity" value="<?= (int) $event['capacity'] ?>"></div>
     <div class="col-6 col-md-3"><label class="form-label">Price per diver (MXN)</label><input class="form-control" name="price_mxn" value="<?= e((string) (money($event['price_mxn']) ?? '')) ?>"><div class="form-text">New divers only; agreed prices stay.</div></div>
     <div class="col-6 col-md-3"><label class="form-label">Status</label><select class="form-select" name="status"><?php foreach (['open', 'draft', 'done', 'cancelled'] as $s): ?><option value="<?= $s ?>" <?= $event['status'] === $s ? 'selected' : '' ?>><?= ucfirst($s) ?></option><?php endforeach; ?></select></div>
     <div class="col-12"><label class="form-label">Internal notes</label><textarea class="form-control" name="internal_notes" rows="2"><?= e((string) $event['internal_notes']) ?></textarea></div>

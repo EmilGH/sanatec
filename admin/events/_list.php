@@ -41,17 +41,17 @@ echo shell_page($labels, 'Scheduling', '<a class="btn btn-primary" href="' . $ba
   <?= csrf_field() ?>
   <h2 class="st-card__title mb-3">New <?= strtolower($label) ?></h2>
   <div class="row g-3">
-    <div class="col-12 col-md-5"><label class="form-label" for="catalog_id"><?= $kind === 'training' ? 'Course' : 'Cenote route' ?></label>
+    <div class="col-12 col-md-5"><label class="form-label" for="catalog_id"><?= $kind === 'training' ? 'Course' : 'Excursion Name' ?></label>
       <select class="form-select" id="catalog_id" name="catalog_id" required>
         <option value="">—</option>
         <?php foreach ($catalog as $c): ?><option value="<?= (int) $c['id'] ?>"><?= e($c['name_en']) ?><?= $kind === 'training' ? ' · ' . e($c['duration_en']) : '' ?></option><?php endforeach; ?>
       </select></div>
     <div class="col-6 col-md-3"><?php ui_date_field('date', null, $kind === 'training' ? 'First day' : 'Date', true, '', ['min' => date('Y-m-d')]); ?></div>
-    <div class="col-6 col-md-2"><label class="form-label" for="meet_time">Meet at</label><input class="form-control" type="time" id="meet_time" name="meet_time" value="07:30"></div>
+    <div class="col-6 col-md-2"><label class="form-label" for="meet_time">Time</label><input class="form-control" type="time" id="meet_time" name="meet_time" value="07:30"></div>
     <?php if ($kind === 'excursion'): ?>
     <div class="col-6 col-md-2"><label class="form-label" for="dives_count">Dives</label><select class="form-select" id="dives_count" name="dives_count"><option value="1">1 dive</option><option value="2" selected>2 dives</option><option value="3">3 dives</option></select></div>
     <?php endif; ?>
-    <div class="col-6 col-md-2"><label class="form-label" for="capacity">Places</label><input class="form-control" type="number" min="1" max="60" id="capacity" name="capacity" value="<?= $kind === 'training' ? 4 : 8 ?>"></div>
+    <div class="col-6 col-md-2"><label class="form-label" for="capacity">Max Divers</label><input class="form-control" type="number" min="1" max="60" id="capacity" name="capacity" value="<?= $kind === 'training' ? 4 : 8 ?>"></div>
     <div class="col-12 col-md-4"><label class="form-label" for="lead_team_id"><?= $kind === 'training' ? 'Instructor' : 'Lead guide' ?></label>
       <select class="form-select" id="lead_team_id" name="lead_team_id"><option value="">—</option>
         <?php foreach ($team as $m): if ($kind === 'training' ? $m['is_instructor'] : ($m['is_cave_guide'] || $m['is_cavern_guide'] || $m['is_instructor'] || $m['is_divemaster'])): ?><option value="<?= (int) $m['id'] ?>"><?= e($m['name']) ?></option><?php endif; endforeach; ?>
