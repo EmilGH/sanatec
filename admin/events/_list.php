@@ -33,28 +33,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $when = ($_GET['when'] ?? 'upcoming') === 'past' ? 'past' : 'upcoming';
 $rows = events_list($kind, $when);
 
+// ?copy=<id>: the new form opens filled in from that day (item, places, dives, time,
+// lead), with the date left for you. Divers and the day plan are not copied.
+$copy = null;
+if (isset($_GET['copy']) && ($src = event_find((int) $_GET['copy'])) !== null && $src['kind'] === $kind) {
+    $first = event_sessions((int) $src['id'])[0] ?? null;
+    $lead = array_values(array_filter(event_team((int) $src['id']), static fn (array $m): bool => in_array($m['role'], ['lead', 'instructor'], true)))[0] ?? null;
+    $copy = [
+        'catalog_id'   => (int) ($kind === 'training' ? $src['course_id'] : $src['excursion_id']),
+        'dives_count'  => (int) $src['dives_count'],
+        'capacity'     => (int) $src['capacity'],
+        'meet_time'    => $first ? date('H:i', strtotime($first['starts_at'])) : '07:30',
+        'lead_team_id' => (int) ($lead['team_member_id'] ?? 0),
+        'title'        => $src['title_en'],
+    ];
+}
+
 shell_start($labels, $currentUser);
 echo shell_page($labels, 'Scheduling', '<a class="btn btn-primary" href="' . $base . '?new=1">' . ui_icon('plus') . 'New ' . strtolower($label) . '</a>');
 ?>
-<?php if (isset($_GET['new'])): ?>
+<?php if (isset($_GET['new']) || $copy !== null): ?>
 <form method="post" class="st-card mb-4">
   <?= csrf_field() ?>
-  <h2 class="st-card__title mb-3">New <?= strtolower($label) ?></h2>
+  <h2 class="st-card__title mb-3">New <?= strtolower($label) ?><?= $copy ? ' <span class="st-muted fw-normal">· like ' . e($copy['title']) . '</span>' : '' ?></h2>
   <div class="row g-3">
     <div class="col-12 col-md-5"><label class="form-label" for="catalog_id"><?= $kind === 'training' ? 'Course Name' : 'Excursion Name' ?></label>
       <select class="form-select" id="catalog_id" name="catalog_id" required>
         <option value="">—</option>
-        <?php foreach ($catalog as $c): ?><option value="<?= (int) $c['id'] ?>"><?= e($c['name_en']) ?><?= $kind === 'training' ? ' · ' . e($c['duration_en']) : '' ?></option><?php endforeach; ?>
+        <?php foreach ($catalog as $c): ?><option value="<?= (int) $c['id'] ?>" <?= $copy && $copy['catalog_id'] === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name_en']) ?><?= $kind === 'training' ? ' · ' . e($c['duration_en']) : '' ?></option><?php endforeach; ?>
       </select></div>
     <div class="col-6 col-md-3"><?php ui_date_field('date', null, $kind === 'training' ? 'First day' : 'Date', true, '', ['min' => date('Y-m-d')]); ?></div>
-    <div class="col-6 col-md-2"><label class="form-label" for="meet_time">Time</label><input class="form-control" type="time" id="meet_time" name="meet_time" value="07:30"></div>
+    <div class="col-6 col-md-2"><label class="form-label" for="meet_time">Time</label><input class="form-control" type="time" id="meet_time" name="meet_time" value="<?= e($copy['meet_time'] ?? '07:30') ?>"></div>
     <?php if ($kind === 'excursion'): ?>
-    <div class="col-6 col-md-2"><label class="form-label" for="dives_count">Dives</label><select class="form-select" id="dives_count" name="dives_count"><option value="1">1 dive</option><option value="2" selected>2 dives</option><option value="3">3 dives</option></select></div>
+    <div class="col-6 col-md-2"><label class="form-label" for="dives_count">Dives</label><select class="form-select" id="dives_count" name="dives_count"><?php foreach ([1 => '1 dive', 2 => '2 dives', 3 => '3 dives'] as $n => $l): ?><option value="<?= $n ?>" <?= ($copy['dives_count'] ?? 2) === $n ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></div>
     <?php endif; ?>
-    <div class="col-6 col-md-2"><label class="form-label" for="capacity">Max Divers</label><input class="form-control" type="number" min="1" max="60" id="capacity" name="capacity" value="<?= $kind === 'training' ? 4 : 8 ?>"></div>
+    <div class="col-6 col-md-2"><label class="form-label" for="capacity">Max Divers</label><input class="form-control" type="number" min="1" max="60" id="capacity" name="capacity" value="<?= (int) ($copy['capacity'] ?? ($kind === 'training' ? 4 : 8)) ?>"></div>
     <div class="col-12 col-md-4"><label class="form-label" for="lead_team_id"><?= $kind === 'training' ? 'Instructor' : 'Lead guide' ?></label>
       <select class="form-select" id="lead_team_id" name="lead_team_id"><option value="">—</option>
-        <?php foreach ($team as $m): if ($kind === 'training' ? $m['is_instructor'] : ($m['is_cave_guide'] || $m['is_cavern_guide'] || $m['is_instructor'] || $m['is_divemaster'])): ?><option value="<?= (int) $m['id'] ?>"><?= e($m['name']) ?></option><?php endif; endforeach; ?>
+        <?php foreach ($team as $m): if ($kind === 'training' ? $m['is_instructor'] : ($m['is_cave_guide'] || $m['is_cavern_guide'] || $m['is_instructor'] || $m['is_divemaster'])): ?><option value="<?= (int) $m['id'] ?>" <?= ($copy['lead_team_id'] ?? 0) === (int) $m['id'] ? 'selected' : '' ?>><?= e($m['name']) ?></option><?php endif; endforeach; ?>
       </select></div>
   </div>
   <div class="d-flex gap-2 mt-3">
@@ -79,7 +95,10 @@ echo shell_page($labels, 'Scheduling', '<a class="btn btn-primary" href="' . $ba
     <div style="min-width:52px;text-align:center"><span class="st-serif" style="font-size:22px;display:block;line-height:1"><?= e(date('j', strtotime($r['starts_on']))) ?></span><span class="st-muted small"><?= e(date('M', strtotime($r['starts_on']))) ?></span></div>
     <div><a class="st-rows__t st-link" style="text-decoration:none" href="<?= e($base) ?>event.php?id=<?= (int) $r['id'] ?>"><?= e($r['title_en']) ?></a>
       <span class="st-rows__s"><?= (int) $r['taken'] ?> of <?= (int) $r['capacity'] ?> places · <?= (int) $r['team_count'] ?> team<?= $money['due'] > 0 ? ' · ' . e(money($money['due'])) . ' due' : '' ?><?= $r['status'] !== 'open' ? ' · ' . e($r['status']) : '' ?></span></div>
-    <?= ui_icon('chevron', 'st-icon st-muted') ?>
+    <span class="d-flex gap-1 align-items-center">
+      <a class="st-iconbtn" href="<?= e($base) ?>?copy=<?= (int) $r['id'] ?>" title="Duplicate — schedule another day like this one" aria-label="Duplicate"><?= ui_icon('copy', 'st-icon st-muted') ?></a>
+      <a class="st-iconbtn" href="<?= e($base) ?>event.php?id=<?= (int) $r['id'] ?>" aria-label="Open"><?= ui_icon('chevron', 'st-icon st-muted') ?></a>
+    </span>
   </li>
   <?php endforeach; ?>
 </ul>
