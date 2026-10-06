@@ -67,8 +67,8 @@ $rowFor = static function (string $key) use ($all): array {
     ];
 };
 
-shell_start('Business info', $currentUser);
-echo shell_page('Business info', 'Site content');
+shell_start('Business Info', $currentUser);
+echo shell_page('Business Info', 'Site content');
 ?>
 <p class="st-lede mb-3">Everything on the public page that is not a course or a cenote price. Leave a Spanish box empty and the site falls back to the English text.</p>
 <div class="st-tabs mb-3">

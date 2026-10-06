@@ -28,12 +28,12 @@ function admin_sections(): array
 {
     return [
         ['Overview',      '/admin/',                       'home',     null,                    true],
+        ['Catalog',       '/admin/catalog-courses.php',    'tag',      'can_manage_catalog',    false],
+        ['Customers',     '/admin/customers/',             'users',    'can_manage_customers',  true],
         ['Excursions',    '/admin/excursions/',            'wave',     'can_manage_excursions', true],
         ['Training',      '/admin/training/',              'cap',      'can_manage_training',   true],
-        ['Customers',     '/admin/customers/',             'users',    'can_manage_customers',  true],
+        ['Business Info', '/admin/settings.php',           'store',    'can_manage_business',   false],
         ['Team',          '/admin/team/',                  'badge',    'can_manage_team',       false],
-        ['Catalog',       '/admin/catalog-courses.php',    'tag',      'can_manage_catalog',    false],
-        ['Business info', '/admin/settings.php',           'store',    'can_manage_business',   false],
     ];
 }
 
