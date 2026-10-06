@@ -268,8 +268,7 @@ function team_credentials_card(int $teamId): void
           <select class="form-select form-control" name="kind" id="cred-kind"><?php foreach (CREDENTIAL_TYPES as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></div>
         <div class="col-12 col-md-4"><label class="form-label small" for="cred-level">Certification</label>
           <?php ui_certification_select('level', null, ['empty' => 'Choose…', 'id' => 'cred-level', 'required' => true]); ?></div>
-        <?php /* The typed title stays in the table for old rows; the form no longer asks for it. */ ?>
-        <input type="hidden" name="title" id="cred-title" value="">
+        <div class="col-12 col-md-4" id="cred-title-box"><label class="form-label small" for="cred-title">Title</label><input class="form-control" name="title" id="cred-title" placeholder="As the card says"></div>
         <div class="w-100 m-0"></div>
         <div class="col-6 col-md-3"><label class="form-label small" for="cred-number">Number</label><input class="form-control" name="number" id="cred-number"></div>
         <div class="col-6 col-md-3" id="cred-expiry"><?php ui_date_field('expires_on', null, 'Expiration', false, '', ['id' => 'cred-expires', 'label_class' => 'small']); ?></div>
@@ -291,6 +290,8 @@ function team_credentials_card(int $teamId): void
         var typeFor = { technical: 'technical', professional: 'professional', safety: 'technical' };
         function sync() {
           var rec = kind.value === 'recreational'; box.style.display = rec ? 'none' : ''; box.querySelector('input').required = !rec; if (rec) box.querySelector('input').value = '';
+          var other = $('cred-level').value === 'other';
+          $('cred-title-box').style.display = other ? '' : 'none'; $('cred-title').required = other;
         }
         function reset() { form.reset(); $('cred-id').value = ''; $('cred-submit').textContent = 'Add'; $('cred-cancel').classList.add('d-none'); sync(); }
         kind.addEventListener('change', sync);
