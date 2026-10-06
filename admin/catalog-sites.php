@@ -79,7 +79,7 @@ echo shell_page('Dive sites', 'Catalog', '<a class="btn btn-primary" href="/admi
 <p class="st-lede mb-3">Each cenote is a site. A route on the excursion list visits one or more of them in order, and a diver marked attended gets a stamp for each one.</p>
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php">Courses</a>
-  <a href="/admin/catalog-excursions.php">Cenote excursions</a>
+  <a href="/admin/catalog-excursions.php">Excursions</a>
   <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive sites</a>
   <?php if (can('can_manage_affiliates', $currentUser)): ?><a href="/admin/catalog-affiliates.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-affiliates.php' ? 'aria-current="page"' : '' ?>>Affiliates</a><?php endif; ?>
 </div>

@@ -92,7 +92,7 @@ function event_create(string $kind, array $in, ?int $createdByTeamId = null): in
     $capacity = max(1, min(60, (int) ($in['capacity'] ?? 8)));
     $item = catalog_find($kind === 'training' ? 'courses' : 'excursions', (int) ($in['catalog_id'] ?? 0));
     if ($item === null) {
-        throw new InvalidArgumentException('Pick a ' . ($kind === 'training' ? 'course' : 'cenote route') . ' from the catalogue.');
+        throw new InvalidArgumentException('Pick a ' . ($kind === 'training' ? 'course' : 'excursion') . ' from the catalogue.');
     }
 
     $pdo = db();

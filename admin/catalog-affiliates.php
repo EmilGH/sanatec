@@ -75,7 +75,7 @@ echo shell_page('Affiliates', 'Catalog', '<a class="btn btn-primary" href="/admi
 <p class="st-lede mb-3">Hotels, concierges and operators who send divers. Each gets a link; divers who arrive through it are counted for ninety days, and every booking they make carries the affiliate's share.</p>
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php">Courses</a>
-  <a href="/admin/catalog-excursions.php">Cenote excursions</a>
+  <a href="/admin/catalog-excursions.php">Excursions</a>
   <a href="/admin/catalog-sites.php">Dive sites</a>
   <a href="/admin/catalog-affiliates.php" aria-current="page">Affiliates</a>
 </div>

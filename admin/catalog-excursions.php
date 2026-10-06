@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
 
         if ($input['name_en'] === '') {
-            flash('A cenote route needs an English name.', 'warn');
+            flash('An excursion needs an English name.', 'warn');
             redirect('/admin/catalog-excursions.php' . ($id ? '?edit=' . $id : '?new=1'));
         }
 
@@ -100,13 +100,13 @@ if (isset($_GET['new'])) {
     }
 }
 
-shell_start('Cenote excursions', $currentUser);
-echo shell_page('Cenote excursions', 'Catalog', '<a class="btn btn-primary" href="/admin/catalog-excursions.php?new=1">' . ui_icon('plus') . 'Add</a>');
+shell_start('Excursions', $currentUser);
+echo shell_page('Excursions', 'Catalog', '<a class="btn btn-primary" href="/admin/catalog-excursions.php?new=1">' . ui_icon('plus') . 'Add</a>');
 ?>
 <p class="st-lede mb-3"><?= e('Prices are Mexican pesos. Each column is the total for that many dives; leave a box blank when the route is not sold that way.') ?></p>
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php" <?= 'excursions' === 'courses' ? 'aria-current="page"' : '' ?>>Courses</a>
-  <a href="/admin/catalog-excursions.php" <?= 'excursions' === 'excursions' ? 'aria-current="page"' : '' ?>>Cenote excursions</a>
+  <a href="/admin/catalog-excursions.php" <?= 'excursions' === 'excursions' ? 'aria-current="page"' : '' ?>>Excursions</a>
   <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive sites</a>
   <?php if (can('can_manage_affiliates', $currentUser)): ?><a href="/admin/catalog-affiliates.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-affiliates.php' ? 'aria-current="page"' : '' ?>>Affiliates</a><?php endif; ?>
 </div>

@@ -55,7 +55,7 @@ shell_start('Overview', $currentUser);
     <a class="small" href="/admin/catalog-courses.php">Manage →</a>
   </div></div></div>
   <div class="col-6 col-md-3"><div class="card h-100"><div class="card-body">
-    <div class="text-secondary small">Cenote excursions</div>
+    <div class="text-secondary small">Excursions</div>
     <div class="stat"><?= $shown($excursions) ?><span class="text-secondary fs-6 fw-normal"> / <?= count($excursions) ?></span></div>
     <a class="small" href="/admin/catalog-excursions.php">Manage →</a>
   </div></div></div>

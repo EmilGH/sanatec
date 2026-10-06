@@ -97,7 +97,7 @@ echo shell_page('Dive training', 'Catalog', '<a class="btn btn-primary" href="/a
 <p class="st-lede mb-3"><?= e('Prices are Mexican pesos. Leave a price blank to show “Ask us” instead of a number.') ?></p>
 <div class="st-tabs mb-3">
   <a href="/admin/catalog-courses.php" <?= 'courses' === 'courses' ? 'aria-current="page"' : '' ?>>Courses</a>
-  <a href="/admin/catalog-excursions.php" <?= 'courses' === 'excursions' ? 'aria-current="page"' : '' ?>>Cenote excursions</a>
+  <a href="/admin/catalog-excursions.php" <?= 'courses' === 'excursions' ? 'aria-current="page"' : '' ?>>Excursions</a>
   <a href="/admin/catalog-sites.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-sites.php' ? 'aria-current="page"' : '' ?>>Dive sites</a>
   <?php if (can('can_manage_affiliates', $currentUser)): ?><a href="/admin/catalog-affiliates.php" <?= basename($_SERVER['SCRIPT_NAME']) === 'catalog-affiliates.php' ? 'aria-current="page"' : '' ?>>Affiliates</a><?php endif; ?>
 </div>
