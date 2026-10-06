@@ -94,3 +94,14 @@ a.st-doc:hover .st-doc__t { color: var(--aqua); }
 .datepicker-picker .datepicker-cell.prev, .datepicker-picker .datepicker-cell.next, .datepicker-picker .datepicker-cell.disabled { color: var(--muted); }
 .datepicker-picker .datepicker-view .dow { color: var(--muted); font-weight: 600; }
 .datepicker-picker .datepicker-footer .datepicker-controls .btn { color: var(--aqua); background: transparent; border: 0; }
+
+/* Credentials: the editor is a row of the table, so controls line up under the columns. */
+.st-credtable th { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.st-credtable td { vertical-align: middle; }
+.st-credtable__editor td { background: var(--panel); padding-top: 10px; padding-bottom: 10px; }
+.st-credtable__editor .form-select-sm, .st-credtable__editor .form-control-sm { min-height: 36px; font-size: 14px; }
+.st-credtable__editor #cred-agency { min-width: 96px; }
+.st-credtable__editor #cred-level { min-width: 220px; }
+.st-credtable__editor #cred-number { min-width: 120px; }
+.st-credtable__editor #cred-expiry .st-datefield { min-width: 150px; }
+.st-credtable__editor .form-check-input { margin: 0; }

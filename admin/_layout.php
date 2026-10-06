@@ -251,9 +251,9 @@ function ui_date_field(string $name, ?string $value, string $label, bool $requir
     $shown = $value ? date('d/m/Y', strtotime($value)) : '';
     $small = !empty($opts['small']);
     ?>
-    <label class="form-label <?= e($opts['label_class'] ?? '') ?>" for="<?= e($id) ?>"><?= e($label) ?></label>
+    <?php if (empty($opts['nolabel'])): ?><label class="form-label <?= e($opts['label_class'] ?? '') ?>" for="<?= e($id) ?>"><?= e($label) ?></label><?php endif; ?>
     <div class="input-group st-datefield">
-      <input class="form-control<?= $small ? ' form-control-sm' : '' ?>" id="<?= e($id) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" placeholder="DD/MM/YYYY" inputmode="numeric" autocomplete="off" maxlength="10"
+      <input class="form-control<?= $small ? ' form-control-sm' : '' ?>" id="<?= e($id) ?>" name="<?= e($name) ?>" value="<?= e($shown) ?>" placeholder="DD/MM/YYYY" inputmode="numeric" autocomplete="off" maxlength="10"<?= isset($opts['form']) ? ' form="' . e($opts['form']) . '"' : '' ?><?= !empty($opts['nolabel']) ? ' aria-label="' . e($label) . '"' : '' ?>
         pattern="\d{1,2}[/.\-]\d{1,2}[/.\-](\d{4}|\d{2})|\d{4}-\d{1,2}-\d{1,2}|\d{6}|\d{8}" <?= $required ? 'required' : '' ?>
         <?= isset($opts['min']) ? 'data-min="' . e((string) $opts['min']) . '"' : '' ?> <?= isset($opts['max']) ? 'data-max="' . e((string) $opts['max']) . '"' : '' ?>
         oninput="var d=this.value.replace(/\D/g,'').slice(0,8);if(this.value.length>=this.selectionStart){this.value=d.length>4?d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4):d.length>2?d.slice(0,2)+'/'+d.slice(2):d;}">
@@ -270,7 +270,7 @@ function ui_date_field(string $name, ?string $value, string $label, bool $requir
 function ui_agency_select(string $name, ?string $value, array $opts = []): void
 {
     $id = $opts['id'] ?? $name;
-    echo '<select class="form-select form-control ', e($opts['class'] ?? ''), '" id="', e($id), '" name="', e($name), '"', !empty($opts['required']) ? ' required' : '', '>';
+    echo '<select class="form-select form-control ', e($opts['class'] ?? ''), '" id="', e($id), '" name="', e($name), '"', !empty($opts['required']) ? ' required' : '', isset($opts['form']) ? ' form="' . e($opts['form']) . '"' : '', '>';
     if (($opts['empty'] ?? '—') !== '') {
         echo '<option value="">', e($opts['empty'] ?? '—'), '</option>';
     }
@@ -284,7 +284,7 @@ function ui_certification_select(string $name, ?string $value, array $opts = [])
 {
     $lang = $opts['lang'] ?? 'en';
     $id = $opts['id'] ?? $name;
-    echo '<select class="form-select form-control ', e($opts['class'] ?? ''), '" id="', e($id), '" name="', e($name), '"', !empty($opts['required']) ? ' required' : '', '>';
+    echo '<select class="form-select form-control ', e($opts['class'] ?? ''), '" id="', e($id), '" name="', e($name), '"', !empty($opts['required']) ? ' required' : '', isset($opts['form']) ? ' form="' . e($opts['form']) . '"' : '', '>';
     if (($opts['empty'] ?? '—') !== '') {
         echo '<option value="">', e($opts['empty'] ?? '—'), '</option>';
     }
