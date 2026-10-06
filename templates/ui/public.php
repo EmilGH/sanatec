@@ -109,8 +109,9 @@ function ui_ctabar(string $lang): string
 /** WhatsApp, SMS, email, address — the contact list at the end of the page. */
 function ui_contact_list(string $lang): string
 {
+    // [icon, href, title, subtitle, trailing icon, pill]
     $rows = [
-        ['whatsapp', ui_wa_url(t('wa_prefill', $lang)), t('contact_whatsapp', $lang), setting('phone_display') . ' · ' . t('contact_fastest', $lang), 'chevron'],
+        ['whatsapp', ui_wa_url(t('wa_prefill', $lang)), t('contact_whatsapp', $lang), setting('phone_display'), 'chevron', t('contact_fastest', $lang)],
         ['sms', ui_sms_url(), t('contact_sms', $lang), setting('phone_display'), 'chevron'],
     ];
     if (has_setting('contact_email')) {
@@ -119,7 +120,7 @@ function ui_contact_list(string $lang): string
     if (has_setting('addr_locality')) {
         $line = trim(setting('addr_street') . ' ' . setting('addr_postal') . ' ' . setting('addr_locality') . ', ' . setting('addr_region'));
         $href = has_setting('maps_url') ? setting('maps_url') : 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($line);
-        $rows[] = ['pin', $href, $line, has_setting('opening_hours') ? setting('opening_hours') : t('open_in_maps', $lang), 'external', 'st-location'];
+        $rows[] = ['pin', $href, $line, has_setting('opening_hours') ? setting('opening_hours') : t('open_in_maps', $lang), 'external'];
     }
     $teamCount = (int) db()->query('SELECT COUNT(*) FROM team_members WHERE profile_public = 1 AND is_active = 1 AND public_slug IS NOT NULL')->fetchColumn();
     if ($teamCount > 0) {
@@ -127,11 +128,12 @@ function ui_contact_list(string $lang): string
     }
 
     $html = '<div class="st-contact">';
-    foreach ($rows as [$icon, $href, $title, $sub, $trail]) {
-        $cls = $rows[count($rows) - 1][5] ?? '';
+    foreach ($rows as $row) {
+        [$icon, $href, $title, $sub, $trail] = $row;
+        $pill = isset($row[5]) ? ' <span class="st-pill st-pill--ok">' . e($row[5]) . '</span>' : '';
         $external = $trail === 'external';
         $html .= '<a href="' . e($href) . '"' . ($external ? ' target="_blank" rel="noopener" class="st-location"' : '') . '>'
-            . ui_icon($icon) . '<span>' . e($title) . '<br><small>' . e($sub) . '</small></span>' . ui_icon($trail) . '</a>';
+            . ui_icon($icon) . '<span>' . e($title) . $pill . '<br><small>' . e($sub) . '</small></span>' . ui_icon($trail) . '</a>';
     }
 
     return $html . '</div>';

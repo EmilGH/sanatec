@@ -74,7 +74,6 @@ $langNames = ['en' => 'English', 'es' => 'Español', 'de' => 'Deutsch', 'fr' => 
 
 <?php elseif ($one !== null): $m = $one; ?>
   <section class="st-section">
-    <p class="st-eyebrow"><a class="st-link" href="<?= e($prefix) ?>/team/">← <?= e(t('team_all', $lang)) ?></a></p>
     <div class="st-profile">
       <?php if ($m['photo_path']): ?><img class="st-avatar st-avatar--big" src="/team/<?= e($m['public_slug']) ?>/photo.jpg" alt="<?= e($m['name']) ?>" width="160" height="160"><?php endif; ?>
       <div>
