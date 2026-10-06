@@ -263,10 +263,18 @@ function catalog_slug_for(string $table, string $name, ?int $excludeId = null): 
 }
 
 /** A published row by slug, or null. */
-function catalog_find_by_slug(string $table, string $slug): ?array
+/**
+ * TEMPORARY (2026-10): item pages open even for items not switched on for the
+ * site, so the shop can review a page before it is listed. Set this back to
+ * false when the catalogue is settled; unpublished pages then 404 again.
+ * Unpublished items never appear on the home page, the sitemap or the menus.
+ */
+const CATALOG_UNPUBLISHED_PAGES_OPEN = true;
+
+function catalog_find_by_slug(string $table, string $slug, bool $publishedOnly = true): ?array
 {
     $t = catalog_table($table);
-    $stmt = db()->prepare("SELECT * FROM {$t} WHERE slug = :s AND is_published = 1");
+    $stmt = db()->prepare("SELECT * FROM {$t} WHERE slug = :s" . ($publishedOnly ? ' AND is_published = 1' : ''));
     $stmt->execute([':s' => $slug]);
 
     return $stmt->fetch() ?: null;

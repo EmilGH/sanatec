@@ -19,9 +19,10 @@ $lang = normalize_lang($_GET['lang'] ?? 'en');
 $slug = strtolower(preg_replace('/[^a-z0-9-]/', '', (string) ($_GET['slug'] ?? '')) ?? '');
 $share = null;
 if ($slug !== '') {
-    if (($row = catalog_find_by_slug('excursions', $slug)) !== null) {
+    $open = !CATALOG_UNPUBLISHED_PAGES_OPEN;     // published only, unless the review switch is on
+    if (($row = catalog_find_by_slug('excursions', $slug, $open)) !== null) {
         $share = ['type' => 'excursion', 'row' => $row];
-    } elseif (($row = catalog_find_by_slug('courses', $slug)) !== null) {
+    } elseif (($row = catalog_find_by_slug('courses', $slug, $open)) !== null) {
         $share = ['type' => 'course', 'row' => $row];
     }
 }
@@ -46,6 +47,9 @@ $excursions = [];
 send_header('Content-Type: text/html; charset=utf-8');
 send_header('Content-Language: ' . $lang);
 send_header('Cache-Control: public, max-age=300');
+if (!(int) $r['is_published']) {
+    send_header('X-Robots-Tag: noindex');          // reviewable by link, not for search engines
+}
 send_header('X-Content-Type-Options: nosniff');
 send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
 ?><!doctype html>

@@ -99,3 +99,12 @@ test('the special-price flag round-trips', function (): void {
     $yaakun = db()->query("SELECT * FROM excursions WHERE name_en = 'Yaa Kun'")->fetch();
     is_same(1, (int) $yaakun['is_special_price'], 'Yaa Kun keeps the guide\'s asterisk');
 });
+
+test('an unpublished item is reachable by slug only when the review switch is on', function (): void {
+    $id = course_save(['name_en' => 'Secret Course', 'name_es' => '', 'price_mxn' => '', 'is_published' => false]);
+    $row = catalog_find('courses', $id);
+    is_same(null, catalog_find_by_slug('courses', $row['slug']), 'published-only lookup hides it');
+    is_same($id, (int) catalog_find_by_slug('courses', $row['slug'], false)['id'], 'the open lookup finds it');
+    is_true(CATALOG_UNPUBLISHED_PAGES_OPEN, 'TEMPORARY: item pages open for review; flip the constant in src/Catalog.php when done');
+    catalog_delete('courses', $id);
+});
