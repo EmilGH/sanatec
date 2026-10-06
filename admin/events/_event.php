@@ -192,18 +192,38 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
   <div class="col-12 col-lg-5">
     <div class="st-card mb-3">
       <div class="st-card__head"><h2 class="st-card__title">Day plan</h2><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#add-session"><?= ui_icon('plus', 'st-icon') ?>Add</button></div>
-      <form method="post" class="collapse mb-3 row g-2" id="add-session"><?= csrf_field() ?><input type="hidden" name="action" value="session_save">
-        <div class="col-7"><input class="form-control form-control-sm" type="datetime-local" name="starts_at" value="<?= e($event['starts_on']) ?>T09:00" required></div>
-        <div class="col-5"><input class="form-control form-control-sm" name="location" placeholder="Where"></div>
-        <div class="col-12"><select class="form-select form-select-sm" name="dive_site_id"><option value="">Not a dive (briefing, meet, theory)</option><?php foreach (dive_sites(false) as $site): ?><option value="<?= (int) $site['id'] ?>"><?= e($site['name_en']) ?></option><?php endforeach; ?></select></div>
-        <div class="col-12 d-flex gap-2"><input class="form-control form-control-sm" name="title_en" placeholder="What (e.g. Dive 3)" required><button class="btn btn-sm btn-primary" type="submit">Add</button></div></form>
+      <?php /* One form adds a session or, after a pencil click, edits the one it was filled from. */ ?>
+      <form method="post" class="collapse mb-3 row g-2" id="add-session"><?= csrf_field() ?><input type="hidden" name="action" value="session_save"><input type="hidden" name="session_id" id="session-id" value="">
+        <div class="col-7"><input class="form-control form-control-sm" type="datetime-local" name="starts_at" id="session-at" value="<?= e($event['starts_on']) ?>T09:00" required></div>
+        <div class="col-5"><input class="form-control form-control-sm" name="location" id="session-location" placeholder="Where"></div>
+        <div class="col-12"><select class="form-select form-select-sm" name="dive_site_id" id="session-site"><option value="">Not a dive (briefing, meet, theory)</option><?php foreach (dive_sites(false) as $site): ?><option value="<?= (int) $site['id'] ?>"><?= e($site['name_en']) ?></option><?php endforeach; ?></select></div>
+        <div class="col-12 d-flex gap-2"><input class="form-control form-control-sm" name="title_en" id="session-title" placeholder="What (e.g. Dive 3)" required>
+          <button class="btn btn-sm btn-outline-secondary d-none" type="button" id="session-cancel">Cancel</button><button class="btn btn-sm btn-primary" type="submit" id="session-submit">Add</button></div></form>
       <ul class="st-rows">
         <?php foreach ($sessions as $s): ?>
         <li><span class="st-num st-muted"><?= e(date('H:i', strtotime($s['starts_at']))) ?><?php if (count($sessions) > 1 && date('Y-m-d', strtotime($s['starts_at'])) !== $event['starts_on']): ?><br><small><?= e(date('D j', strtotime($s['starts_at']))) ?></small><?php endif; ?></span>
           <span class="st-rows__t"><?= e($s['title_en']) ?><span class="st-rows__s"><?= e((string) $s['location']) ?><?= $s['dive_site_id'] ? ($s['location'] ? ' · ' : '') . '<span title="Counts as a dive in the passport">' . ui_icon('wave', 'st-icon') . e($siteNames[(int) $s['dive_site_id']] ?? '') . '</span>' : '' ?></span></span>
-          <form method="post" onsubmit="return confirm('Remove this session?')"><?= csrf_field() ?><input type="hidden" name="action" value="session_delete"><input type="hidden" name="session_id" value="<?= (int) $s['id'] ?>"><button class="st-iconbtn" title="Remove"><?= ui_icon('x', 'st-icon st-muted') ?></button></form></li>
+          <span class="d-flex gap-1 align-items-center">
+            <button class="st-iconbtn" type="button" title="Edit" data-session-edit data-id="<?= (int) $s['id'] ?>" data-at="<?= e(date('Y-m-d\TH:i', strtotime($s['starts_at']))) ?>" data-location="<?= e((string) $s['location']) ?>" data-site="<?= (int) $s['dive_site_id'] ?>" data-title="<?= e($s['title_en']) ?>"><?= ui_icon('edit', 'st-icon st-muted') ?></button>
+            <form method="post" onsubmit="return confirm('Remove this session?')"><?= csrf_field() ?><input type="hidden" name="action" value="session_delete"><input type="hidden" name="session_id" value="<?= (int) $s['id'] ?>"><button class="st-iconbtn" title="Remove"><?= ui_icon('x', 'st-icon st-muted') ?></button></form>
+          </span></li>
         <?php endforeach; ?>
       </ul>
+      <script>
+      (function () {
+        var $ = function (id) { return document.getElementById(id); }, form = $('add-session');
+        function reset() { $('session-id').value = ''; $('session-title').value = ''; $('session-location').value = ''; $('session-site').value = ''; $('session-at').value = <?= json_encode($event['starts_on'] . 'T09:00') ?>; $('session-submit').textContent = 'Add'; $('session-cancel').classList.add('d-none'); }
+        document.querySelectorAll('[data-session-edit]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var d = b.dataset;
+            $('session-id').value = d.id; $('session-at').value = d.at; $('session-location').value = d.location; $('session-site').value = d.site !== '0' ? d.site : ''; $('session-title').value = d.title;
+            $('session-submit').textContent = 'Save'; $('session-cancel').classList.remove('d-none');
+            bootstrap.Collapse.getOrCreateInstance(form).show(); $('session-title').focus();
+          });
+        });
+        $('session-cancel').addEventListener('click', function () { reset(); bootstrap.Collapse.getOrCreateInstance(form).hide(); });
+      })();
+      </script>
     </div>
 
     <div class="st-card mb-3">

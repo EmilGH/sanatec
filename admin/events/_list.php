@@ -41,7 +41,7 @@ echo shell_page($labels, 'Scheduling', '<a class="btn btn-primary" href="' . $ba
   <?= csrf_field() ?>
   <h2 class="st-card__title mb-3">New <?= strtolower($label) ?></h2>
   <div class="row g-3">
-    <div class="col-12 col-md-5"><label class="form-label" for="catalog_id"><?= $kind === 'training' ? 'Course' : 'Excursion Name' ?></label>
+    <div class="col-12 col-md-5"><label class="form-label" for="catalog_id"><?= $kind === 'training' ? 'Course Name' : 'Excursion Name' ?></label>
       <select class="form-select" id="catalog_id" name="catalog_id" required>
         <option value="">—</option>
         <?php foreach ($catalog as $c): ?><option value="<?= (int) $c['id'] ?>"><?= e($c['name_en']) ?><?= $kind === 'training' ? ' · ' . e($c['duration_en']) : '' ?></option><?php endforeach; ?>

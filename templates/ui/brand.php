@@ -57,6 +57,7 @@ function ui_icon(string $name, string $class = 'st-icon'): string
         'back'     => '<path d="m15 6-6 6 6 6"/>',
         'home'     => '<path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/>',
         'calendar' => '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+        'edit'     => '<path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z"/><path d="M13.5 6.5l3 3"/>',
         'tip'      => '<circle cx="12" cy="12" r="9"/><path d="M12 7v10"/><path d="M14.5 9.6c-.3-.9-1.3-1.4-2.5-1.4-1.4 0-2.5.7-2.5 1.8 0 1.2 1.1 1.6 2.5 1.9s2.5.8 2.5 2-1.1 1.9-2.5 1.9c-1.3 0-2.3-.6-2.6-1.5"/>',
         'wave'     => '<path d="M2 12c2.5-3 5-3 7.5 0s5 3 7.5 0 3-3 5 0"/><path d="M2 17c2.5-3 5-3 7.5 0s5 3 7.5 0 3-3 5 0"/>',
         'cap'      => '<path d="m2 9 10-5 10 5-10 5z"/><path d="M6 11v5c3 2.5 9 2.5 12 0v-5"/>',
