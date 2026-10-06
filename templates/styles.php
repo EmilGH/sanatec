@@ -50,6 +50,10 @@ body{margin:0}
 .st-included__h--out{color:var(--danger)}
 .st-wm--small{height:24px}
 .st-foot p{margin:10px 0 0}
+/* The contact table's last rule is the divider before the footer; keep the same breathing room on every page. */
+#contact{padding-bottom:32px}
+.st-contact a:last-child{border-bottom:0}
+.st-foot{border-top:1px solid var(--line);padding-top:24px}
 /* Phones and tablets: the wordmark spans the screen, the language switch sits centred beneath it. */
 .st-hdr{flex-direction:column;align-items:center;gap:10px;padding:14px 12px 6px;min-height:0}
 .st-hdr__brand{width:100%;justify-content:center}

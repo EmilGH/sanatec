@@ -222,7 +222,7 @@ input[type="date"].st-input { color-scheme: inherit; }
 .st-hero__text .st-eyebrow { margin-bottom: 10px; }
 .st-section { padding: 28px 16px 8px; }
 .st-section__head { display: grid; gap: 6px; margin-bottom: 14px; }
-.st-foot { padding: 24px 16px 32px; border-top: 1px solid var(--line); font-size: 14px; line-height: 20px; color: var(--muted); }
+.st-foot { padding: 8px 16px 32px; font-size: 14px; line-height: 20px; color: var(--muted); }
 .st-foot a { color: var(--muted); }
 .st-contact { display: grid; gap: 8px; }
 .st-contact a { display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center; min-height: 52px; padding: 0 2px; border-bottom: 1px solid var(--line); color: var(--ink); text-decoration: none; }
