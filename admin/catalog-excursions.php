@@ -158,7 +158,7 @@ echo shell_page('Excursions', 'Catalog', '<a class="btn btn-primary" href="/admi
 <p class="st-muted small mb-2">Each price cell shows retail, and the floor beneath it in grey.</p>
 <div class="st-card" style="padding:0 16px">
   <div class="st-tablewrap"><table class="st-table">
-    <thead><tr><th style="width:84px">Order</th><th>Cenote / route</th><?php foreach (PRICE_COLUMNS as $label): ?><th class="text-end"><?= e($label) ?></th><?php endforeach; ?><th>Cert.</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th style="width:84px">Order</th><th>Excursion / route</th><?php foreach (PRICE_COLUMNS as $label): ?><th class="text-end"><?= e($label) ?></th><?php endforeach; ?><th>Cert.</th><th>Status</th><th></th></tr></thead>
     <tbody>
     <?php $rows = catalog_all('excursions'); foreach ($rows as $i => $row): ?>
       <tr>
