@@ -12,13 +12,13 @@ $shown = static fn (array $rows): int => count(array_filter($rows, static fn (ar
 /** Blanks worth filling, in the order they cost the shop money. */
 $todo = [];
 if (!has_setting('addr_locality')) {
-    $todo[] = ['Nobody can tell where you are — no location on the page, no address for search engines.', 'Business → Location', '/admin/settings.php#location'];
+    $todo[] = ['Nobody can tell where you are — no location on the page, no address for search engines.', 'Business → Location', '/admin/settings.php?tab=business#location'];
 }
 if (!has_setting('opening_hours')) {
-    $todo[] = ['No opening hours published.', 'Business → Location', '/admin/settings.php#location'];
+    $todo[] = ['No opening hours published.', 'Business → Location', '/admin/settings.php?tab=business#location'];
 }
 if (setting('included_publish') !== '1') {
-    $todo[] = ['"What is included" is drafted but hidden. Check every line against what you actually provide, then switch it on.', 'Business → What is included', '/admin/settings.php#included'];
+    $todo[] = ['"What is included" is drafted but hidden. Check every line against what you actually provide, then switch it on.', 'Business → What is included', '/admin/settings.php?tab=home#included'];
 }
 $missingEs = (int) db()->query("SELECT (SELECT COUNT(*) FROM courses WHERE TRIM(name_es)='') + (SELECT COUNT(*) FROM excursions WHERE TRIM(name_es)='')")->fetchColumn();
 if ($missingEs > 0) {

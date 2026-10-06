@@ -9,12 +9,19 @@ require_once __DIR__ . '/../src/Og.php';
 $currentUser = require_permission('can_manage_business');
 $schema = settings_schema();
 
+// One tab at a time: the page shows, and a save touches, only that tab's sections.
+$tab = (string) ($_POST['tab'] ?? $_GET['tab'] ?? 'business');
+if (!isset(SETTINGS_TABS[$tab])) {
+    $tab = 'business';
+}
+$sections = array_intersect_key($schema, array_flip(SETTINGS_TABS[$tab][1]));
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
 
     $values = [];
 
-    foreach ($schema as $section) {
+    foreach ($sections as $section) {
         foreach ($section['fields'] as $key => $field) {
             $localized = $field['localized'] ?? true;
             $type      = $field['type'] ?? 'text';
@@ -33,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $changed = settings_save($values);
-    if ($changed > 0) {
+    if ($changed > 0 && $tab !== 'policies') {
         og_invalidate();   // the home card carries the hero text and the phone number
     }
 
@@ -44,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Nothing had changed.');
     }
 
-    redirect('/admin/settings.php#' . (string) ($_POST['section'] ?? ''));
+    redirect('/admin/settings.php?tab=' . $tab);
 }
 
 $all = settings_all();
@@ -61,10 +68,15 @@ shell_start('Business info', $currentUser);
 echo shell_page('Business info', 'Site content');
 ?>
 <p class="st-lede mb-3">Everything on the public page that is not a course or a cenote price. Leave a Spanish box empty and the site falls back to the English text.</p>
+<div class="st-tabs mb-3">
+  <?php foreach (SETTINGS_TABS as $key => [$label]): ?>
+    <a href="/admin/settings.php?tab=<?= e($key) ?>" <?= $key === $tab ? 'aria-current="page"' : '' ?>><?= e($label) ?></a>
+  <?php endforeach; ?>
+</div>
 
 <form method="post">
-  <?= csrf_field() ?>
-  <?php foreach ($schema as $sectionKey => $section): ?>
+  <?= csrf_field() ?><input type="hidden" name="tab" value="<?= e($tab) ?>">
+  <?php foreach ($sections as $sectionKey => $section): ?>
     <div class="st-card mb-3" id="<?= e($sectionKey) ?>">
       <h2 class="st-card__title"><?= e($section['title']) ?></h2>
       <?php if (isset($section['intro'])): ?><p class="st-muted small"><?= e($section['intro']) ?></p><?php endif; ?>
@@ -77,11 +89,11 @@ echo shell_page('Business info', 'Site content');
           <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="<?= e($key) ?>" name="<?= e($key) ?>" value="1" <?= ($all[$key]['en'] ?? '0') === '1' ? 'checked' : '' ?>>
             <label class="form-check-label" for="<?= e($key) ?>"><?= e($field['label']) ?></label></div>
         <?php elseif ($localized): ?>
-          <?php field_pair($key, $field['label'], $rowFor($key), $type, $help); ?>
+          <?php field_pair($key, $field['label'], $rowFor($key), $type, $help, (int) ($field['rows'] ?? 3)); ?>
         <?php else: ?>
           <div class="mb-3">
             <label class="form-label" for="<?= e($key) ?>"><?= e($field['label']) ?></label>
-            <?php if ($type === 'textarea'): ?><textarea class="form-control" id="<?= e($key) ?>" name="<?= e($key) ?>" rows="3"><?= e($all[$key]['en'] ?? '') ?></textarea>
+            <?php if ($type === 'textarea'): ?><textarea class="form-control" id="<?= e($key) ?>" name="<?= e($key) ?>" rows="<?= (int) ($field['rows'] ?? 3) ?>"><?= e($all[$key]['en'] ?? '') ?></textarea>
             <?php else: ?><input class="form-control" type="text" id="<?= e($key) ?>" name="<?= e($key) ?>" value="<?= e($all[$key]['en'] ?? '') ?>"><?php endif; ?>
             <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
           </div>
@@ -90,7 +102,7 @@ echo shell_page('Business info', 'Site content');
     </div>
   <?php endforeach; ?>
   <div class="st-ctabar" style="grid-template-columns:auto auto;justify-content:start">
-    <button class="btn btn-primary" type="submit">Save all changes</button>
+    <button class="btn btn-primary" type="submit">Save <?= e(SETTINGS_TABS[$tab][0]) ?></button>
     <a class="btn btn-outline-secondary" href="/" target="_blank" rel="noopener">View site</a>
   </div>
 </form>

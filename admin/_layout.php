@@ -205,7 +205,7 @@ function shell_page(string $title, string $eyebrow = '', string $actions = ''): 
 }
 
 /** A pair of EN/ES inputs for one field (Bootstrap markup). */
-function field_pair(string $name, string $label, array $row, string $type = 'text', string $help = ''): void
+function field_pair(string $name, string $label, array $row, string $type = 'text', string $help = '', int $rows = 3): void
 {
     $en = (string) ($row[$name . '_en'] ?? '');
     $es = (string) ($row[$name . '_es'] ?? '');
@@ -215,10 +215,10 @@ function field_pair(string $name, string $label, array $row, string $type = 'tex
       <?php if ($help !== ''): ?><div class="form-text mb-1"><?= e($help) ?></div><?php endif; ?>
       <div class="row g-2">
         <div class="col-12 col-md-6"><span class="lang-tag">English</span>
-          <?php if ($type === 'textarea'): ?><textarea class="form-control" id="<?= e($name) ?>_en" name="<?= e($name) ?>_en" rows="3"><?= e($en) ?></textarea>
+          <?php if ($type === 'textarea'): ?><textarea class="form-control" id="<?= e($name) ?>_en" name="<?= e($name) ?>_en" rows="<?= $rows ?>"><?= e($en) ?></textarea>
           <?php else: ?><input class="form-control" type="text" id="<?= e($name) ?>_en" name="<?= e($name) ?>_en" value="<?= e($en) ?>"><?php endif; ?></div>
         <div class="col-12 col-md-6"><span class="lang-tag">Español</span>
-          <?php if ($type === 'textarea'): ?><textarea class="form-control" id="<?= e($name) ?>_es" name="<?= e($name) ?>_es" rows="3"><?= e($es) ?></textarea>
+          <?php if ($type === 'textarea'): ?><textarea class="form-control" id="<?= e($name) ?>_es" name="<?= e($name) ?>_es" rows="<?= $rows ?>"><?= e($es) ?></textarea>
           <?php else: ?><input class="form-control" type="text" id="<?= e($name) ?>_es" name="<?= e($name) ?>_es" value="<?= e($es) ?>"><?php endif; ?></div>
       </div>
     </div>

@@ -17,6 +17,26 @@ if (!defined('SANATEC')) {
  * 'localized' => false means the value has no translation: one field, stored in
  * val_en and returned for every language.
  */
+/** The tabs of the Business info page: label and the schema sections under it. */
+const SETTINGS_TABS = [
+    'business' => ['Business',         ['contact', 'location']],
+    'home'     => ['Home page',        ['hero', 'training', 'adventures', 'included', 'contact_block']],
+    'policies' => ['Policies',         ['privacy']],
+    'meta'     => ['Search & sharing', ['meta']],
+];
+
+/** Which tab a schema section lives on. */
+function settings_tab_for(string $section): string
+{
+    foreach (SETTINGS_TABS as $tab => [, $sections]) {
+        if (in_array($section, $sections, true)) {
+            return $tab;
+        }
+    }
+
+    return 'business';
+}
+
 function settings_schema(): array
 {
     return [
@@ -105,9 +125,9 @@ function settings_schema(): array
                       . 'Divers who accepted an older version are asked again.',
             'fields' => [
                 'privacy_notice_version' => ['label' => 'Privacy notice version', 'localized' => false, 'help' => 'e.g. 2026-10-01. Leave "DRAFT" in it until reviewed; the page says so.'],
-                'privacy_notice'         => ['label' => 'Privacy notice', 'type' => 'textarea', 'help' => 'Plain text. Blank lines separate paragraphs; a line starting with # is a heading, ## a subheading.'],
+                'privacy_notice'         => ['label' => 'Privacy notice', 'type' => 'textarea', 'rows' => 22, 'help' => 'Plain text. Blank lines separate paragraphs; a line starting with # is a heading, ## a subheading.'],
                 'terms_version'          => ['label' => 'Terms version', 'localized' => false, 'help' => 'e.g. 2026-10.'],
-                'terms_conditions'       => ['label' => 'Terms and conditions', 'type' => 'textarea', 'help' => 'Same format. Cancellation policy, liability, general policies.'],
+                'terms_conditions'       => ['label' => 'Terms and conditions', 'type' => 'textarea', 'rows' => 22, 'help' => 'Same format. Cancellation policy, liability, general policies.'],
             ],
         ],
         'meta' => [
