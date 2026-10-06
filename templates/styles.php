@@ -24,9 +24,10 @@ body{margin:0}
 /* In a column flex box an auto-margined child shrinks to its content; every band is full width up to its cap. */
 .st-root>*{box-sizing:border-box;width:100%}
 .st-root>.st-affil{width:calc(100% - 32px)}
-.st-row__link{flex:none;display:inline-grid;place-items:center;width:32px;height:32px;border-radius:50%;color:var(--muted);align-self:center}
-.st-row__link svg{width:16px;height:16px}
-.st-row__link:hover{color:var(--aqua);background:var(--panel)}
+.st-row__name{margin-right:auto}
+.st-row__title{color:inherit;text-decoration:none}
+.st-row__title svg{width:14px;height:14px;margin-left:8px;vertical-align:-1px;color:var(--muted)}
+.st-row__title:hover,.st-row__title:hover svg{color:var(--aqua)}
 .st-seg__in{position:absolute;opacity:0;pointer-events:none}
 .st-seg{display:flex;margin:0 16px 4px;padding:4px;border-radius:var(--radius-pill);background:var(--panel);gap:4px}
 .st-seg label{flex:1;min-height:44px;display:grid;place-items:center;border-radius:var(--radius-pill);font:600 15px/1 var(--font-sans);color:var(--muted);cursor:pointer}
