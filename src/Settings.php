@@ -99,13 +99,15 @@ function settings_schema(): array
             ],
         ],
         'privacy' => [
-            'title'  => 'Privacy notice',
-            'intro'  => 'Shown at /privacy and accepted by every diver before any personal data is collected. '
+            'title'  => 'Privacy, terms and cancellation policies',
+            'intro'  => 'Both texts are shown at /privacy. The privacy notice is also accepted by every diver before any personal data is collected. '
                       . 'It ships as a DRAFT: have a lawyer review it, then change the version to the sign-off date. '
                       . 'Divers who accepted an older version are asked again.',
             'fields' => [
-                'privacy_notice_version' => ['label' => 'Version', 'localized' => false, 'help' => 'e.g. 2026-10-01. Leave "DRAFT" in it until reviewed; the page says so.'],
-                'privacy_notice'         => ['label' => 'Notice text', 'type' => 'textarea', 'help' => 'Plain text. Blank lines separate paragraphs; a line starting with # is a heading.'],
+                'privacy_notice_version' => ['label' => 'Privacy notice version', 'localized' => false, 'help' => 'e.g. 2026-10-01. Leave "DRAFT" in it until reviewed; the page says so.'],
+                'privacy_notice'         => ['label' => 'Privacy notice', 'type' => 'textarea', 'help' => 'Plain text. Blank lines separate paragraphs; a line starting with # is a heading, ## a subheading.'],
+                'terms_version'          => ['label' => 'Terms version', 'localized' => false, 'help' => 'e.g. 2026-10.'],
+                'terms_conditions'       => ['label' => 'Terms and conditions', 'type' => 'textarea', 'help' => 'Same format. Cancellation policy, liability, general policies.'],
             ],
         ],
         'meta' => [

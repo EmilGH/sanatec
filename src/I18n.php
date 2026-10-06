@@ -66,7 +66,7 @@ function ui_strings(): array
         'contact_sms'      => ['en' => 'Text message',                'es' => 'Mensaje de texto'],
         'contact_email'    => ['en' => 'Email',                       'es' => 'Correo'],
         'open_in_maps'     => ['en' => 'Open in Maps',                'es' => 'Abrir en Maps'],
-        'privacy'          => ['en' => 'Privacy',                     'es' => 'Privacidad'],
+        'privacy'          => ['en' => 'Privacy, Terms, & Cancellation Policies', 'es' => 'Privacidad, términos y políticas de cancelación'],
         'share_intro'      => ['en' => 'Shared with you:',            'es' => 'Compartido contigo:'],
         'share_row'        => ['en' => 'Own page and link',          'es' => 'Página y enlace propios'],
         'tab_training'     => ['en' => 'Dive Training',              'es' => 'Cursos'],
