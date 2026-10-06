@@ -7,16 +7,27 @@ if (!defined('SANATEC')) {
     exit;
 }
 
-/** Render the privacy notice setting: blank line = paragraph, "# " = heading. */
+/**
+ * Render the privacy notice setting: a blank line starts a new paragraph and
+ * a line beginning "# " is a heading, whether or not a blank line follows it.
+ */
 $lang = $lang ?? 'en';
 foreach (preg_split('/\R\s*\R/', setting('privacy_notice', $lang)) ?: [] as $block) {
-    $block = trim($block);
-    if ($block === '') {
-        continue;
+    $lines = preg_split('/\R/', trim($block)) ?: [];
+    $para = [];
+    $flush = static function () use (&$para): void {
+        if ($para !== []) {
+            echo '<p>', nl2br(e(implode("\n", $para))), '</p>';
+            $para = [];
+        }
+    };
+    foreach ($lines as $line) {
+        if (str_starts_with(ltrim($line), '# ')) {
+            $flush();
+            echo '<h2 class="h5 mt-4 mb-2">', e(substr(ltrim($line), 2)), '</h2>';
+        } elseif (trim($line) !== '') {
+            $para[] = $line;
+        }
     }
-    if (str_starts_with($block, '# ')) {
-        echo '<h2 class="h6 text-aqua text-uppercase mt-3">', e(substr($block, 2)), '</h2>';
-    } else {
-        echo '<p>', nl2br(e($block)), '</p>';
-    }
+    $flush();
 }
