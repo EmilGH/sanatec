@@ -106,7 +106,7 @@ echo shell_page('Business info', 'Site content');
   <?php endforeach; ?>
   <div class="st-ctabar" style="grid-template-columns:auto auto;justify-content:start">
     <button class="btn btn-primary" type="submit">Save <?= e(SETTINGS_TABS[$tab][0]) ?></button>
-    <a class="btn btn-outline-secondary" href="/" target="_blank" rel="noopener">View site</a>
+    <a class="btn btn-outline-secondary" href="/" target="_blank" rel="noopener">View Site</a>
   </div>
 </form>
 <?php shell_end($currentUser);

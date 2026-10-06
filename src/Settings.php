@@ -20,9 +20,9 @@ if (!defined('SANATEC')) {
 /** The tabs of the Business info page: label and the schema sections under it. */
 const SETTINGS_TABS = [
     'business' => ['Business',         ['contact', 'location']],
-    'home'     => ['Home page',        ['hero', 'training', 'adventures', 'included', 'contact_block']],
+    'home'     => ['Home Page',        ['hero', 'training', 'adventures', 'included', 'contact_block']],
     'policies' => ['Policies',         ['privacy']],
-    'meta'     => ['Search & sharing', ['meta']],
+    'meta'     => ['Search & Sharing', ['meta']],
 ];
 
 /** Which tab a schema section lives on. */
