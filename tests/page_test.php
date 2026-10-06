@@ -271,3 +271,13 @@ test('the diver sign-in page renders through the shared shell to the closing tag
     has('datefield.js', $html, 'the date picker script is loaded by the shell');
     is_true(str_ends_with(rtrim($html), '</html>'), 'the page must reach its closing tag');
 });
+
+test('the language switch keeps you on the same page', function (): void {
+    foreach ([
+        ['/', 'es', '/es/'], ['/es/', 'en', '/'], ['/c/pit-dos-ojos', 'es', '/es/c/pit-dos-ojos'], ['/es/c/pit-dos-ojos', 'en', '/c/pit-dos-ojos'],
+        ['/team/emil', 'es', '/es/team/emil'], ['/es/team/', 'en', '/team/'], ['/a/astrid-hotel?x=1', 'es', '/es/a/astrid-hotel?x=1'], ['/es', 'en', '/'],
+    ] as [$uri, $code, $want]) {
+        $_SERVER['REQUEST_URI'] = $uri;
+        is_same($want, ui_lang_path($code), "{$uri} -> {$code}");
+    }
+});

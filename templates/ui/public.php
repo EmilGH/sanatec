@@ -32,11 +32,29 @@ function ui_name(array $row, string $lang, string $field = 'name'): string
     return trim((string) ($row[$field . '_' . $lang] ?? '')) ?: (string) $row[$field . '_en'];
 }
 
+/** The same page in another language: /c/x becomes /es/c/x and back, query string kept. */
+function ui_lang_path(string $code): string
+{
+    $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
+    $path = (string) (parse_url($uri, PHP_URL_PATH) ?? '/');
+    $query = (string) (parse_url($uri, PHP_URL_QUERY) ?? '');
+    if ($path === '/es' || str_starts_with($path, '/es/')) {
+        $path = substr($path, 3) ?: '/';
+    }
+    $path = preg_replace('#^/index\.php$#', '/', $path) ?? $path;
+    $path = ($code === 'es' ? '/es' : '') . $path;
+    if ($path === '/es') {
+        $path = '/es/';
+    }
+
+    return $path . ($query !== '' ? '?' . $query : '');
+}
+
 function ui_public_header(string $lang): string
 {
     $langs = '';
     foreach (LANGUAGES as $code => $meta) {
-        $langs .= '<a href="' . e($meta['path']) . '" hreflang="' . e($code) . '" lang="' . e($code) . '"'
+        $langs .= '<a href="' . e(ui_lang_path($code)) . '" hreflang="' . e($code) . '" lang="' . e($code) . '"'
             . ($code === $lang ? ' aria-current="true"' : '') . '>' . e(strtoupper($code)) . '</a>';
     }
 
@@ -71,7 +89,7 @@ function ui_contact_section(string $lang): string
 function ui_public_footer(string $lang): string
 {
     $privacy = $lang === 'es' ? '/es/privacy' : '/privacy';
-    $other = $lang === 'es' ? '<a href="/">EN</a>' : '<a href="/es/">ES</a>';
+    $other = $lang === 'es' ? '<a href="' . e(ui_lang_path('en')) . '" hreflang="en">EN</a>' : '<a href="' . e(ui_lang_path('es')) . '" hreflang="es">ES</a>';
 
     return '<footer class="st-foot st-wrap">'
         . ui_wordmark('st-wm st-wm--small', setting('business_name'))
