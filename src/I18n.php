@@ -89,7 +89,7 @@ function ui_strings(): array
         'item_course'      => ['en' => 'Dive course',                'es' => 'Curso de buceo'],
         'item_excursion'   => ['en' => 'Cenote dive',                'es' => 'Buceo en cenote'],
         'item_prereq'      => ['en' => 'Prerequisites',              'es' => 'Requisitos'],
-        'item_cenotes'     => ['en' => 'The cenotes on this route',  'es' => 'Los cenotes de esta ruta'],
+        'item_cenotes'     => ['en' => 'The sites on this excursion', 'es' => 'Los sitios de esta excursión'],
         'item_depth'       => ['en' => 'Max depth',                  'es' => 'Prof. máx.'],
         'item_book'        => ['en' => 'Ask about this on WhatsApp', 'es' => 'Pregunta por esto en WhatsApp'],
         'wa_line_item'     => ['en' => "Hi! I'm interested in {name}. ", 'es' => '¡Hola! Me interesa {name}. '],

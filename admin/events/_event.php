@@ -228,17 +228,33 @@ shell_start($event['title_en'], $currentUser, 'admin', ['back' => $base]);
 
     <div class="st-card mb-3">
       <div class="st-card__head"><h2 class="st-card__title">Team</h2><button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#add-team"><?= ui_icon('plus', 'st-icon') ?>Add</button></div>
+      <?php /* One form adds a member or, after a pencil click, changes the role of one already on the day. */ ?>
       <form method="post" class="collapse mb-3" id="add-team"><div class="d-flex gap-2"><?= csrf_field() ?><input type="hidden" name="action" value="team_add">
-        <select class="form-select form-select-sm" name="team_member_id" id="add-team-who" required><option value="">Who</option><?php foreach ($allTeam as $m): if (in_array($m['id'], $onTeam)) continue; ?><option value="<?= (int) $m['id'] ?>" data-role="<?= $kind === 'training' ? ($m['is_instructor'] ? 'instructor' : 'support') : ($m['is_cave_guide'] || $m['is_cavern_guide'] ? 'guide' : ($m['is_excursion_assistant'] ? 'assistant' : ($m['is_driver'] ? 'driver' : 'support'))) ?>"><?= e($m['name']) ?></option><?php endforeach; ?></select>
+        <select class="form-select form-select-sm" name="team_member_id" id="add-team-who" required><option value="">Who</option><?php foreach ($allTeam as $m): ?><option value="<?= (int) $m['id'] ?>" <?= in_array($m['id'], $onTeam) ? 'hidden' : '' ?> data-role="<?= $kind === 'training' ? ($m['is_instructor'] ? 'instructor' : 'support') : ($m['is_cave_guide'] || $m['is_cavern_guide'] ? 'guide' : ($m['is_excursion_assistant'] ? 'assistant' : ($m['is_driver'] ? 'driver' : 'support'))) ?>"><?= e($m['name']) ?></option><?php endforeach; ?></select>
         <select class="form-select form-select-sm" name="role" id="add-team-role"><?php foreach (EVENT_ROLES as $k => $l): ?><option value="<?= $k ?>" <?= ($kind === 'training' ? $k === 'instructor' : $k === 'guide') ? 'selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select>
-        <script>document.getElementById('add-team-who').addEventListener('change',function(){var r=this.selectedOptions[0]&&this.selectedOptions[0].dataset.role;if(r){document.getElementById('add-team-role').value=r;}});</script>
-        <button class="btn btn-sm btn-primary" type="submit">Add</button></div></form>
+        <script>
+        (function () {
+          var $ = function (id) { return document.getElementById(id); }, form = $('add-team'), who = $('add-team-who');
+          who.addEventListener('change', function () { var r = this.selectedOptions[0] && this.selectedOptions[0].dataset.role; if (r) { $('add-team-role').value = r; } });
+          function reset() { who.value = ''; who.disabled = false; $('add-team-submit').textContent = 'Add'; $('add-team-cancel').classList.add('d-none'); }
+          document.addEventListener('click', function (e) {
+            var b = e.target.closest('[data-team-edit]'); if (!b) { return; }
+            who.value = b.dataset.member; $('add-team-role').value = b.dataset.role;
+            $('add-team-submit').textContent = 'Save'; $('add-team-cancel').classList.remove('d-none');
+            bootstrap.Collapse.getOrCreateInstance(form).show(); $('add-team-role').focus();
+          });
+          $('add-team-cancel').addEventListener('click', function () { reset(); bootstrap.Collapse.getOrCreateInstance(form).hide(); });
+        })();
+        </script>
+        <button class="btn btn-sm btn-outline-secondary d-none" type="button" id="add-team-cancel">Cancel</button>
+        <button class="btn btn-sm btn-primary" type="submit" id="add-team-submit">Add</button></div></form>
       <?php if ($team === []): ?><p class="st-muted mb-0">Nobody assigned.</p><?php else: ?>
       <ul class="st-rows">
         <?php foreach ($team as $m): ?>
         <li><span class="st-avatar"><?= e(mb_strtoupper(mb_substr($m['name'], 0, 2))) ?></span>
           <span class="st-rows__t"><?= e($m['name']) ?><span class="st-rows__s"><?= e(EVENT_ROLES[$m['role']]) ?></span></span>
           <span class="d-flex gap-1 align-items-center">
+            <button class="st-iconbtn" type="button" title="Change role" data-team-edit data-member="<?= (int) $m['team_member_id'] ?>" data-role="<?= e($m['role']) ?>"><?= ui_icon('edit', 'st-icon st-muted') ?></button>
             <?php if ($m['status'] === 'confirmed'): ?><span class="st-pill st-pill--ok"><?= ui_icon('check') ?>Confirmed</span>
             <?php else: ?><form method="post"><?= csrf_field() ?><input type="hidden" name="action" value="team_status"><input type="hidden" name="row_id" value="<?= (int) $m['id'] ?>"><button class="st-pill st-pill--<?= $m['status'] === 'declined' ? 'danger' : 'warn' ?>" name="status" value="confirmed" style="border:0;cursor:pointer" title="Mark confirmed"><?= e(ucfirst($m['status'])) ?></button></form><?php endif; ?>
             <form method="post" onsubmit="return confirm('Remove <?= e(addslashes($m['name'])) ?> from this event?')"><?= csrf_field() ?><input type="hidden" name="action" value="team_remove"><input type="hidden" name="row_id" value="<?= (int) $m['id'] ?>"><button class="st-iconbtn" title="Remove"><?= ui_icon('x', 'st-icon st-muted') ?></button></form>
