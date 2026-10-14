@@ -59,7 +59,7 @@ function ui_public_header(string $lang): string
     }
 
     return '<header class="st-hdr st-wrap">'
-        . '<a class="st-hdr__brand" href="' . e(LANGUAGES[$lang]['path']) . '">' . ui_wordmark('st-wm', setting('business_name')) . '</a>'
+        . '<a class="st-hdr__brand" href="' . e(LANGUAGES[$lang]['path']) . '"><img class="st-hdr__roundel" src="/assets/brand/roundel-512.png" width="512" height="512" alt="" fetchpriority="high">' . ui_wordmark('st-wm', setting('business_name')) . '</a>'
         . '<nav class="st-lang" aria-label="' . e(t('lang_label', $lang)) . '">' . $langs . '</nav>'
         . '</header>';
 }

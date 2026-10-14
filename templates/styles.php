@@ -73,9 +73,12 @@ body{margin:0}
 .st-contact .st-pill{margin-left:8px;min-height:20px;padding:0 8px;font-size:11px;vertical-align:1px}
 .st-foot{border-top:1px solid var(--line);padding-top:24px}
 /* Phones and tablets: the wordmark spans the screen, the language switch sits centred beneath it. */
+/* The brand is one stacked lockup: roundel over wordmark. Phones centre it; desktop keeps it left with the language switch opposite. */
 .st-hdr{flex-direction:column;align-items:center;gap:10px;padding:14px 12px 6px;min-height:0}
-.st-hdr__brand{width:100%;justify-content:center}
+.st-hdr__brand{width:100%;flex-direction:column;justify-content:center;gap:12px}
+.st-hdr__roundel{width:120px;height:120px;display:block}
 .st-hdr .st-wm,.st-hdr__brand svg.st-wm{width:100%;height:auto;aspect-ratio:486.5/126.8}
+.st-hero__text{padding-top:24px}
 .st-foot .st-wm--small{height:24px;width:92px;display:block}
 .st-hero__mark{pointer-events:none}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -85,9 +88,12 @@ body{margin:0}
   .st-seg{display:none}
   #seg-training:checked~#adventures,#seg-adventures:checked~#training{display:block}
   .st-section{padding:40px 0 8px}
-  .st-hdr{flex-direction:row;justify-content:space-between;padding:12px 40px;min-height:76px}
-  .st-hdr__brand{width:auto}
-  .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:64px;width:246px;aspect-ratio:auto}
+  .st-hdr{flex-direction:row;justify-content:space-between;align-items:flex-start;padding:16px 40px 8px;min-height:0}
+  .st-hdr__brand{width:auto;align-items:flex-start;gap:8px}
+  .st-hdr__roundel{width:96px;height:96px}
+  .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:56px;width:215px;aspect-ratio:auto}
+  .st-hero{min-height:0}
+  .st-hero__text{padding-top:32px;max-width:760px}
   .st-hero{min-height:420px}
   .st-ctabar{display:none}
   #contact,#included,.st-foot{padding-left:40px;padding-right:40px}

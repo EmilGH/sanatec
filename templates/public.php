@@ -38,8 +38,6 @@ $hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bo
 
 <main id="main">
   <section class="st-hero st-wrap" aria-labelledby="hero-title">
-    <img class="st-hero__mark" src="/assets/brand/roundel-512.png" width="512" height="512" alt="" loading="eager" fetchpriority="high">
-    <div class="st-hero__fade"></div>
     <div class="st-hero__text">
       <p class="st-eyebrow"><?= e(t('hero_kicker', $lang)) ?></p>
       <h1 class="st-display" id="hero-title"><?= e(setting('hero_title_a', $lang)) ?><em><?= e(setting('hero_title_b', $lang)) ?></em></h1>
