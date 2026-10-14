@@ -7,6 +7,7 @@ declare(strict_types=1);
 defined('SANATEC') || define('SANATEC', true);
 require_once __DIR__ . '/src/bootstrap.php';
 require_once __DIR__ . '/src/Passport.php';
+require_once __DIR__ . '/src/Photos.php';
 require_once __DIR__ . '/templates/ui/public.php';
 
 $lang = normalize_lang($_GET['lang'] ?? 'en');
@@ -28,7 +29,7 @@ $baseUrl = rtrim((string) cfg('base_url'), '/');
 <meta property="og:title" content="<?= e($title) ?>"><meta property="og:image" content="<?= e($baseUrl) ?>/og/home-<?= e($lang) ?>.png">
 <link rel="icon" href="/favicon.ico">
 <?php require __DIR__ . '/templates/styles.php'; ?>
-<style>.st-stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.st-stamp{border:2px solid var(--logo-swoosh);border-radius:50%;aspect-ratio:1;display:grid;place-items:center;text-align:center;padding:12px;color:var(--ink);font:400 15px/1.2 var(--font-serif)}.st-stamp small{display:block;color:var(--muted);font:600 11px/1.4 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}.st-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.st-gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--radius-sm)}.st-passport{padding:0 16px}</style>
+<style>.st-stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.st-stamp{border:2px solid var(--logo-swoosh);border-radius:50%;aspect-ratio:1;display:grid;place-items:center;text-align:center;padding:12px;color:var(--ink);font:400 15px/1.2 var(--font-serif)}.st-stamp small{display:block;color:var(--muted);font:600 11px/1.4 var(--font-sans);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}.st-stamp--photo{position:relative;overflow:hidden;background-size:cover;background-position:center;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.75)}.st-stamp--photo::before{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 40%,rgba(4,16,26,.1),rgba(4,16,26,.7))}.st-stamp--photo>span{position:relative}.st-stamp--photo small{color:rgba(255,255,255,.85)}.st-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px}.st-gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--radius-sm)}.st-passport{padding:0 16px}</style>
 </head>
 <body>
 <?= ui_brand_defs('dark') ?>
@@ -45,7 +46,7 @@ $baseUrl = rtrim((string) cfg('base_url'), '/');
   <section class="st-section">
     <div class="st-section__head"><p class="st-eyebrow"><?= $lang === 'es' ? 'Sellos' : 'Stamps' ?></p></div>
     <div class="st-stamps">
-      <?php foreach ($pp['stamps'] as $s): ?><div class="st-stamp"><span><?= e($lang === 'es' ? $s['name_es'] : $s['name_en']) ?><small><?= e(date('M Y', strtotime($s['first_on']))) ?><?= (int) $s['dives'] > 1 ? ' · ×' . (int) $s['dives'] : '' ?></small></span></div><?php endforeach; ?>
+      <?php foreach ($pp['stamps'] as $s): $sp = catalog_photo_first('dive_site', (int) $s['id']); ?><div class="st-stamp<?= $sp ? ' st-stamp--photo' : '' ?>"<?= $sp ? ' style="background-image:url(' . e(photo_url($sp, true)) . ')"' : '' ?>><span><?= e($lang === 'es' ? $s['name_es'] : $s['name_en']) ?><small><?= e(date('M Y', strtotime($s['first_on']))) ?><?= (int) $s['dives'] > 1 ? ' · ×' . (int) $s['dives'] : '' ?></small></span></div><?php endforeach; ?>
     </div>
   </section>
   <?php if ($pp['photos'] !== []): ?>

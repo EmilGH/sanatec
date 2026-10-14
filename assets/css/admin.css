@@ -126,3 +126,11 @@ a.st-doc:hover .st-doc__t { color: var(--aqua); }
 .st-tabbar__pop a { flex-direction: row; justify-content: flex-start; gap: 12px; min-height: 44px; padding: 0 12px; font-size: 15px; border-radius: var(--radius-pill); }
 .st-tabbar__pop a[aria-current="page"] { background: var(--panel); color: var(--ink); }
 .st-tabbar__pop a svg { width: 20px; height: 20px; }
+/* Passport stamps with the cenote's photo; a wave stands in until the site has one. */
+.st-stampgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+.st-stampcard { margin: 0; border-radius: var(--radius-sm); overflow: hidden; background: var(--panel); border: 1px solid var(--line); }
+.st-stampcard img, .st-stampcard__blank { display: grid; place-items: center; width: 100%; aspect-ratio: 3/2; object-fit: cover; color: var(--aqua); background: var(--panel-raised); }
+.st-stampcard__blank svg { width: 28px; height: 28px; }
+.st-stampcard figcaption { padding: 8px 10px 10px; font: 600 14px/1.2 var(--font-sans); color: var(--ink); }
+.st-stampcard figcaption small { display: block; margin-top: 3px; color: var(--muted); font-weight: 500; font-size: 12px; }
+.st-chip__thumb { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; margin-left: -6px; }

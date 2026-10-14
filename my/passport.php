@@ -5,6 +5,7 @@ declare(strict_types=1);
 /** The diver's CENOTE Exploration Passport: stamps, dives, photos, wish list. */
 
 require __DIR__ . '/_init.php';
+require_once __DIR__ . '/../src/Photos.php';
 require_once __DIR__ . '/../src/Passport.php';
 
 $cid = (int) $customer['id'];
@@ -73,8 +74,13 @@ shell_start(tr('Cenote Passport', 'Pasaporte'), $currentUser, 'diver', ['nav' =>
 <div class="st-card mb-3">
   <h2 class="st-card__title mb-2"><?= e(tr('Stamps', 'Sellos')) ?></h2>
   <?php if ($stamps === []): ?><p class="st-muted mb-0"><?= e(tr('Your first cenote goes here.', 'Tu primer cenote irá aquí.')) ?></p><?php else: ?>
-  <div class="st-chips">
-    <?php foreach ($stamps as $s): ?><span class="st-chip st-chip--on" title="<?= e(tr('first', 'primera vez') . ' ' . $s['first_on']) ?>"><?= ui_icon('check', 'st-icon') ?><?= e($lang === 'es' ? $s['name_es'] : $s['name_en']) ?><?= (int) $s['dives'] > 1 ? ' ×' . (int) $s['dives'] : '' ?></span><?php endforeach; ?>
+  <div class="st-stampgrid">
+    <?php foreach ($stamps as $s): $sp = catalog_photo_first('dive_site', (int) $s['id']); ?>
+    <figure class="st-stampcard" title="<?= e(tr('first', 'primera vez') . ' ' . $s['first_on']) ?>">
+      <?php if ($sp): ?><img src="<?= e(photo_url($sp, true)) ?>" alt="" loading="lazy"><?php else: ?><span class="st-stampcard__blank"><?= ui_icon('wave', 'st-icon') ?></span><?php endif; ?>
+      <figcaption><?= e($lang === 'es' ? $s['name_es'] : $s['name_en']) ?><small><?= e(date('M Y', strtotime($s['first_on']))) ?><?= (int) $s['dives'] > 1 ? ' · ×' . (int) $s['dives'] : '' ?></small></figcaption>
+    </figure>
+    <?php endforeach; ?>
   </div>
   <?php endif; ?>
 </div>
@@ -85,7 +91,7 @@ shell_start(tr('Cenote Passport', 'Pasaporte'), $currentUser, 'diver', ['nav' =>
   <div class="st-chips">
     <?php foreach ($sites as $s): if (in_array((int) $s['id'], $stamped, true)) continue; $on = in_array((int) $s['id'], $wish, true); ?>
       <form method="post" class="d-inline"><?= csrf_field() ?><input type="hidden" name="action" value="wish"><input type="hidden" name="site_id" value="<?= (int) $s['id'] ?>">
-        <button class="st-chip <?= $on ? 'st-chip--on' : '' ?>" type="submit"><?= $on ? '★ ' : '' ?><?= e($lang === 'es' ? $s['name_es'] : $s['name_en']) ?></button></form>
+        <button class="st-chip <?= $on ? 'st-chip--on' : '' ?>" type="submit"><?php if (($sp = catalog_photo_first('dive_site', (int) $s['id'])) !== null): ?><img class="st-chip__thumb" src="<?= e(photo_url($sp, true)) ?>" alt=""><?php endif; ?><?= $on ? '★ ' : '' ?><?= e($lang === 'es' ? $s['name_es'] : $s['name_en']) ?></button></form>
     <?php endforeach; ?>
   </div>
 </div>
