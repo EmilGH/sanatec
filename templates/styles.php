@@ -101,7 +101,7 @@ body{margin:0}
   .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:52px;width:200px;max-width:none;aspect-ratio:auto}
   .st-hero{min-height:0;padding:0 40px}
   .st-hero--split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center}
-  .st-hero__photo{order:2;border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:4/3;background:var(--panel)}
+  .st-hero__photo{display:block;order:2;border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:4/3;background:var(--panel)}
   .st-hero__photo img{width:100%;height:100%;object-fit:cover;display:block}
   .st-hero__text{padding:24px 0 32px;max-width:560px}
   .st-hero--split .st-hero__text{padding:8px 0}
