@@ -102,7 +102,7 @@ function ui_ctabar(string $lang): string
 {
     return '<div class="st-ctabar" aria-label="' . e(t('cta_label', $lang)) . '">'
         . '<a class="st-btn st-btn--primary" href="' . e(ui_wa_url(t('wa_prefill', $lang))) . '">' . ui_icon('whatsapp') . e(t('cta_whatsapp', $lang)) . '</a>'
-        . '<a class="st-btn st-btn--secondary" href="' . e(ui_sms_url()) . '">' . e(t('cta_sms', $lang)) . '</a>'
+        . '<a class="st-btn st-btn--secondary" href="' . e(ui_sms_url()) . '">' . ui_icon('sms') . e(t('cta_sms', $lang)) . '</a>'
         . '</div>';
 }
 
