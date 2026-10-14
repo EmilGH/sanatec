@@ -77,7 +77,7 @@ body{margin:0}
 .st-hdr{flex-direction:column;align-items:center;gap:10px;padding:14px 12px 6px;min-height:0}
 .st-hdr__brand{width:100%;flex-direction:column;justify-content:center;gap:12px}
 .st-hdr__roundel{width:75%;max-width:360px;height:auto;display:block}
-.st-hdr .st-wm,.st-hdr__brand svg.st-wm{width:100%;height:auto;aspect-ratio:486.5/126.8}
+.st-hdr .st-wm,.st-hdr__brand svg.st-wm{width:75%;max-width:360px;height:auto;aspect-ratio:486.5/126.8}
 .st-hero__text{padding-top:24px;padding-bottom:32px}
 .st-foot .st-wm--small{height:24px;width:92px;display:block}
 .st-hero__mark{pointer-events:none}
