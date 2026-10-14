@@ -53,6 +53,17 @@ $hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bo
 
   <?= ui_wave() ?>
 
+  <?php if (($upcoming ?? []) !== []): ?>
+  <section class="st-section st-wrap" id="coming-up" aria-labelledby="coming-up-title">
+    <div class="st-section__head">
+      <p class="st-eyebrow"><?= e(t('upcoming_kicker', $lang)) ?></p>
+      <h2 class="st-h1" id="coming-up-title"><?= e(t('upcoming_title', $lang)) ?></h2>
+      <p class="st-lede"><?= e(t('upcoming_intro', $lang)) ?></p>
+    </div>
+    <?= ui_upcoming($upcoming, $lang) ?>
+  </section>
+  <?php endif; ?>
+
   <div class="st-cols st-wrap">
     <input class="st-seg__in" type="radio" name="st-seg" id="seg-training" checked>
     <input class="st-seg__in" type="radio" name="st-seg" id="seg-adventures">

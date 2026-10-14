@@ -140,6 +140,48 @@ function ui_contact_list(string $lang): string
 }
 
 /** One course as a menu row with a single price line. */
+/** A date the way the page's language says it: "Sat 18 Oct" / "sáb 18 oct". */
+function ui_date_short(string $date, string $lang): string
+{
+    $t = strtotime($date);
+    if ($lang === 'es') {
+        $d = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'][(int) date('w', $t)];
+        $m = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'][(int) date('n', $t) - 1];
+
+        return $d . ' ' . date('j', $t) . ' ' . $m;
+    }
+
+    return date('D j M', $t);
+}
+
+/**
+ * Scheduled days as a list: date, title, places left, and a WhatsApp button
+ * prefilled for that day. $linkTitles makes each title a link to its item page.
+ */
+function ui_upcoming(array $events, string $lang, bool $linkTitles = true): string
+{
+    if ($events === []) {
+        return '';
+    }
+    $html = '<ul class="st-days">';
+    foreach ($events as $ev) {
+        $title = $lang === 'es' && $ev['title_es'] !== '' ? $ev['title_es'] : $ev['title_en'];
+        $left = max(0, (int) $ev['capacity'] - (int) $ev['taken']);
+        $when = ui_date_short($ev['starts_on'], $lang) . ($ev['first_at'] ? ' · ' . date('H:i', strtotime($ev['first_at'])) : '');
+        $prefill = strtr(t('wa_day', $lang), ['{title}' => $title, '{date}' => ui_date_short($ev['starts_on'], $lang)]);
+        $href = ($lang === 'es' ? '/es' : '') . '/c/' . rawurlencode((string) $ev['item_slug']);
+        $t = strtotime($ev['starts_on']);
+        $html .= '<li class="st-day' . ($left === 0 ? ' st-day--full' : '') . '">'
+            . '<span class="st-day__date"><b>' . date('j', $t) . '</b><small>' . e($lang === 'es' ? ui_date_short($ev['starts_on'], 'es') : date('M', $t)) . '</small></span>'
+            . '<span class="st-day__t">' . ($linkTitles ? '<a href="' . e($href) . '">' . e($title) . '</a>' : e($title))
+            . '<span class="st-day__s">' . e($when) . ' · ' . ($left === 0 ? '<b>' . e(t('day_full', $lang)) . '</b>' : e($left === 1 ? t('place_left', $lang) : strtr(t('places_left', $lang), ['{n}' => (string) $left]))) . '</span></span>'
+            . ($left > 0 ? '<a class="st-btn st-btn--secondary st-btn--sm" href="' . e(ui_wa_url($prefill)) . '">' . ui_icon('whatsapp') . e(t('book_day', $lang)) . '</a>' : '')
+            . '</li>';
+    }
+
+    return $html . '</ul>';
+}
+
 /** The item's first photo as a small 3:2 thumbnail linking to its page, or nothing when it has none. */
 function ui_row_thumb(string $type, int $itemId, string $slug, string $lang): string
 {

@@ -22,6 +22,8 @@ $baseUrl = rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/');
 
 $courses = catalog_published('courses');
 $excursions  = catalog_published('excursions');
+require_once __DIR__ . '/src/Events.php';
+$upcoming = events_public_upcoming();
 
 // Items have their own pages now (/c/<slug>, item.php); this page is the whole menu.
 $share = null;
@@ -33,7 +35,7 @@ $affiliate = affiliate_capture();
 
 // Cheap validators so repeat visits and crawlers are not re-rendered needlessly.
 $lastModified = catalog_last_modified();
-$etag = '"' . md5($lang . '-' . $lastModified . '-' . count($courses) . '-' . count($excursions) . '-' . $shareSlug) . '"';
+$etag = '"' . md5($lang . '-' . $lastModified . '-' . count($courses) . '-' . count($excursions) . '-' . $shareSlug . '-' . md5(json_encode($upcoming))) . '"';
 
 send_header('Content-Type: text/html; charset=utf-8');
 send_header('Content-Language: ' . $lang);

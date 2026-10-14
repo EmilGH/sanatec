@@ -44,6 +44,39 @@ function events_list(string $kind, string $when = 'upcoming'): array
     return $stmt->fetchAll();
 }
 
+/**
+ * Open days the public may see: within $days from today, status open, and the
+ * catalogue item behind them switched on for the site. $kind and $catalogId
+ * narrow it to one list or one item. Carries the places taken and the first
+ * session's time.
+ */
+function events_public_upcoming(?string $kind = null, ?int $catalogId = null, int $days = 90): array
+{
+    $sql = "SELECT e.id, e.kind, e.title_en, e.title_es, e.starts_on, e.capacity, e.price_mxn, e.dives_count,
+                   COALESCE(x.slug, c.slug) AS item_slug,
+                   (SELECT COUNT(*) FROM event_participants p WHERE p.event_id = e.id AND p.status IN ('invited','confirmed','attended')) AS taken,
+                   (SELECT MIN(s.starts_at) FROM event_sessions s WHERE s.event_id = e.id) AS first_at
+            FROM events e
+            LEFT JOIN excursions x ON e.kind = 'excursion' AND x.id = e.excursion_id AND x.is_published = 1
+            LEFT JOIN courses c ON e.kind = 'training' AND c.id = e.course_id AND c.is_published = 1
+            WHERE e.status = 'open' AND e.starts_on >= CURDATE() AND e.starts_on <= DATE_ADD(CURDATE(), INTERVAL :days DAY)
+              AND COALESCE(x.id, c.id) IS NOT NULL"
+        . ($kind !== null ? ' AND e.kind = :kind' : '')
+        . ($catalogId !== null ? ' AND COALESCE(x.id, c.id) = :item' : '')
+        . ' ORDER BY e.starts_on, e.id LIMIT 40';
+    $stmt = db()->prepare($sql);
+    $params = [':days' => $days];
+    if ($kind !== null) {
+        $params[':kind'] = $kind;
+    }
+    if ($catalogId !== null) {
+        $params[':item'] = $catalogId;
+    }
+    $stmt->execute($params);
+
+    return $stmt->fetchAll();
+}
+
 function event_find(int $id): ?array
 {
     $stmt = db()->prepare('SELECT * FROM events WHERE id = :id');

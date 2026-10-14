@@ -24,6 +24,19 @@ body{margin:0}
 /* In a column flex box an auto-margined child shrinks to its content; every band is full width up to its cap. */
 .st-root>*{box-sizing:border-box;width:100%}
 .st-root>.st-affil{width:calc(100% - 32px)}
+.st-days{list-style:none;margin:0;padding:0}
+.st-day{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.st-day:last-child{border-bottom:0}
+.st-day__date{flex:none;width:52px;text-align:center;color:var(--ink)}
+.st-day__date b{display:block;font:400 26px/1 var(--font-serif)}
+.st-day__date small{display:block;color:var(--muted);font:600 11px/1.4 var(--font-sans);letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.st-day__t{flex:1;min-width:0;font:400 19px/1.25 var(--font-serif);color:var(--ink)}
+.st-day__t a{color:inherit;text-decoration:none}.st-day__t a:hover{color:var(--aqua)}
+.st-day__s{display:block;color:var(--muted);font:400 14px/1.4 var(--font-sans);margin-top:2px}
+.st-day__s b{color:var(--danger);font-weight:600}
+.st-day--full .st-day__t{color:var(--muted)}
+.st-day .st-btn{flex:none}
+@media(max-width:480px){.st-day{flex-wrap:wrap}.st-day .st-btn{margin-left:66px}}
 .st-row__name{margin-right:auto}
 .st-row__head--photo{align-items:center}
 .st-row__thumb{flex:none;width:84px;height:56px;border-radius:8px;overflow:hidden;background:var(--panel)}

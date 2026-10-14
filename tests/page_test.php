@@ -281,3 +281,35 @@ test('the language switch keeps you on the same page', function (): void {
         is_same($want, ui_lang_path($code), "{$uri} -> {$code}");
     }
 });
+
+test('scheduled days show on the home page and the item page, with places left', function (): void {
+    require_once SANATEC_ROOT . '/src/Events.php';
+    $ex = (int) db()->query("SELECT id FROM excursions WHERE name_en = 'Dos Ojos' AND is_published = 1")->fetchColumn();
+    $date = date('Y-m-d', strtotime('+12 days'));
+    $id = event_create('excursion', ['catalog_id' => $ex, 'date' => $date, 'dives_count' => 2, 'capacity' => 2]);
+    $up = events_public_upcoming();
+    is_true(in_array($id, array_map('intval', array_column($up, 'id')), true), 'an open day within 90 days is listed');
+
+    $html = render_page('en');
+    has('Coming up', $html);
+    has('2 places left', $html);
+    has('Join this day', $html);
+
+    $c1 = customer_save(null, ['name' => 'Seat One']);
+    $c2 = customer_save(null, ['name' => 'Seat Two']);
+    event_participant_add($id, $c1);
+    event_participant_add($id, $c2);
+    $html = render_page('en');
+    has('Full', $html, 'a full day says so');
+    has_not('2 places left', $html);
+
+    db()->exec("UPDATE events SET status = 'cancelled' WHERE id = {$id}");
+    has_not('Coming up', render_page('en'), 'a cancelled day disappears');
+
+    // A day for an unpublished item never shows.
+    $hidden = course_save(['name_en' => 'Hidden Course', 'name_es' => '', 'price_mxn' => '', 'is_published' => false]);
+    $hid = event_create('training', ['catalog_id' => $hidden, 'date' => $date]);
+    is_true(!in_array($hid, array_map('intval', array_column(events_public_upcoming(), 'id')), true));
+    db()->exec("DELETE FROM events WHERE id IN ({$id}, {$hid})");
+    catalog_delete('courses', $hidden);
+});

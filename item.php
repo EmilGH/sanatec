@@ -41,6 +41,8 @@ $baseUrl = rtrim((string) cfg('base_url', 'https://sanatecdiving.com'), '/');
 $intro = trim((string) ($r['intro_' . $lang] ?? '')) ?: (string) ($r['intro_en'] ?? '');
 $body = trim((string) ($r['body_' . $lang] ?? '')) ?: (string) ($r['body_en'] ?? '');
 $sites = $type === 'excursion' ? excursion_sites((int) $r['id']) : [];
+require_once __DIR__ . '/src/Events.php';
+$days = events_public_upcoming($type === 'course' ? 'training' : 'excursion', (int) $r['id']);
 $courses = [];
 $excursions = [];
 
@@ -109,6 +111,10 @@ send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsa
         <?php if ($body !== ''): ?><p class="st-item__body"><?= e($body) ?></p><?php endif; ?>
         <?php if ($type === 'course' && trim((string) ($r['prereq_' . $lang] ?? $r['prereq_en'] ?? '')) !== ''): ?>
           <p class="st-note"><strong><?= e(t('item_prereq', $lang)) ?>:</strong> <?= e(trim((string) ($r['prereq_' . $lang] ?? '')) ?: (string) $r['prereq_en']) ?></p>
+        <?php endif; ?>
+        <?php if ($days !== []): ?>
+        <h2 class="st-h3 mt-4 mb-1"><?= e(t('upcoming_item', $lang)) ?></h2>
+        <?= ui_upcoming($days, $lang, false) ?>
         <?php endif; ?>
         <?php if (count($photos) > 1): ?>
         <div class="st-item__gallery"><?php foreach (array_slice($photos, 1) as $i => $ph): ?><a href="<?= e(photo_url($ph)) ?>" data-lightbox="<?= $i + 1 ?>" data-caption="<?= e((string) ($ph['caption_' . $lang] ?: $ph['caption_en'] ?? '')) ?>"><img src="<?= e(photo_url($ph, true)) ?>" alt="<?= e((string) ($ph['caption_' . $lang] ?: $ph['caption_en'] ?? '')) ?>" loading="lazy"></a><?php endforeach; ?></div>
