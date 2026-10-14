@@ -29,6 +29,34 @@ function catalog_photos(string $type, int $itemId): array
     return $stmt->fetchAll();
 }
 
+/** Every catalogue photo with the name of the item it belongs to, for pickers. */
+function catalog_photos_all(): array
+{
+    return db()->query(
+        'SELECT p.id, p.item_type, p.item_id, p.caption_en, p.path,
+                COALESCE(c.name_en, x.name_en, s.name_en) AS item_name
+         FROM catalog_photos p
+         LEFT JOIN courses c ON p.item_type = "course" AND c.id = p.item_id
+         LEFT JOIN excursions x ON p.item_type = "excursion" AND x.id = p.item_id
+         LEFT JOIN dive_sites s ON p.item_type = "dive_site" AND s.id = p.item_id
+         ORDER BY p.item_type, item_name, p.sort_order, p.id'
+    )->fetchAll();
+}
+
+/** The photo beside the home page headline: the chosen one, else the first photo of a published excursion. */
+function hero_photo(): ?array
+{
+    $id = (int) setting('hero_photo_id');
+    if ($id > 0 && ($ph = catalog_photo_find($id)) !== null) {
+        return $ph;
+    }
+
+    return db()->query(
+        'SELECT p.* FROM catalog_photos p JOIN excursions x ON x.id = p.item_id AND x.is_published = 1
+         WHERE p.item_type = "excursion" ORDER BY x.sort_order, x.id, p.sort_order, p.id LIMIT 1'
+    )->fetch() ?: null;
+}
+
 function catalog_photo_find(int $id): ?array
 {
     $stmt = db()->prepare('SELECT * FROM catalog_photos WHERE id = :id');

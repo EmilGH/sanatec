@@ -91,6 +91,18 @@ echo shell_page('Business Info', 'Site content');
         <?php if ($type === 'checkbox'): ?>
           <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="<?= e($key) ?>" name="<?= e($key) ?>" value="1" <?= ($all[$key]['en'] ?? '0') === '1' ? 'checked' : '' ?>>
             <label class="form-check-label" for="<?= e($key) ?>"><?= e($field['label']) ?></label></div>
+        <?php elseif ($type === 'photo'): require_once __DIR__ . '/../src/Photos.php'; $chosen = (int) ($all[$key]['en'] ?? 0); ?>
+          <div class="mb-3">
+            <label class="form-label" for="<?= e($key) ?>"><?= e($field['label']) ?></label>
+            <div class="d-flex gap-3 align-items-center flex-wrap">
+              <select class="form-select" id="<?= e($key) ?>" name="<?= e($key) ?>" style="max-width:420px">
+                <option value="">Automatic</option>
+                <?php foreach (catalog_photos_all() as $ph): ?><option value="<?= (int) $ph['id'] ?>" <?= $chosen === (int) $ph['id'] ? 'selected' : '' ?>><?= e(($ph['item_name'] ?? '?') . ($ph['caption_en'] ? ' · ' . $ph['caption_en'] : '') . ' (#' . (int) $ph['id'] . ')') ?></option><?php endforeach; ?>
+              </select>
+              <?php if (($hp = hero_photo()) !== null): ?><img src="<?= e(photo_url($hp, true)) ?>" alt="" width="120" height="80" style="border-radius:var(--radius-sm);object-fit:cover"><span class="st-muted small"><?= $chosen > 0 ? 'Chosen' : 'Automatic' ?></span><?php endif; ?>
+            </div>
+            <?php if ($help !== ''): ?><div class="form-text"><?= e($help) ?></div><?php endif; ?>
+          </div>
         <?php elseif ($localized): ?>
           <?php field_pair($key, $field['label'], $rowFor($key), $type, $help, (int) ($field['rows'] ?? 3)); ?>
         <?php else: ?>

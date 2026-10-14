@@ -88,6 +88,7 @@ function settings_schema(): array
                 'hero_title_a' => ['label' => 'Headline, first line'],
                 'hero_title_b' => ['label' => 'Headline, second line', 'help' => 'Shown in the serif accent face'],
                 'hero_intro'   => ['label' => 'Introduction', 'type' => 'textarea'],
+                'hero_photo_id' => ['label' => 'Hero photo', 'localized' => false, 'type' => 'photo', 'help' => 'Shown beside the headline on wide screens. Pick any photo already on a course, excursion or dive site; leave it on Automatic to use the first excursion photo.'],
             ],
         ],
         'training' => [

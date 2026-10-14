@@ -37,7 +37,8 @@ $hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bo
 <?= ui_affiliate_strip($affiliate ?? null, $lang) ?>
 
 <main id="main">
-  <section class="st-hero st-wrap" aria-labelledby="hero-title">
+  <section class="st-hero st-wrap<?= ($heroPhoto ?? null) ? ' st-hero--split' : '' ?>" aria-labelledby="hero-title">
+    <?php if ($heroPhoto ?? null): ?><div class="st-hero__photo"><img src="<?= e(photo_url($heroPhoto)) ?>" alt="" width="1500" height="1000" fetchpriority="high"></div><?php endif; ?>
     <div class="st-hero__text">
       <p class="st-eyebrow"><?= e(t('hero_kicker', $lang)) ?></p>
       <h1 class="st-display" id="hero-title"><?= e(setting('hero_title_a', $lang)) ?><em><?= e(setting('hero_title_b', $lang)) ?></em></h1>

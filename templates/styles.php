@@ -79,6 +79,7 @@ body{margin:0}
 .st-hdr__roundel{width:65%;max-width:312px;height:auto;display:block}
 .st-hdr .st-wm,.st-hdr__brand svg.st-wm{width:75%;max-width:360px;height:auto;aspect-ratio:486.5/126.8}
 .st-hero{min-height:0}
+.st-hero__photo{display:none}
 .st-hero__text{padding-top:6px;padding-bottom:10px}
 .st-hero__text .st-eyebrow{margin-bottom:6px}
 .st-hero__lede{margin-top:8px}
@@ -93,18 +94,21 @@ body{margin:0}
   .st-seg{display:none}
   #seg-training:checked~#adventures,#seg-adventures:checked~#training{display:block}
   .st-section{padding:40px 0 8px}
-  /* Desktop: the lockup and the hero sit centred; the language switch keeps the top-right corner. */
-  .st-hdr{position:relative;flex-direction:column;align-items:center;padding:28px 40px 0;min-height:0}
-  .st-hdr__brand{width:auto;align-items:center;gap:10px}
-  .st-hdr__roundel{width:132px;height:132px;max-width:none}
-  .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:64px;width:246px;max-width:none;aspect-ratio:auto}
-  .st-hdr .st-lang{position:absolute;top:20px;right:40px}
-  .st-hero{min-height:0}
-  .st-hero__text{padding:28px 40px 36px;max-width:820px;margin:0 auto;text-align:center}
+  /* Desktop: a compact inline lockup in the header; the hero splits into headline and photo. */
+  .st-hdr{flex-direction:row;justify-content:space-between;align-items:center;padding:14px 40px;min-height:0}
+  .st-hdr__brand{width:auto;flex-direction:row;align-items:center;gap:14px}
+  .st-hdr__roundel{width:64px;height:64px;max-width:none}
+  .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:52px;width:200px;max-width:none;aspect-ratio:auto}
+  .st-hero{min-height:0;padding:0 40px}
+  .st-hero--split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;align-items:center}
+  .st-hero__photo{order:2;border-radius:var(--radius-lg);overflow:hidden;aspect-ratio:4/3;background:var(--panel)}
+  .st-hero__photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .st-hero__text{padding:24px 0 32px;max-width:560px}
+  .st-hero--split .st-hero__text{padding:8px 0}
   .st-hero__text .st-eyebrow{margin-bottom:10px}
-  .st-hero .st-display{font-size:56px;line-height:60px}
-  .st-hero__lede{margin:16px auto 0;max-width:560px}
-  .st-hero .st-actions{display:flex;justify-content:center;margin-top:26px}
+  .st-hero .st-display{font-size:52px;line-height:56px}
+  .st-hero__lede{margin-top:16px;max-width:480px}
+  .st-hero .st-actions{display:flex;margin-top:26px}
   .st-hero{min-height:420px}
   .st-ctabar{display:none}
   #contact,#included,.st-foot{padding-left:40px;padding-right:40px}
