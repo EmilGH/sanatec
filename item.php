@@ -63,6 +63,20 @@ send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsa
 .st-item__hero img{width:100%;height:100%;object-fit:cover;display:block}
 .st-item__gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin:12px 0 4px}
 .st-item__gallery img{width:100%;aspect-ratio:3/2;object-fit:cover;border-radius:var(--radius-sm);display:block}
+.st-item__hero,.st-item__gallery a{display:block;cursor:zoom-in}
+/* Tap-to-enlarge viewer: one photo at a time, caption below, swipe or arrows between them. */
+.st-lightbox{border:0;padding:0;margin:0;width:100vw;height:100vh;max-width:none;max-height:none;background:#04101a;color:#fff}
+.st-lightbox::backdrop{background:#04101a}
+.st-lightbox__stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
+.st-lightbox__stage img{max-width:100vw;max-height:100vh;object-fit:contain;user-select:none;-webkit-user-drag:none}
+.st-lightbox__bar{position:fixed;left:0;right:0;bottom:0;padding:14px 64px 22px 16px;background:linear-gradient(transparent,rgba(4,16,26,.85));font:400 15px/1.4 var(--font-sans);color:#fff;pointer-events:none}
+.st-lightbox__bar small{display:block;color:rgba(255,255,255,.6);margin-top:2px}
+.st-lightbox button{position:fixed;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.st-lightbox button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.st-lightbox__close{top:max(12px,env(safe-area-inset-top));right:12px}
+.st-lightbox__prev,.st-lightbox__next{top:50%;transform:translateY(-50%)}
+.st-lightbox__prev{left:8px}.st-lightbox__next{right:8px}
+.st-lightbox button[hidden]{display:none}
 .st-item__body{font-size:17px;line-height:1.6;color:var(--ink);white-space:pre-line}
 .st-prices{display:grid;gap:8px;margin:16px 0}
 .st-price{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 16px;border:1px solid var(--line);border-radius:var(--radius-md);color:var(--ink);text-decoration:none;font-weight:600}
@@ -85,7 +99,7 @@ send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsa
 <main class="st-wrap st-item" id="main">
   <a class="st-back" href="<?= e($prefix ?: '/') ?>#<?= $type === 'course' ? 'training' : 'adventures' ?>"><?= ui_icon('back') ?><?= e(t($type === 'course' ? 'nav_training' : 'nav_adventures', $lang)) ?></a>
   <?php if ($photos !== []): ?>
-  <div class="st-item__hero"><img src="<?= e(photo_url($photos[0])) ?>" alt="<?= e((string) ($photos[0]['caption_' . $lang] ?? $photos[0]['caption_en'] ?? $name)) ?>" fetchpriority="high"></div>
+  <a class="st-item__hero" href="<?= e(photo_url($photos[0])) ?>" data-lightbox="0" data-caption="<?= e((string) ($photos[0]['caption_' . $lang] ?: $photos[0]['caption_en'] ?? '')) ?>"><img src="<?= e(photo_url($photos[0])) ?>" alt="<?= e((string) ($photos[0]['caption_' . $lang] ?: $photos[0]['caption_en'] ?: $name)) ?>" fetchpriority="high"></a>
   <?php endif; ?>
   <section class="st-section" style="padding-top:8px">
     <p class="st-eyebrow"><?= e($type === 'course' ? t('item_course', $lang) . ' · ' . ui_name($r, $lang, 'duration') : t('item_excursion', $lang) . ' · ' . ui_name($r, $lang, 'cert')) ?></p>
@@ -97,7 +111,7 @@ send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsa
           <p class="st-note"><strong><?= e(t('item_prereq', $lang)) ?>:</strong> <?= e(trim((string) ($r['prereq_' . $lang] ?? '')) ?: (string) $r['prereq_en']) ?></p>
         <?php endif; ?>
         <?php if (count($photos) > 1): ?>
-        <div class="st-item__gallery"><?php foreach (array_slice($photos, 1) as $ph): ?><img src="<?= e(photo_url($ph, true)) ?>" alt="<?= e((string) ($ph['caption_' . $lang] ?? $ph['caption_en'] ?? '')) ?>" loading="lazy"><?php endforeach; ?></div>
+        <div class="st-item__gallery"><?php foreach (array_slice($photos, 1) as $i => $ph): ?><a href="<?= e(photo_url($ph)) ?>" data-lightbox="<?= $i + 1 ?>" data-caption="<?= e((string) ($ph['caption_' . $lang] ?: $ph['caption_en'] ?? '')) ?>"><img src="<?= e(photo_url($ph, true)) ?>" alt="<?= e((string) ($ph['caption_' . $lang] ?: $ph['caption_en'] ?? '')) ?>" loading="lazy"></a><?php endforeach; ?></div>
         <?php endif; ?>
         <?php if ($sites !== []): ?>
         <h2 class="st-h3 mt-4 mb-1"><?= e(t('item_cenotes', $lang)) ?></h2>
@@ -134,5 +148,6 @@ send_header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsa
 <?= ui_public_footer($lang) ?>
 <?= ui_ctabar($lang) ?>
 </div>
+<script src="/assets/js/lightbox.js" defer></script>
 </body>
 </html>
