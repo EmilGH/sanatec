@@ -25,6 +25,10 @@ body{margin:0}
 .st-root>*{box-sizing:border-box;width:100%}
 .st-root>.st-affil{width:calc(100% - 32px)}
 .st-row__name{margin-right:auto}
+.st-row__head--photo{align-items:center}
+.st-row__thumb{flex:none;width:84px;height:56px;border-radius:8px;overflow:hidden;background:var(--panel)}
+.st-row__thumb img{width:100%;height:100%;object-fit:cover;display:block}
+@media(max-width:480px){.st-row__thumb{width:66px;height:44px}}
 .st-row__title{color:inherit;text-decoration:none}
 .st-row__title svg{width:14px;height:14px;margin-left:8px;vertical-align:-1px;color:var(--muted)}
 .st-row__title:hover,.st-row__title:hover svg{color:var(--aqua)}

@@ -140,6 +140,19 @@ function ui_contact_list(string $lang): string
 }
 
 /** One course as a menu row with a single price line. */
+/** The item's first photo as a small 3:2 thumbnail linking to its page, or nothing when it has none. */
+function ui_row_thumb(string $type, int $itemId, string $slug, string $lang): string
+{
+    require_once __DIR__ . '/../../src/Photos.php';
+    $ph = catalog_photo_first($type, $itemId);
+    if ($ph === null) {
+        return '';
+    }
+    $href = ($lang === 'es' ? '/es' : '') . '/c/' . rawurlencode($slug);
+
+    return '<a class="st-row__thumb" href="' . e($href) . '" tabindex="-1" aria-hidden="true"><img src="' . e(photo_url($ph, true)) . '" alt="" width="84" height="56" loading="lazy"></a>';
+}
+
 /** The item's name as a link to its own page (its own URL and preview card), with a small link mark right after the text. */
 function ui_row_title(string $name, string $slug, string $lang): string
 {
@@ -156,7 +169,7 @@ function ui_menu_course(array $c, string $lang): string
     $price = money($c['price_mxn']);
 
     return '<li class="st-row" id="' . e($c['slug']) . '">'
-        . '<div class="st-row__head">' . ui_row_title($name, $c['slug'], $lang) . '</div>'
+        . '<div class="st-row__head' . (($thumb = ui_row_thumb('course', (int) $c['id'], $c['slug'], $lang)) !== '' ? ' st-row__head--photo' : '') . '">' . $thumb . ui_row_title($name, $c['slug'], $lang) . '</div>'
         . ($c['note_' . $lang] ?? $c['note_en'] ? '<p class="st-row__note">' . e(ui_name($c, $lang, 'note')) . '</p>' : '')
         . '<a class="st-line" href="' . e(ui_wa_url($prefill)) . '"><span>' . e($duration) . '</span><span class="st-line__lead"></span>'
         . ($price !== null ? '<span class="st-line__price">' . e($price) . '</span>' : '<span class="st-line__ask">' . e(t('ask_for_pricing', $lang)) . '</span>')
@@ -180,7 +193,7 @@ function ui_menu_excursion(array $x, string $lang): string
     }
 
     $html = '<li class="st-row" id="' . e($x['slug']) . '">'
-        . '<div class="st-row__head">' . ui_row_title($name, $x['slug'], $lang)
+        . '<div class="st-row__head' . (($thumb = ui_row_thumb('excursion', (int) $x['id'], $x['slug'], $lang)) !== '' ? ' st-row__head--photo' : '') . '">' . $thumb . ui_row_title($name, $x['slug'], $lang)
         . '<span class="st-cert' . ($code === 'AOW' ? ' st-cert--aow' : '') . '">' . e($code) . '</span></div>'
         . ($note !== '' ? '<p class="st-row__note">' . e($note) . '</p>' : '');
 
