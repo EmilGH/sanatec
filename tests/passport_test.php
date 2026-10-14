@@ -170,3 +170,31 @@ test('a team photo is stored square-capped and removed cleanly', function (): vo
     is_same(null, team_find($tid)['photo_path']);
     is_false(is_file($abs));
 });
+
+test('a stamp carries the cenote photo on the public passport once the site has one', function (): void {
+    require_once SANATEC_ROOT . '/src/Photos.php';
+    $id = event_create('excursion', ['catalog_id' => excursion_id('Dos Ojos'), 'date' => '2031-02-02', 'dives_count' => 2]);
+    $cid = customer_save(null, ['name' => 'Stamp Diver']);
+    event_participant_set_status($id, event_participant_add($id, $cid), 'attended');
+    $stamps = customer_stamps($cid);
+    is_true($stamps !== [], 'attending stamps the sites');
+    $site = (int) $stamps[0]['id'];
+    $cust = customer_find($cid);
+    $pid = (string) db()->query('SELECT public_id FROM people WHERE id = ' . (int) $cust['person_id'])->fetchColumn();
+    db()->exec('UPDATE customers SET passport_public = 1 WHERE id = ' . $cid);
+
+    $render = static function () use ($pid): string {
+        $_GET = ['id' => $pid, 'lang' => 'en'];
+        $_SERVER['REQUEST_URI'] = '/passport/' . $pid;
+        ob_start();
+        require SANATEC_ROOT . '/passport.php';
+        return (string) ob_get_clean();
+    };
+    has_not('class="st-stamp st-stamp--photo"', $render(), 'no photo yet: a plain stamp');
+
+    $photoId = catalog_photo_add('dive_site', $site, test_photo(1800, 1200));
+    $html = $render();
+    has('class="st-stamp st-stamp--photo"', $html);
+    has('/photo/' . $photoId . '-s.jpg', $html, 'the stamp shows the site photo');
+    catalog_photo_delete($photoId);
+});
