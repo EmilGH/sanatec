@@ -74,11 +74,13 @@ body{margin:0}
 .st-foot{border-top:1px solid var(--line);padding-top:24px}
 /* Phones and tablets: the wordmark spans the screen, the language switch sits centred beneath it. */
 /* The brand is one stacked lockup: roundel over wordmark. Phones centre it; desktop keeps it left with the language switch opposite. */
-.st-hdr{flex-direction:column;align-items:center;gap:10px;padding:14px 12px 6px;min-height:0}
-.st-hdr__brand{width:100%;flex-direction:column;justify-content:center;gap:12px}
+.st-hdr{flex-direction:column;align-items:center;gap:6px;padding:8px 12px 0;min-height:0}
+.st-hdr__brand{width:100%;flex-direction:column;justify-content:center;gap:6px}
 .st-hdr__roundel{width:65%;max-width:312px;height:auto;display:block}
 .st-hdr .st-wm,.st-hdr__brand svg.st-wm{width:75%;max-width:360px;height:auto;aspect-ratio:486.5/126.8}
-.st-hero__text{padding-top:24px;padding-bottom:22px}
+.st-hero__text{padding-top:10px;padding-bottom:14px}
+.st-hero__text .st-eyebrow{margin-bottom:6px}
+.st-hero__lede{margin-top:8px}
 /* Phones have the sticky WhatsApp / SMS bar, so the hero does not repeat the buttons. */
 .st-hero .st-actions{display:none}
 .st-foot .st-wm--small{height:24px;width:92px;display:block}
