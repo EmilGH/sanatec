@@ -110,10 +110,27 @@ function image_load_oriented(string $tmpPath): GdImage
  * Store a photo: re-encoded as JPEG with GD, which drops EXIF (location,
  * device) and caps the longest side. Returns the relative path.
  */
+/** Why an upload failed, in words a staff member can act on. */
+function upload_error_message(array $file): ?string
+{
+    $err = (int) ($file['error'] ?? UPLOAD_ERR_NO_FILE);
+    if ($err === UPLOAD_ERR_OK) {
+        return null;
+    }
+    if ($err === UPLOAD_ERR_INI_SIZE || $err === UPLOAD_ERR_FORM_SIZE) {
+        return 'That photo is bigger than the server accepts (' . ini_get('upload_max_filesize') . 'B). Use a smaller one, or send it from the phone\'s share sheet as a reduced size.';
+    }
+    if ($err === UPLOAD_ERR_NO_FILE) {
+        return 'Choose a photo first.';
+    }
+
+    return 'The photo did not upload (code ' . $err . '). Try again.';
+}
+
 function store_image(array $file, string $folder, string $name, int $maxSide = 1200): string
 {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        throw new InvalidArgumentException('The photo did not upload. Try again.');
+    if (($msg = upload_error_message($file)) !== null) {
+        throw new InvalidArgumentException($msg);
     }
     if ((int) $file['size'] > UPLOAD_MAX_BYTES) {
         throw new InvalidArgumentException('That photo is over 10 MB.');

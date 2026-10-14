@@ -88,11 +88,27 @@ function photos_card(string $type, int $itemId, string $postUrl): void
           submit.disabled = false;
         };
       });
-      form.addEventListener('submit', function () {
-        if (!cropper) { return; }
-        var d = cropper.getData(true);   // in the original image's pixels
-        form.crop_x.value = Math.max(0, d.x); form.crop_y.value = Math.max(0, d.y); form.crop_w.value = d.width; form.crop_h.value = d.height;
-        submit.disabled = true;
+      // Phone photos are 3–12 MB, more than the server accepts. The crop is
+      // applied here and the result sent as a JPEG of at most 2400×1600, which
+      // is well under a megabyte, so the upload is small and quick.
+      form.addEventListener('submit', function (e) {
+        if (!cropper || form.dataset.ready === '1') { return; }
+        e.preventDefault();
+        submit.disabled = true; submit.textContent = 'Sending…';
+        var canvas = cropper.getCroppedCanvas({ maxWidth: 2400, maxHeight: 1600, imageSmoothingQuality: 'high' });
+        canvas.toBlob(function (blob) {
+          if (!blob || !window.DataTransfer) {           // old browser: send the original with the crop box
+            var d = cropper.getData(true);
+            form.crop_x.value = Math.max(0, d.x); form.crop_y.value = Math.max(0, d.y); form.crop_w.value = d.width; form.crop_h.value = d.height;
+          } else {
+            var dt = new DataTransfer();
+            dt.items.add(new File([blob], 'photo.jpg', { type: 'image/jpeg' }));
+            file.files = dt.files;
+            form.crop_x.value = form.crop_y.value = form.crop_w.value = form.crop_h.value = '';
+          }
+          form.dataset.ready = '1';
+          form.submit();
+        }, 'image/jpeg', 0.88);
       });
     })();
     </script>

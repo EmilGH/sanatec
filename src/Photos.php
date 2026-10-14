@@ -52,8 +52,8 @@ function catalog_photo_add(string $type, int $itemId, array $file, ?array $crop 
     if (!isset(PHOTO_TYPES[$type])) {
         throw new InvalidArgumentException('Unknown photo target.');
     }
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
-        throw new InvalidArgumentException('The photo did not upload. Try again.');
+    if (($msg = upload_error_message($file)) !== null) {
+        throw new InvalidArgumentException($msg);
     }
     if ((int) $file['size'] > UPLOAD_MAX_BYTES) {
         throw new InvalidArgumentException('That photo is over 10 MB.');

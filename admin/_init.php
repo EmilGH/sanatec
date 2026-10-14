@@ -17,6 +17,14 @@ require_once __DIR__ . '/../src/Audit.php';
 
 start_session();
 
+// A POST bigger than PHP's post_max_size arrives with $_POST and $_FILES empty, which would
+// otherwise surface as a baffling CSRF failure. Say what happened and go back.
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $_POST === [] && $_FILES === [] && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+    flash('That upload was too large for the server to accept (' . ini_get('post_max_size') . 'B in one go). Try a smaller photo.', 'warn');
+    header('Location: ' . ($_SERVER['HTTP_REFERER'] ?? '/admin/'));
+    exit;
+}
+
 $currentUser = defined('ADMIN_PUBLIC') ? current_user() : require_login();
 
 /** Queue a one-off message to show after a redirect. */
