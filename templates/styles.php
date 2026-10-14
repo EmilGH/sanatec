@@ -93,13 +93,18 @@ body{margin:0}
   .st-seg{display:none}
   #seg-training:checked~#adventures,#seg-adventures:checked~#training{display:block}
   .st-section{padding:40px 0 8px}
-  .st-hdr{flex-direction:row;justify-content:space-between;align-items:flex-start;padding:16px 40px 8px;min-height:0}
-  .st-hdr__brand{width:auto;align-items:flex-start;gap:8px}
-  .st-hdr__roundel{width:96px;height:96px}
-  .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:56px;width:215px;aspect-ratio:auto}
+  /* Desktop: the lockup and the hero sit centred; the language switch keeps the top-right corner. */
+  .st-hdr{position:relative;flex-direction:column;align-items:center;padding:28px 40px 0;min-height:0}
+  .st-hdr__brand{width:auto;align-items:center;gap:10px}
+  .st-hdr__roundel{width:132px;height:132px;max-width:none}
+  .st-hdr .st-wm,.st-hdr__brand svg.st-wm{height:64px;width:246px;max-width:none;aspect-ratio:auto}
+  .st-hdr .st-lang{position:absolute;top:20px;right:40px}
   .st-hero{min-height:0}
-  .st-hero__text{padding-top:32px;max-width:760px}
-  .st-hero .st-actions{display:flex}
+  .st-hero__text{padding:28px 40px 36px;max-width:820px;margin:0 auto;text-align:center}
+  .st-hero__text .st-eyebrow{margin-bottom:10px}
+  .st-hero .st-display{font-size:56px;line-height:60px}
+  .st-hero__lede{margin:16px auto 0;max-width:560px}
+  .st-hero .st-actions{display:flex;justify-content:center;margin-top:26px}
   .st-hero{min-height:420px}
   .st-ctabar{display:none}
   #contact,#included,.st-foot{padding-left:40px;padding-right:40px}
