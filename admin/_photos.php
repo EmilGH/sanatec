@@ -48,17 +48,17 @@ function photos_card(string $type, int $itemId, string $postUrl): void
         <figure class="m-0" style="width:180px">
           <img src="/photo/<?= (int) $ph['id'] ?>-s.jpg" alt="" style="width:100%;border-radius:var(--radius-sm);display:block">
           <figcaption class="small d-flex justify-content-between align-items-center mt-1">
-            <form method="post" class="d-inline-flex gap-1"><?= csrf_field() ?><input type="hidden" name="action" value="photo_move"><input type="hidden" name="photo_id" value="<?= (int) $ph['id'] ?>">
+            <form method="post" class="d-inline-flex gap-1"><?= csrf_field() ?><input type="hidden" name="id" value="<?= $itemId ?>"><input type="hidden" name="action" value="photo_move"><input type="hidden" name="photo_id" value="<?= (int) $ph['id'] ?>">
               <button class="btn btn-sm btn-outline-secondary" name="direction" value="-1" <?= $i === 0 ? 'disabled' : '' ?>>←</button>
               <button class="btn btn-sm btn-outline-secondary" name="direction" value="1" <?= $i === count($photos) - 1 ? 'disabled' : '' ?>>→</button></form>
             <span class="st-muted text-truncate px-1" style="max-width:80px"><?= e((string) ($ph['caption_en'] ?? '')) ?></span>
-            <form method="post" onsubmit="return confirm('Remove this photo?')"><?= csrf_field() ?><input type="hidden" name="action" value="photo_delete"><input type="hidden" name="photo_id" value="<?= (int) $ph['id'] ?>"><button class="btn btn-sm btn-outline-danger">×</button></form>
+            <form method="post" onsubmit="return confirm('Remove this photo?')"><?= csrf_field() ?><input type="hidden" name="id" value="<?= $itemId ?>"><input type="hidden" name="action" value="photo_delete"><input type="hidden" name="photo_id" value="<?= (int) $ph['id'] ?>"><button class="btn btn-sm btn-outline-danger">×</button></form>
           </figcaption>
         </figure>
         <?php endforeach; ?>
       </div>
       <?php endif; ?>
-      <form method="post" enctype="multipart/form-data" id="photo-form"><?= csrf_field() ?><input type="hidden" name="action" value="photo_add">
+      <form method="post" enctype="multipart/form-data" id="photo-form"><?= csrf_field() ?><input type="hidden" name="id" value="<?= $itemId ?>"><input type="hidden" name="action" value="photo_add">
         <input type="hidden" name="crop_x"><input type="hidden" name="crop_y"><input type="hidden" name="crop_w"><input type="hidden" name="crop_h">
         <div class="row g-2 align-items-end">
           <div class="col-12 col-md-5"><label class="form-label small" for="photo-file">Add a photo</label><input class="form-control form-control-sm" type="file" id="photo-file" name="photo" accept="image/*" required></div>

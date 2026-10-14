@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             array_keys(PRICE_COLUMNS)
         ));
         audit($id ? 'update' : 'create', 'excursion', $savedId, $input['name_en'] . ' — ' . $prices);
-        flash($id ? 'Cenote route updated.' : 'Cenote route added.');
+        flash($id ? 'Excursion updated.' : 'Excursion added.');
         og_invalidate();
         redirect('/admin/catalog-excursions.php');
     }
@@ -59,14 +59,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $row = catalog_find('excursions', $id);
         catalog_delete('excursions', $id);
         audit('delete', 'excursion', $id, (string) ($row['name_en'] ?? ''));
-        flash('Cenote route deleted.');
+        flash('Excursion deleted.');
         redirect('/admin/catalog-excursions.php');
     }
 
     if ($action === 'toggle' && $id > 0) {
         $live = catalog_toggle_published('excursions', $id);
         audit('publish', 'excursion', $id, $live ? 'shown on site' : 'hidden from site');
-        flash($live ? 'Route is now visible on the site.' : 'Route hidden from the site.');
+        flash($live ? 'Excursion is now visible on the site.' : 'Excursion hidden from the site.');
         redirect('/admin/catalog-excursions.php');
     }
 
