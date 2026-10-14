@@ -78,7 +78,8 @@ body{margin:0}
 .st-hdr__brand{width:100%;flex-direction:column;justify-content:center;gap:6px}
 .st-hdr__roundel{width:65%;max-width:312px;height:auto;display:block}
 .st-hdr .st-wm,.st-hdr__brand svg.st-wm{width:75%;max-width:360px;height:auto;aspect-ratio:486.5/126.8}
-.st-hero__text{padding-top:6px;padding-bottom:2px}
+.st-hero{min-height:0}
+.st-hero__text{padding-top:6px;padding-bottom:10px}
 .st-hero__text .st-eyebrow{margin-bottom:6px}
 .st-hero__lede{margin-top:8px}
 /* Phones have the sticky WhatsApp / SMS bar, so the hero does not repeat the buttons. */
