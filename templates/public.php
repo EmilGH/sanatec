@@ -107,6 +107,20 @@ $hasSpecial = (bool) array_filter($excursions, static fn (array $r): bool => (bo
   </section>
   <?php endif; ?>
 
+  <section class="st-section st-wrap" id="diver-info" aria-labelledby="diver-info-title">
+    <div class="st-diverinfo">
+      <div>
+        <p class="st-eyebrow"><?= e(t('diverinfo_kicker', $lang)) ?></p>
+        <h2 class="st-h1" id="diver-info-title"><?= e(t('diverinfo_title', $lang)) ?></h2>
+        <p class="st-lede"><?= e(t('diverinfo_text', $lang)) ?></p>
+      </div>
+      <div class="st-diverinfo__cta">
+        <a class="st-btn st-btn--primary" href="/my/<?= $lang === 'es' ? '?lang=es' : '' ?>"><?= ui_icon('user') ?><?= e(t('diverinfo_button', $lang)) ?></a>
+        <p class="st-note"><?= e(t('diverinfo_note', $lang)) ?></p>
+      </div>
+    </div>
+  </section>
+
   <?= ui_contact_section($lang) ?>
 </main>
 <script src="/assets/js/public.js" defer></script>

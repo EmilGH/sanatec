@@ -24,6 +24,11 @@ body{margin:0}
 /* In a column flex box an auto-margined child shrinks to its content; every band is full width up to its cap. */
 .st-root>*{box-sizing:border-box;width:100%}
 .st-root>.st-affil{width:calc(100% - 32px)}
+.st-diverinfo{display:grid;gap:18px;padding:24px 20px;border:1px solid var(--line-strong);border-radius:var(--radius-lg);background:var(--panel)}
+.st-diverinfo .st-h1{margin-top:6px}
+.st-diverinfo__cta .st-btn{width:100%;justify-content:center}
+.st-diverinfo__cta .st-note{margin:10px 0 0}
+@container (min-width:900px){.st-diverinfo{grid-template-columns:1.4fr 1fr;align-items:center;gap:48px;padding:36px 40px}.st-diverinfo__cta .st-btn{width:auto}}
 .st-days{list-style:none;margin:0;padding:0}
 .st-day{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
 .st-day:last-child{border-bottom:0}
